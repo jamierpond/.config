@@ -42,5 +42,7 @@ vim.api.nvim_set_keymap("v", "<leader>y", [["*y]], {})
 
 vim.cmd([[command! -nargs=+ Gc !git commit -a -m "<args>"]])
 vim.cmd([[command! Gp !git push]])
+vim.cmd([[command! Kat !killall tmux]])
+vim.cmd([[command! Kan !killall node]])
 
 
