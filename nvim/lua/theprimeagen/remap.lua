@@ -1,62 +1,42 @@
 vim.g.mapleader = " "
-vim.key.set("n", "<leader>e", vim.cmd.Ex)
 
+vim.api.nvim_set_keymap("n", "<leader>e", ":Ex<CR>", { noremap = true })
 vim.api.nvim_set_keymap("n", "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<CR>", { noremap = true })
 vim.api.nvim_set_keymap('i', '<F2>', '<cmd>lua require("renamer").rename()<cr>', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>rn', '<cmd>lua require("renamer").rename()<cr>', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('v', '<leader>rn', '<cmd>lua require("renamer").rename()<cr>', { noremap = true, silent = true })
 
+vim.api.nvim_set_keymap("v", "J", ":m '>+1<CR>gv=gv", {})
+vim.api.nvim_set_keymap("v", "K", ":m '<-2<CR>gv=gv", {})
+vim.api.nvim_set_keymap("n", "J", "mzJ`z", {})
+vim.api.nvim_set_keymap("n", "<C-d>", "<C-d>zz", {})
+vim.api.nvim_set_keymap("n", "<C-u>", "<C-u>zz", {})
+vim.api.nvim_set_keymap("n", "n", "nzzzv", {})
+vim.api.nvim_set_keymap("n", "N", "Nzzzv", {})
 
-vim.key.set("v", "J", ":m '>+1<CR>gv=gv")
-vim.key.set("v", "K", ":m '<-2<CR>gv=gv")
+vim.api.nvim_set_keymap("n", "<leader>vwm", "<cmd>lua require('vim-with-me').StartVimWithMe()<CR>", { noremap = true })
+vim.api.nvim_set_keymap("n", "<leader>svwm", "<cmd>lua require('vim-with-me').StopVimWithMe()<CR>", { noremap = true })
 
-vim.key.set("n", "J", "mzJ`z")
-vim.key.set("n", "<C-d>", "<C-d>zz")
-vim.key.set("n", "<C-u>", "<C-u>zz")
-vim.key.set("n", "n", "nzzzv")
-vim.key.set("n", "N", "Nzzzv")
+vim.api.nvim_set_keymap("x", "<leader>p", [["_dP"]], {})
+vim.api.nvim_set_keymap("n", "<leader>y", [["+y]], {})
+vim.api.nvim_set_keymap("n", "<leader>Y", [["+Y]], {})
+vim.api.nvim_set_keymap("n", "<leader>d", [["_d"]], {})
+vim.api.nvim_set_keymap("i", "<C-c>", "<Esc>", {})
+vim.api.nvim_set_keymap("n", "Q", "<nop>", {})
+vim.api.nvim_set_keymap("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>", {})
+vim.api.nvim_set_keymap("n", "<leader>f", ":lua vim.lsp.buf.format()<CR>", {})
 
-vim.key.set("n", "<leader>vwm", function()
-    require("vim-with-me").StartVimWithMe()
-end)
-vim.key.set("n", "<leader>svwm", function()
-    require("vim-with-me").StopVimWithMe()
-end)
+vim.api.nvim_set_keymap("n", "<C-k>", "<cmd>cnext<CR>zz", {})
+vim.api.nvim_set_keymap("n", "<C-j>", "<cmd>cprev<CR>zz", {})
+vim.api.nvim_set_keymap("n", "<leader>k", "<cmd>lnext<CR>zz", {})
+vim.api.nvim_set_keymap("n", "<leader>j", "<cmd>lprev<CR>zz", {})
 
--- greatest remap ever
-vim.key.set("x", "<leader>p", [["_dP]])
+vim.api.nvim_set_keymap("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], {})
+vim.api.nvim_set_keymap("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true })
+vim.api.nvim_set_keymap("n", "<leader>vpp", "<cmd>e ~/.dotfiles/nvim/.config/nvim/lua/theprimeagen/packer.lua<CR>", {})
+vim.api.nvim_set_keymap("n", "<leader>mr", "<cmd>CellularAutomaton make_it_rain<CR>", {})
 
--- next greatest remap ever : asbjornHaland
-vim.key.set({"n", "v"}, "<leader>y", [["+y]])
-vim.key.set("n", "<leader>Y", [["+Y]])
+vim.api.nvim_set_keymap("n", "<leader><leader>", ":so<CR>", {})
 
-vim.key.set({"n", "v"}, "<leader>d", [["_d]])
-
--- This is going to get me cancelled
-vim.key.set("i", "<C-c>", "<Esc>")
-
-vim.key.set("n", "Q", "<nop>")
-vim.key.set("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>")
-vim.key.set("n", "<leader>f", vim.lsp.buf.format)
-
-vim.key.set("n", "<C-k>", "<cmd>cnext<CR>zz")
-vim.key.set("n", "<C-j>", "<cmd>cprev<CR>zz")
-vim.key.set("n", "<leader>k", "<cmd>lnext<CR>zz")
-vim.key.set("n", "<leader>j", "<cmd>lprev<CR>zz")
-
-vim.key.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
-vim.key.set("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true })
-
-vim.key.set("n", "<leader>vpp", "<cmd>e ~/.dotfiles/nvim/.config/nvim/lua/theprimeagen/packer.lua<CR>");
-vim.key.set("n", "<leader>mr", "<cmd>CellularAutomaton make_it_rain<CR>");
-
-vim.key.set("n", "<leader><leader>", function()
-    vim.cmd("so")
-end)
-
--- copy to and from the system clipboard
--- vmap <leader>y !xsel -i -b && xsel -b <CR>
--- nmap <leader>p :r !xsel -b <CR>a
-vim.key.set("v", "<leader>y", [["*y]])
-
+vim.api.nvim_set_keymap("v", "<leader>y", [["*y]], {})
 
