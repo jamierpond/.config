@@ -41,6 +41,6 @@ vim.api.nvim_set_keymap("n", "<leader><leader>", ":so<CR>", {})
 vim.api.nvim_set_keymap("v", "<leader>y", [["*y]], {})
 
 vim.cmd([[command! -nargs=+ Gc !git commit -a -m "<args>"]])
-vim.cmd([[command! -nargs=+ Gp !git push"]])
+vim.cmd([[command! -nargs=0 Gp !git push"]])
 
 
