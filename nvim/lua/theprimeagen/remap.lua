@@ -45,4 +45,12 @@ vim.cmd([[command! Gp !git push]])
 vim.cmd([[command! Kat !killall tmux]])
 vim.cmd([[command! Kan !killall node]])
 
+vim.api.nvim_set_keymap('n', '<leader>gc', [[<Cmd>lua git_commit()<CR>]], { noremap = true, silent = true })
+
+function git_commit()
+  local message = vim.fn.input("Commit message: ")
+  if message ~= "" then
+    vim.cmd("!git add . && git commit -m '" .. message .. "'")
+  end
+end
 
