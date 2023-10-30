@@ -61,26 +61,12 @@ vim.api.nvim_set_keymap('n', '<leader>gcp', [[<Cmd>lua git_commit_and_pull()<CR>
 function git_commit_and_pull()
   local message = vim.fn.input("Commit message: ")
   if message ~= "" then
-    os.execute("git add . && git commit -m '" .. message .. "' && git pull")
-  else
-    os.execute("git pull")
-  end
-  -- Show last 5 commits
-  os.execute('git log -n 5 --pretty=format:"%h - %s (%cr)"')
-end
-
-vim.api.nvim_set_keymap('n', '<leader>gcp', [[<Cmd>lua git_commit_and_pull()<CR>]], { noremap = true, silent = true })
-
-function git_commit_and_pull()
-  local message = vim.fn.input("Commit message: ")
-  if message ~= "" then
     vim.cmd("!git add . && git commit -m '" .. message .. "' && git push")
   else
     vim.cmd("!git push")
   end
   -- Show last 5 commits
-  os.execute('git log -n 5 --pretty=format:"%h - %s (%cr)"')
-  vim.cmd("redraw!")
+  vim.cmd('!git log -n 5 --pretty=format:"%h - %s (%cr)"')
 end
 
 
