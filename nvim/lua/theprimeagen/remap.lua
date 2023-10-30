@@ -56,7 +56,7 @@ local function display_git_info()
   output = io.popen("git symbolic-ref --short HEAD"):read("*a"):gsub("\n", "")
   vim.api.nvim_out_write("Branch: " .. output .. "\n")
 
-  output = io.popen("git log -n 5 --pretty=format:'%h - %s, %cd' --date=short"):read("*a")
+  output = io.popen("git log -n 5 --pretty=format:'%h - %s (%cr)' --date=relative | tac"):read("*a")
   vim.api.nvim_out_write("Last 5 commits:\n" .. output .. "\n")
 end
 
