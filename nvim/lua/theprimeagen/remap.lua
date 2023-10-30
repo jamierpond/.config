@@ -50,15 +50,22 @@ vim.cmd([[command! Kan !killall node]])
 -- local function git_exec(message, additional_cmd)
 -- ok a litte more fun
 
-local function display_git_info()
+function display_git_info()
   local output = io.popen("git rev-parse --show-toplevel"):read("*a"):gsub("\n", "")
   vim.api.nvim_out_write("Repo: " .. output .. "\n")
 
   output = io.popen("git symbolic-ref --short HEAD"):read("*a"):gsub("\n", "")
-  vim.api.nvim_out_write("Branch: [" .. output .. "]\n")
+  vim.api.nvim_out_write("Branch: " .. output .. "\n")
 
   output = io.popen("git log -n 5 --pretty=format:'%h - %s (%cr)' --date=relative | tac"):read("*a")
   vim.api.nvim_out_write("Last 5 commits:\n" .. output .. "\n")
+
+  output = io.popen("git status -s"):read("*a")
+  if output ~= "" then
+    vim.api.nvim_out_write("Changes:\n" .. output .. "\n")
+  else
+    vim.api.nvim_out_write("No changes.\n")
+  end
 end
 
 
