@@ -78,6 +78,7 @@ function git_commit()
   git_exec(message, nil)
 end
 
+-- did this push?
 function git_commit_and_push()
   display_git_info()
   local message = vim.fn.input("Commit message: ")
