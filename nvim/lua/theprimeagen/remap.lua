@@ -60,7 +60,7 @@ vim.api.nvim_set_keymap('n', '<leader>gcp', [[<Cmd>lua git_commit_and_pull()<CR>
 function git_commit_and_pull()
   local message = vim.fn.input("Commit message: ")
   if message ~= "" then
-    vim.cmd("!git add . && git commit -m '" .. message .. "' && git pull")
+    vim.cmd("!git add . && git commit -m '" .. message .. "' && git push")
   else
     vim.cmd("!git pull")
   end
