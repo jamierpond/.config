@@ -80,6 +80,7 @@ function git_commit_and_pull()
   end
   -- Show last 5 commits
   os.execute('git log -n 5 --pretty=format:"%h - %s (%cr)"')
+  vim.cmd("redraw!")
 end
 
 
