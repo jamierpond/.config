@@ -65,7 +65,8 @@ function git_commit_and_pull()
     vim.cmd("!git pull")
   end
   -- Show last 5 commits
-  vim.cmd("!git log -n 5 --pretty=format:'%h - %s (%cr)'")
+  -- -- Show last 5 commits
+  vim.cmd([[!git log -n 5 --pretty=format:"%h - %s (%cr)"]])
 end
 
 
