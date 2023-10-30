@@ -78,15 +78,15 @@ function git_commit()
   git_exec(message, nil)
 end
 
-function git_commit_and_pull()
+function git_commit_and_push()
   display_git_info()
   local message = vim.fn.input("Commit message: ")
   git_exec(message, "git push")
-  vim.cmd('!git log -n 5')
+  -- vim.cmd('!git log -n 5')
 end
 
 local keymap_opts = { noremap = true, silent = true }
 vim.api.nvim_set_keymap('n', '<leader>gc', [[<Cmd>lua git_commit()<CR>]], keymap_opts)
 vim.api.nvim_set_keymap('n', '<leader>gp', [[<Cmd>!git push<CR>]], keymap_opts)
-vim.api.nvim_set_keymap('n', '<leader>gcp', [[<Cmd>lua git_commit_and_pull()<CR>]], keymap_opts)
+vim.api.nvim_set_keymap('n', '<leader>gcp', [[<Cmd>lua git_commit_and_push()<CR>]], keymap_opts)
 
