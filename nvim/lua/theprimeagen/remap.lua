@@ -57,15 +57,15 @@ end
 vim.api.nvim_set_keymap('n', '<leader>gp', [[<Cmd>!git push<CR>]], { noremap = true, silent = true })
 
 vim.api.nvim_set_keymap('n', '<leader>gcp', [[<Cmd>lua git_commit_and_pull()<CR>]], { noremap = true, silent = true })
+
 function git_commit_and_pull()
   local message = vim.fn.input("Commit message: ")
   if message ~= "" then
-    vim.cmd("!git add . && git commit -m '" .. message .. "' && git push")
+    vim.cmd("!git add . && git commit -m '" .. message .. "' && git pull")
   else
     vim.cmd("!git pull")
   end
   -- Show last 5 commits
-  -- -- Show last 5 commits
   vim.cmd([[!git log -n 5 --pretty=format:"%h - %s (%cr)"]])
 end
 
