@@ -45,6 +45,7 @@ vim.cmd([[command! Gp !git push]])
 vim.cmd([[command! Kat !killall tmux]])
 vim.cmd([[command! Kan !killall node]])
 
+-- more fun
 -- fun git stuff
 local function git_exec(message, additional_cmd)
   local cmd = "!git add ."
