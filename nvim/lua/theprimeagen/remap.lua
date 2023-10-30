@@ -48,6 +48,19 @@ vim.cmd([[command! Kan !killall node]])
 -- more fun
 -- fun git stuff
 -- local function git_exec(message, additional_cmd)
+
+local function display_git_info()
+  local output = io.popen("git rev-parse --show-toplevel"):read("*a"):gsub("\n", "")
+  vim.api.nvim_out_write("Repo: " .. output .. "\n")
+
+  output = io.popen("git symbolic-ref --short HEAD"):read("*a"):gsub("\n", "")
+  vim.api.nvim_out_write("Branch: " .. output .. "\n")
+
+  output = io.popen("git log -n 5 --pretty=format:'%h - %s, %cd' --date=short"):read("*a")
+  vim.api.nvim_out_write("Last 5 commits:\n" .. output .. "\n")
+end
+
+
 local function git_exec(message, additional_cmd)
   local cmd = ""
   if message ~= "" then
@@ -59,11 +72,13 @@ local function git_exec(message, additional_cmd)
 end
 
 function git_commit()
+  display_git_info()
   local message = vim.fn.input("Commit message: ")
   git_exec(message, nil)
 end
 
 function git_commit_and_pull()
+  display_git_info()
   local message = vim.fn.input("Commit message: ")
   git_exec(message, "git push")
   vim.cmd('!git log -n 5')
@@ -73,5 +88,4 @@ local keymap_opts = { noremap = true, silent = true }
 vim.api.nvim_set_keymap('n', '<leader>gc', [[<Cmd>lua git_commit()<CR>]], keymap_opts)
 vim.api.nvim_set_keymap('n', '<leader>gp', [[<Cmd>!git push<CR>]], keymap_opts)
 vim.api.nvim_set_keymap('n', '<leader>gcp', [[<Cmd>lua git_commit_and_pull()<CR>]], keymap_opts)
-
 
