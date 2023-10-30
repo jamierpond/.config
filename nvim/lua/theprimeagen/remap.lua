@@ -45,28 +45,32 @@ vim.cmd([[command! Gp !git push]])
 vim.cmd([[command! Kat !killall tmux]])
 vim.cmd([[command! Kan !killall node]])
 
-vim.api.nvim_set_keymap('n', '<leader>gc', [[<Cmd>lua git_commit()<CR>]], { noremap = true, silent = true })
+-- fun git stuff
+local function git_exec(message, additional_cmd)
+  local cmd = "!git add ."
+  if message ~= "" then
+    cmd = cmd .. " && git commit -m '" .. message .. "'"
+  end
+  if additional_cmd then
+    cmd = cmd .. " && " .. additional_cmd
+  end
+  vim.cmd(cmd)
+end
 
 function git_commit()
   local message = vim.fn.input("Commit message: ")
-  if message ~= "" then
-    vim.cmd("!git add . && git commit -m '" .. message .. "'")
-  end
+  git_exec(message)
 end
-
-vim.api.nvim_set_keymap('n', '<leader>gp', [[<Cmd>!git push<CR>]], { noremap = true, silent = true })
-
-vim.api.nvim_set_keymap('n', '<leader>gcp', [[<Cmd>lua git_commit_and_pull()<CR>]], { noremap = true, silent = true })
 
 function git_commit_and_pull()
   local message = vim.fn.input("Commit message: ")
-  if message ~= "" then
-    vim.cmd("!git add . && git commit -m '" .. message .. "' && git push")
-  else
-    vim.cmd("!git push")
-  end
-  -- Show last 5 commits
+  git_exec(message, "git push")
   vim.cmd('!git log -n 5')
 end
+
+local keymap_opts = { noremap = true, silent = true }
+vim.api.nvim_set_keymap('n', '<leader>gc', [[<Cmd>lua git_commit()<CR>]], keymap_opts)
+vim.api.nvim_set_keymap('n', '<leader>gp', [[<Cmd>!git push<CR>]], keymap_opts)
+vim.api.nvim_set_keymap('n', '<leader>gcp', [[<Cmd>lua git_commit_and_pull()<CR>]], keymap_opts)
 
 
