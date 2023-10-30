@@ -74,9 +74,9 @@ vim.api.nvim_set_keymap('n', '<leader>gcp', [[<Cmd>lua git_commit_and_pull()<CR>
 function git_commit_and_pull()
   local message = vim.fn.input("Commit message: ")
   if message ~= "" then
-    vim.cmd("!git add . && git commit -m '" .. message .. "' && git pull")
+    vim.cmd("!git add . && git commit -m '" .. message .. "' && git push")
   else
-    vim.cmd("!git pull")
+    vim.cmd("!git push")
   end
   -- Show last 5 commits
   os.execute('git log -n 5 --pretty=format:"%h - %s (%cr)"')
