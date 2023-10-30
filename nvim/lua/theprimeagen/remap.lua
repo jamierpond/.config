@@ -48,6 +48,7 @@ vim.cmd([[command! Kan !killall node]])
 -- more fun
 -- fun git stuff
 -- local function git_exec(message, additional_cmd)
+-- ok a litte more fun
 
 local function display_git_info()
   local output = io.popen("git rev-parse --show-toplevel"):read("*a"):gsub("\n", "")
