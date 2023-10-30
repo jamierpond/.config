@@ -54,3 +54,5 @@ function git_commit()
   end
 end
 
+vim.api.nvim_set_keymap('n', '<leader>gp', [[<Cmd>!git push<CR>]], { noremap = true, silent = true })
+
