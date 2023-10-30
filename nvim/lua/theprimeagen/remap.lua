@@ -66,7 +66,7 @@ function git_commit_and_pull()
     vim.cmd("!git push")
   end
   -- Show last 5 commits
-  vim.cmd('!git log -n 5')
+  vim.cmd('!git log -n 5 --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate')
 end
 
 
