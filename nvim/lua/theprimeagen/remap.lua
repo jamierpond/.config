@@ -159,7 +159,7 @@ function create_gh_pr()
     return
   end
 
-  -- Check for uncommitted changes
+  -- Check for uncommitted changes, more changes
   local git_status = job:new({ 'git', 'status', '--porcelain' }):sync()
   if #git_status > 0 then
     local commit_option = vim.fn.input("You have uncommitted changes. Commit them? (Yes/No): ")
@@ -192,7 +192,7 @@ function create_gh_pr()
   -- Create PR
   job:new({
     command = 'gh',
-    args = { 'pr', 'create', '--fill', '--title=' .. pr_name },
+    args = { 'pr', 'create' }
     on_exit = function(j, return_val)
       if return_val == 0 then
         print("PR successfully created.")
