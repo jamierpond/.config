@@ -155,7 +155,7 @@ function create_gh_pr()
 
   if #existing_pr > 0 then
     print("Existing PR found for this branch. Opening...")
-    job:new({ 'gh', 'pr', 'view', '--web' }):sync()
+    job:new({ 'gh', 'pr', 'view', '--web' }):async()
     return
   end
 
