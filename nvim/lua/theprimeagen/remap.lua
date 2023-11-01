@@ -79,6 +79,10 @@ function git_commit()
 end
 
 function git_push()
+  -- set the upstream just in case
+  current_branch = io.popen("git branch --show-current"):read("*a"):gsub("\n", "")
+  local cmd = "!git push --set-upstream origin " .. current_branch
+  vim.cmd(cmd)
   cmd = "!git push"
   vim.cmd(cmd)
 end
@@ -192,7 +196,7 @@ function create_gh_pr()
   -- Create PR
   job:new({
     command = 'gh',
-    args = { 'pr', 'create', '--fill'}
+    args = { 'pr', 'create', '--fill'},
     on_exit = function(j, return_val)
       if return_val == 0 then
         print("PR successfully created.")
