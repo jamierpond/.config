@@ -177,7 +177,7 @@ function create_gh_pr()
   if #unpushed_commits > 0 then
     local push_option = vim.fn.input("You have unpushed commits. Push them? (Yes/No): ")
     if push_option == 'Yes' then
-      vim.cmd('Git push')
+      git_push()
     else
       print("Exiting. Unpushed commits exist.")
       return
