@@ -128,10 +128,12 @@ function create_gh_pr()
     return
   end
 
-  -- Create PR and capture the output
+  -- Create PR
   local pr_create = job:new({ 'gh', 'pr', 'create', '--fill' }):sync()
-  for _, line in ipairs(pr_create) do
-    print(line)
+  if pr_create then
+    for _, line in ipairs(pr_create) do
+      print(line)
+    end
   end
 
   -- Get list of files changed in PR for preview
@@ -141,7 +143,6 @@ function create_gh_pr()
     print(file)
   end
 end
-
 
 
 local keymap_opts = { noremap = true, silent = true }
