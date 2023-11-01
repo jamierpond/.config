@@ -79,6 +79,10 @@ function git_commit()
 end
 
 function git_push()
+  -- set the upstream just in case
+  current_branch = io.popen("git branch --show-current"):read("*a"):gsub("\n", "")
+  local cmd = "!git push --set-upstream origin " .. current_branch
+  vim.cmd(cmd)
   cmd = "!git push"
   vim.cmd(cmd)
 end
@@ -159,12 +163,13 @@ function create_gh_pr()
     return
   end
 
-  -- Check for uncommitted changes
+  -- Check for uncommitted changes, more changes
   local git_status = job:new({ 'git', 'status', '--porcelain' }):sync()
   if #git_status > 0 then
     local commit_option = vim.fn.input("You have uncommitted changes. Commit them? (Yes/No): ")
     if commit_option == 'Yes' then
-      vim.cmd('Git commit')
+      git_commit()
+      git_push()
     else
       print("Exiting. Uncommitted changes exist.")
       return
@@ -176,7 +181,7 @@ function create_gh_pr()
   if #unpushed_commits > 0 then
     local push_option = vim.fn.input("You have unpushed commits. Push them? (Yes/No): ")
     if push_option == 'Yes' then
-      vim.cmd('Git push')
+      git_push()
     else
       print("Exiting. Unpushed commits exist.")
       return
@@ -193,8 +198,18 @@ function create_gh_pr()
     on_exit = function(j, return_val)
       if return_val == 0 then
         print("PR successfully created.")
-        -- Open the PR in the browser
-        job:new({ 'gh', 'pr', 'view', '--web' }):sync()
+        -- Open the PR in the browser asynchronously
+        job:new({
+          command = 'gh',
+          args = { 'pr', 'view', '--web' },
+          on_exit = function(j, return_val)
+            if return_val == 0 then
+              print("PR opened in web browser.")
+            else
+              print("Failed to open PR in web browser.")
+            end
+          end,
+        }):start()
       else
         print("Failed to create PR.")
       end
