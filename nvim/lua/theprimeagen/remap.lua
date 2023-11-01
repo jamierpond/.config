@@ -165,6 +165,7 @@ function create_gh_pr()
     local commit_option = vim.fn.input("You have uncommitted changes. Commit them? (Yes/No): ")
     if commit_option == 'Yes' then
       git_commit()
+      git_push()
     else
       print("Exiting. Uncommitted changes exist.")
       return
