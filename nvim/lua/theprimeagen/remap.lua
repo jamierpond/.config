@@ -143,6 +143,65 @@ function create_new_branch()
   print("New branch " .. new_branch_name .. " pushed to origin")
 end
 
+local job = require('plenary.job')
+
+function create_gh_pr()
+    -- Get the current branch name
+  local current_branch = job:new({ 'git', 'branch', '--show-current' }):sync()[1]
+
+  -- Check if a PR already exists for the current branch
+  local existing_pr = job:new({ 'gh', 'pr', 'list', '--search', current_branch }):sync()
+
+  if #existing_pr > 0 then
+    print("Existing PR found for this branch. Opening...")
+    job:new({ 'gh', 'pr', 'view', '--web' }):sync()
+    return
+  end
+
+  -- Check for uncommitted changes
+  local git_status = job:new({ 'git', 'status', '--porcelain' }):sync()
+  if #git_status > 0 then
+    local commit_option = vim.fn.input("You have uncommitted changes. Commit them? (Yes/No): ")
+    if commit_option == 'Yes' then
+      vim.cmd('Git commit')
+    else
+      print("Exiting. Uncommitted changes exist.")
+      return
+    end
+  end
+
+  -- Check for unpushed commits
+  local unpushed_commits = job:new({ 'git', 'log', '@{u}..', '--oneline' }):sync()
+  if #unpushed_commits > 0 then
+    local push_option = vim.fn.input("You have unpushed commits. Push them? (Yes/No): ")
+    if push_option == 'Yes' then
+      vim.cmd('Git push')
+    else
+      print("Exiting. Unpushed commits exist.")
+      return
+    end
+  end
+
+  -- Ask for PR name
+  local pr_name = vim.fn.input("Enter the name of the new PR: ")
+
+  -- Create PR
+  job:new({
+    command = 'gh',
+    args = { 'pr', 'create', '--fill', '--title', pr_name },
+    on_exit = function(j, return_val)
+      if return_val == 0 then
+        print("PR successfully created.")
+        -- Open the PR in the browser
+        job:new({ 'gh', 'pr', 'view', '--web' }):sync()
+      else
+        print("Failed to create PR.")
+      end
+    end,
+  }):start()
+end
+
+
 local keymap_opts = { noremap = true, silent = true }
 vim.api.nvim_set_keymap('n', '<leader>gc', [[<Cmd>lua git_commit()<CR>]], keymap_opts)
 vim.api.nvim_set_keymap('n', '<leader>gp', [[<Cmd>lua git_push()<CR>]], keymap_opts)
