@@ -164,7 +164,7 @@ function create_gh_pr()
   if #git_status > 0 then
     local commit_option = vim.fn.input("You have uncommitted changes. Commit them? (Yes/No): ")
     if commit_option == 'Yes' then
-      vim.cmd('Git commit')
+      git_commit()
     else
       print("Exiting. Uncommitted changes exist.")
       return
@@ -185,16 +185,28 @@ function create_gh_pr()
 
   -- Ask for PR name
   local pr_name = vim.fn.input("Enter the name of the new PR: ")
+  -- wrap in quotes
+  pr_name = '"' .. pr_name .. '"'
 
   -- Create PR
   job:new({
     command = 'gh',
-    args = { 'pr', 'create', '--fill', '--title', pr_name },
+    args = { 'pr', 'create', '--fill', '--title=' .. pr_name },
     on_exit = function(j, return_val)
       if return_val == 0 then
         print("PR successfully created.")
-        -- Open the PR in the browser
-        job:new({ 'gh', 'pr', 'view', '--web' }):sync()
+        -- Open the PR in the browser asynchronously
+        job:new({
+          command = 'gh',
+          args = { 'pr', 'view', '--web' },
+          on_exit = function(j, return_val)
+            if return_val == 0 then
+              print("PR opened in web browser.")
+            else
+              print("Failed to open PR in web browser.")
+            end
+          end,
+        }):start()
       else
         print("Failed to create PR.")
       end
