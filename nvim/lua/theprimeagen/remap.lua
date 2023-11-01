@@ -106,14 +106,50 @@ function git_checkout()
   })
 end
 
+local job = require('plenary.job')
+local pickers = require('telescope.pickers')
+local finders = require('telescope.finders')
+local actions = require('telescope.actions')
+
+function create_gh_pr()
+  -- Check for uncommitted changes
+  local git_status = job:new({ 'git', 'status', '--porcelain' }):sync()
+  if #git_status > 0 then
+    pickers.new({}, {
+      prompt_title = 'Error',
+      finder = finders.new_table({
+        results = { "You have uncommitted changes. Exiting." }
+      }),
+      attach_mappings = function(_, map)
+        map('i', '<CR>', actions.close)
+        return true
+      end
+    }):find()
+    return
+  end
+
+  -- Create PR and capture the output
+  local pr_create = job:new({ 'gh', 'pr', 'create', '--fill' }):sync()
+  for _, line in ipairs(pr_create) do
+    print(line)
+  end
+
+  -- Get list of files changed in PR for preview
+  local pr_files = job:new({ 'git', 'diff', '--name-only', 'HEAD' }):sync()
+  print("Files changed in PR:")
+  for _, file in ipairs(pr_files) do
+    print(file)
+  end
+end
+
+
+
 local keymap_opts = { noremap = true, silent = true }
 vim.api.nvim_set_keymap('n', '<leader>gc', [[<Cmd>lua git_commit()<CR>]], keymap_opts)
 vim.api.nvim_set_keymap('n', '<leader>gp', [[<Cmd>lua git_push()<CR>]], keymap_opts)
 vim.api.nvim_set_keymap('n', '<leader>gcp', [[<Cmd>lua git_commit_and_push()<CR>]], keymap_opts)
 vim.api.nvim_set_keymap('n', '<leader>co', [[<Cmd>lua git_checkout()<CR>]], keymap_opts)
-
-
-
+vim.api.nvim_set_keymap('n', '<leader>pr', [[<Cmd>lua create_gh_pr()<CR>]], keymap_opts)
 
 -- web dev stuff
 function open_local_host()
