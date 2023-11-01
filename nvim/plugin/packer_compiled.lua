@@ -155,6 +155,11 @@ _G.packer_plugins = {
     path = "/Users/jamiepond/.local/share/nvim/site/pack/packer/start/nvim-cmp",
     url = "https://github.com/hrsh7th/nvim-cmp"
   },
+  ["nvim-compe"] = {
+    loaded = true,
+    path = "/Users/jamiepond/.local/share/nvim/site/pack/packer/start/nvim-compe",
+    url = "https://github.com/hrsh7th/nvim-compe"
+  },
   ["nvim-lspconfig"] = {
     loaded = true,
     path = "/Users/jamiepond/.local/share/nvim/site/pack/packer/start/nvim-lspconfig",

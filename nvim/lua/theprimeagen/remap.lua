@@ -73,7 +73,7 @@ function git_commit()
   display_git_info()
   local message = vim.fn.input("Commit message: ")
   local escaped_message = message:gsub("'", "'\\''")
-  local cmd = "!git commit -a -m '" .. escaped_message .. "'"
+  local cmd = "!git add . && git commit -m '" .. escaped_message .. "'"
   vim.cmd(cmd)
 end
 
@@ -88,10 +88,31 @@ function git_commit_and_push()
   git_push()
 end
 
+local compe = require 'compe'
+local telescope = require'telescope.builtin'
+
+function git_checkout()
+  telescope.git_branches({
+    attach_mappings = function(_, map)
+      map('i', '<CR>', function(prompt_bufnr)
+        local selection = require'telescope.actions.state'.get_selected_entry(prompt_bufnr)
+        require'telescope.actions'.close(prompt_bufnr)
+        if selection then
+          vim.cmd('!git checkout ' .. selection.value)
+        end
+      end)
+      return true
+    end,
+  })
+end
+
 local keymap_opts = { noremap = true, silent = true }
 vim.api.nvim_set_keymap('n', '<leader>gc', [[<Cmd>lua git_commit()<CR>]], keymap_opts)
 vim.api.nvim_set_keymap('n', '<leader>gp', [[<Cmd>lua git_push()<CR>]], keymap_opts)
 vim.api.nvim_set_keymap('n', '<leader>gcp', [[<Cmd>lua git_commit_and_push()<CR>]], keymap_opts)
+vim.api.nvim_set_keymap('n', '<leader>co', [[<Cmd>lua git_checkout()<CR>]], keymap_opts)
+
+
 
 
 -- web dev stuff
@@ -102,4 +123,19 @@ end
 
 vim.api.nvim_set_keymap('n', '<leader>lk', [[<Cmd>lua open_local_host()<CR>]], keymap_opts)
 
+
+-- some useful python ones
+function run_python_file()
+  local cmd = "!python3 " .. vim.fn.expand("%")
+  vim.cmd(cmd)
+end
+
+function run_python_main()
+  local cmd = "!python3 " .. vim.fn.expand("%:p:h") .. "/main.py"
+  vim.cmd(cmd)
+end
+
+
+-- leader>py to run main
+vim.api.nvim_set_keymap('n', '<leader>py', [[<Cmd>lua run_python_main()<CR>]], keymap_opts)
 

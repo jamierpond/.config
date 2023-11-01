@@ -1,7 +1,8 @@
-# you will have to manually add files to include here, as 
+# you will have to manually add files to include here, as
 # configs can often contain private data!
 /*
 !.gitignore
 !nvim/
 !tmux/
+!bin/
 **.DS_Store**
