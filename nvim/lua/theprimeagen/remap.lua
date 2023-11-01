@@ -190,8 +190,6 @@ function create_gh_pr()
 
   -- Ask for PR name
   local pr_name = vim.fn.input("Enter the name of the new PR: ")
-  -- wrap in quotes
-  pr_name = '"' .. pr_name .. '"'
 
   -- Create PR
   job:new({
