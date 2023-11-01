@@ -107,43 +107,41 @@ function git_checkout()
 end
 
 local job = require('plenary.job')
-local pickers = require('telescope.pickers')
-local finders = require('telescope.finders')
-local actions = require('telescope.actions')
 
-function create_gh_pr()
-  -- Check for uncommitted changes
+function create_new_branch()
+  local new_branch_name = vim.fn.input("Enter new branch name: ")
+
   local git_status = job:new({ 'git', 'status', '--porcelain' }):sync()
+  local stash = 'No'
+
   if #git_status > 0 then
-    pickers.new({}, {
-      prompt_title = 'Error',
-      finder = finders.new_table({
-        results = { "You have uncommitted changes. Exiting." }
-      }),
-      attach_mappings = function(_, map)
-        map('i', '<CR>', actions.close)
-        return true
-      end
-    }):find()
-    return
+    stash = vim.fn.input("Stash changes? (Yes/No): ")
   end
 
-  -- Create PR
-  local pr_create = job:new({ 'gh', 'pr', 'create', '--fill' }):sync()
-  if pr_create then
-    for _, line in ipairs(pr_create) do
-      print(line)
-    end
+  local current_branch = job:new({ 'git', 'branch', '--show-current' }):sync()[1]
+  local default_branch = job:new({ 'git', 'symbolic-ref', 'refs/remotes/origin/HEAD' }):sync()[1]:gsub('refs/remotes/origin/', '')
+
+  local base_branch = current_branch
+
+  if current_branch ~= default_branch then
+    base_branch = vim.fn.input("Base off which branch? (" .. current_branch .. "/" .. default_branch .. "): ")
   end
 
-  -- Get list of files changed in PR for preview
-  local pr_files = job:new({ 'git', 'diff', '--name-only', 'HEAD' }):sync()
-  print("Files changed in PR:")
-  for _, file in ipairs(pr_files) do
-    print(file)
+  if stash == 'Yes' then
+    job:new({ 'git', 'stash' }):sync()
   end
+
+  job:new({ 'git', 'checkout', '-b', new_branch_name, base_branch }):sync()
+
+  if stash == 'Yes' then
+    job:new({ 'git', 'stash', 'apply' }):sync()
+  end
+
+  print("New branch " .. new_branch_name .. " created off " .. base_branch)
+
+  job:new({ 'git', 'push', '--set-upstream', 'origin', new_branch_name }):sync()
+  print("New branch " .. new_branch_name .. " pushed to origin")
 end
-
 
 local keymap_opts = { noremap = true, silent = true }
 vim.api.nvim_set_keymap('n', '<leader>gc', [[<Cmd>lua git_commit()<CR>]], keymap_opts)
@@ -151,6 +149,8 @@ vim.api.nvim_set_keymap('n', '<leader>gp', [[<Cmd>lua git_push()<CR>]], keymap_o
 vim.api.nvim_set_keymap('n', '<leader>gcp', [[<Cmd>lua git_commit_and_push()<CR>]], keymap_opts)
 vim.api.nvim_set_keymap('n', '<leader>co', [[<Cmd>lua git_checkout()<CR>]], keymap_opts)
 vim.api.nvim_set_keymap('n', '<leader>pr', [[<Cmd>lua create_gh_pr()<CR>]], keymap_opts)
+
+vim.api.nvim_set_keymap('n', '<leader>b', [[<Cmd>lua create_new_branch()<CR>]], keymap_opts)
 
 -- web dev stuff
 function open_local_host()
