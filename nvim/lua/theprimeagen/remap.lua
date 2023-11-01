@@ -138,6 +138,9 @@ function create_new_branch()
   end
 
   print("New branch " .. new_branch_name .. " created off " .. base_branch)
+
+  job:new({ 'git', 'push', '--set-upstream', 'origin', new_branch_name }):sync()
+  print("New branch " .. new_branch_name .. " pushed to origin")
 end
 
 local keymap_opts = { noremap = true, silent = true }
