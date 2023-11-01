@@ -192,7 +192,7 @@ function create_gh_pr()
   -- Create PR
   job:new({
     command = 'gh',
-    args = { 'pr', 'create' }
+    args = { 'pr', 'create', '--fill'}
     on_exit = function(j, return_val)
       if return_val == 0 then
         print("PR successfully created.")
