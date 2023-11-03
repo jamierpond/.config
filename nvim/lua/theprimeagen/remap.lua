@@ -72,6 +72,8 @@ end
 
 function git_commit()
   display_git_info()
+  local add_all = "!git add ."
+  vim.cmd(add_all)
   local message = vim.fn.input("Commit message: ")
   local escaped_message = message:gsub("'", "'\\''")
   local cmd = "!git add . && git commit -m '" .. escaped_message .. "'"
@@ -88,7 +90,6 @@ function git_push()
 end
 
 function git_commit_and_push()
-  display_git_info()
   git_commit()
   git_push()
 end
@@ -155,11 +156,15 @@ function create_gh_pr()
   local current_branch = job:new({ 'git', 'branch', '--show-current' }):sync()[1]
 
   -- Check if a PR already exists for the current branch
+  -- Print syncronously so we don't try and press the shortcut again!
+
+  job:new({ 'echo', 'Checking for existing PR...' }):sync()
+
   local existing_pr = job:new({ 'gh', 'pr', 'list', '--search', current_branch }):sync()
 
   if #existing_pr > 0 then
     print("Existing PR found for this branch. Opening...")
-    job:new({ 'gh', 'pr', 'view', '--web' }):async()
+    job:new({ 'gh', 'pr', 'view', '--web' }):sync()
     return
   end
 
