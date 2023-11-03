@@ -98,6 +98,8 @@ vim.cmd([[command! Pull !git pull]])
 vim.cmd([[command! Kat !killall tmux]])
 vim.cmd([[command! Kan !killall node]])
 
+vim.cmd([[command! Dt !say "dogtown?"]])
+
 -- we want to run the script in ~/.config/bin/scripts/localhost-qr
 vim.cmd([[command! -nargs=1 Qr !~/.config/bin/scripts/localhost-qr "<args>"]])
 -- now also the same for <leader>qr, but we should pop up a question for the port
@@ -519,7 +521,6 @@ function open_local_host()
 end
 
 vim.api.nvim_set_keymap('n', '<leader>lk', [[<Cmd>lua open_local_host()<CR>]], keymap_opts)
-
 
 
 -- some useful python ones
