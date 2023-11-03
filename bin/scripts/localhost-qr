@@ -19,23 +19,3 @@ address="http://$ip:$port"
 
 echo "Showing QR code for $address"
 qrencode -m 2 -t utf8 <<< "$address"
-
-port="$1"
-if [ -z "$port" ]; then
-    port="3000"
-fi
-
-ip=$(ipconfig getifaddr en1)
-if [ -z "$ip" ]; then
-    ip=$(ipconfig getifaddr en0)
-fi
-
-if [ -z "$ip" ]; then
-    echo "No IP address found"
-    exit 1
-fi
-
-address="http://$ip:$port"
-
-echo "Showing QR code for $address"
-qrencode -m 2 -t utf8 <<< "$address"
