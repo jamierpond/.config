@@ -2,13 +2,26 @@
 
 -- Only required if you have packer configured as `opt`
 vim.cmd.packadd('packer.nvim')
-print("Hello, Packer!")
 
 return require('packer').startup(function(use)
   -- Packer can manage itself
   use 'wbthomason/packer.nvim'
 
   use 'hrsh7th/nvim-compe'
+
+  use "sindrets/diffview.nvim"
+
+  use({
+    "jackMort/ChatGPT.nvim",
+      config = function()
+        require("chatgpt").setup()
+      end,
+      requires = {
+        "MunifTanjim/nui.nvim",
+        "nvim-lua/plenary.nvim",
+        "nvim-telescope/telescope.nvim"
+      }
+  })
 
   use {
 	  'nvim-telescope/telescope.nvim', branch = '0.1.x',
