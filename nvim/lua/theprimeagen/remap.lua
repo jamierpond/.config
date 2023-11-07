@@ -175,69 +175,70 @@ function create_gh_pr()
 
   -- Check if a PR already exists for the current branch
   -- Print syncronously so we don't try and press the shortcut again!
-
   job:new({ 'echo', 'Checking for existing PR...' }):sync()
 
   local existing_pr = job:new({ 'gh', 'pr', 'list', '--search', current_branch }):sync()
 
-  if #existing_pr > 0 then
-    print("Existing PR found for this branch. Opening...")
-    job:new({ 'gh', 'pr', 'view', '--web' }):sync()
-    return
-  end
+  job:new({ 'echo', 'Existing PR: ' .. existing_pr }):sync()
 
-  -- Check for uncommitted changes, more changes
-  local git_status = job:new({ 'git', 'status', '--porcelain' }):sync()
-  if #git_status > 0 then
-    local commit_option = vim.fn.input("You have uncommitted changes. Commit them? (Yes/No): ")
-    if commit_option == 'Yes' then
-      git_commit()
-      git_push()
-    else
-      print("Exiting. Uncommitted changes exist.")
-      return
-    end
-  end
-
-  -- Check for unpushed commits
-  local unpushed_commits = job:new({ 'git', 'log', '@{u}..', '--oneline' }):sync()
-  if #unpushed_commits > 0 then
-    local push_option = vim.fn.input("You have unpushed commits. Push them? (Yes/No): ")
-    if push_option == 'Yes' then
-      git_push()
-    else
-      print("Exiting. Unpushed commits exist.")
-      return
-    end
-  end
-
-  -- Ask for PR name
-  local pr_name = vim.fn.input("Enter the name of the new PR: ")
-
-  -- Create PR
-  job:new({
-    command = 'gh',
-    args = { 'pr', 'create', '--fill', '--title', pr_name },
-    on_exit = function(j, return_val)
-      if return_val == 0 then
-        print("PR successfully created.")
-        -- Open the PR in the browser asynchronously
-        job:new({
-          command = 'gh',
-          args = { 'pr', 'view', '--web' },
-          on_exit = function(j, return_val)
-            if return_val == 0 then
-              print("PR opened in web browser.")
-            else
-              print("Failed to open PR in web browser.")
-            end
-          end,
-        }):start()
-      else
-        print("Failed to create PR.")
-      end
-    end,
-  }):start()
+--   if #existing_pr > 0 then
+--     print("Existing PR found for this branch. Opening...")
+--     job:new({ 'gh', 'pr', 'view', '--web' }):sync()
+--     return
+--   end
+--
+--   -- Check for uncommitted changes, more changes
+--   local git_status = job:new({ 'git', 'status', '--porcelain' }):sync()
+--   if #git_status > 0 then
+--     local commit_option = vim.fn.input("You have uncommitted changes. Commit them? (Yes/No): ")
+--     if commit_option == 'Yes' then
+--       git_commit()
+--       git_push()
+--     else
+--       print("Exiting. Uncommitted changes exist.")
+--       return
+--     end
+--   end
+--
+--   -- Check for unpushed commits
+--   local unpushed_commits = job:new({ 'git', 'log', '@{u}..', '--oneline' }):sync()
+--   if #unpushed_commits > 0 then
+--     local push_option = vim.fn.input("You have unpushed commits. Push them? (Yes/No): ")
+--     if push_option == 'Yes' then
+--       git_push()
+--     else
+--       print("Exiting. Unpushed commits exist.")
+--       return
+--     end
+--   end
+--
+--   -- Ask for PR name
+--   local pr_name = vim.fn.input("Enter the name of the new PR: ")
+--
+--   -- Create PR
+--   job:new({
+--     command = 'gh',
+--     args = { 'pr', 'create', '--fill', '--title', pr_name },
+--     on_exit = function(j, return_val)
+--       if return_val == 0 then
+--         print("PR successfully created.")
+--         -- Open the PR in the browser asynchronously
+--         job:new({
+--           command = 'gh',
+--           args = { 'pr', 'view', '--web' },
+--           on_exit = function(j, return_val)
+--             if return_val == 0 then
+--               print("PR opened in web browser.")
+--             else
+--               print("Failed to open PR in web browser.")
+--             end
+--           end,
+--         }):start()
+--       else
+--         print("Failed to create PR.")
+--       end
+--     end,
+--   }):start()
 end
 
 
