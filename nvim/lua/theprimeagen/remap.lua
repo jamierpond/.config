@@ -252,13 +252,22 @@ vim.api.nvim_set_keymap('n', '<leader>co', [[<Cmd>lua git_checkout()<CR>]], keym
 vim.api.nvim_set_keymap('n', '<leader>pr', [[<Cmd>lua create_gh_pr()<CR>]], keymap_opts)
 
 vim.api.nvim_set_keymap('n', '<leader>b', [[<Cmd>lua create_new_branch()<CR>]], keymap_opts)
+
 -- web dev stuff
 function open_local_host()
   local cmd = "silent !open http://localhost:3000"
   vim.cmd(cmd)
 end
 
+function open_local_host()
+  local addr = vim.fn.input("Enter addr: ")
+  local cmd = "silent !open http://localhost:3000/" .. addr
+  vim.cmd(cmd)
+end
+
 vim.api.nvim_set_keymap('n', '<leader>lk', [[<Cmd>lua open_local_host()<CR>]], keymap_opts)
+
+vim.api.nvim_set_keymap('n', '<leader>ll', [[<Cmd>lua open_local_host()<CR>]], keymap_opts)
 
 
 
@@ -276,3 +285,19 @@ end
 
 -- leader>py to run main
 vim.api.nvim_set_keymap('n', '<leader>py', [[<Cmd>lua run_python_main()<CR>]], keymap_opts)
+
+-- some useful python ones
+function run_rust_main()
+  local git_root = io.popen("git rev-parse --show-toplevel"):read("*a"):gsub("\n", "")
+  local cd_git_root = "cd " .. git_root
+  vim.cmd(cd_git_root)
+
+  -- get arguments from the user
+  local args = vim.fn.input("Enter args: ")
+  local cmd = "!cargo run -- " .. args
+  vim.cmd(cmd)
+end
+
+vim.api.nvim_set_keymap('n', '<leader>rs', [[<Cmd>lua run_rust_main()<CR>]], keymap_opts)
+
+

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -e
+
+quick_urls=(
+    "https://github.com"
+    "http://localhost:3000/ai-image"
+    "http://localhost:3000/ai-song-generator"
+    "http://localhost:3000/record"
+    "http://localhost:3000/about"
+    "http://127.0.0.1:4000"
+)
+
+# fuzzy find the URLs with fzf
+url=$(printf "%s\n" "${quick_urls[@]}" | fzf)
+
+open "$url"
+
