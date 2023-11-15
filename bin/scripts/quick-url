@@ -1,14 +1,40 @@
 #!/usr/bin/env bash
 set -e
 
+function get_gh_urls() {
+  owner="$1"
+  repo="$2"
+  base_url="https://github.com/$owner/$repo"
+  urls=(
+    "$base_url"
+    "$base_url/pulls"
+    "$base_url/tree/main"
+    "$base_url/tree/develop"
+  )
+  # return the array
+  printf "%s\n" "${urls[@]}"
+}
+
+covers_urls=$(get_gh_urls "mayk-it" "covers.ai")
+mayk_it_urls=$(get_gh_urls "mayk-it" "mayk")
+
 quick_urls=(
     "https://github.com"
+    "https://console.firebase.google.com/u/0/"
+    "https://console.firebase.google.com/u/0/project/covers-ai/overview"
+    "https://console.firebase.google.com/u/0/project/beastdrop/overview"
+    "https://covers.ai/"
+    "https://covers.ai/ai-song-generator"
+    "https://covers.ai/about"
     "http://localhost:3000/ai-image"
     "http://localhost:3000/ai-song-generator"
     "http://localhost:3000/record"
     "http://localhost:3000/about"
     "http://127.0.0.1:4000"
 )
+
+quick_urls+=("$covers_urls")
+quick_urls+=("$mayk_it_urls")
 
 # fuzzy find the URLs with fzf
 url=$(printf "%s\n" "${quick_urls[@]}" | fzf)
