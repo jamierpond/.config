@@ -286,11 +286,18 @@ end
 -- leader>py to run main
 vim.api.nvim_set_keymap('n', '<leader>py', [[<Cmd>lua run_python_main()<CR>]], keymap_opts)
 
--- some useful python ones
+
 function run_rust_main()
-  local git_root = io.popen("git rev-parse --show-toplevel"):read("*a"):gsub("\n", "")
-  local cd_git_root = "cd " .. git_root
-  vim.cmd(cd_git_root)
+  local files_in_dir = io.popen("ls"):read("*a")
+  local cargo = files_in_dir:match("Cargo.toml")
+  if cargo == nil then
+    print("No Cargo.toml found in current directory.")
+    local git_root = io.popen("git rev-parse --show-toplevel"):read("*a"):gsub("\n", "")
+    local cd_git_root = "cd " .. git_root
+    vim.cmd(cd_git_root)
+    return
+  end
+
 
   -- get arguments from the user
   local args = vim.fn.input("Enter args: ")

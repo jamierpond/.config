@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -e
 
+firebase_services=(
+  "firestore"
+  "functions"
+  "storage"
+  "hosting"
+  "auth"
+)
+
 function get_gh_urls() {
   owner="$1"
   repo="$2"
@@ -11,30 +19,69 @@ function get_gh_urls() {
     "$base_url/tree/main"
     "$base_url/tree/develop"
   )
-  # return the array
+
   printf "%s\n" "${urls[@]}"
 }
 
-covers_urls=$(get_gh_urls "mayk-it" "covers.ai")
-mayk_it_urls=$(get_gh_urls "mayk-it" "mayk")
+covers_gh_urls=$(get_gh_urls "mayk-it" "covers.ai")
+mayk_it_gh_urls=$(get_gh_urls "mayk-it" "mayk")
+popstar_gh_urls=$(get_gh_urls "mayk-it" "popstar")
+songgpt_gh_urls=$(get_gh_urls "mayk-it" "mayk.studio")
+mayk_it_gh_urls=$(get_gh_urls "jamierpond" ".config")
+
+function get_firebase_urls() {
+  projects=(
+    "covers-ai"
+    "covers-ai-staging"
+    "beastdrop"
+  )
+
+  urls=()
+  for project in "${projects[@]}"; do
+    for service in "${firebase_services[@]}"; do
+      urls+=("https://console.firebase.google.com/u/0/project/$project/$service")
+    done
+  done
+
+  printf "%s\n" "${urls[@]}"
+}
+
+firebase_urls=$(get_firebase_urls)
+
+function get_emulator_urls() {
+  base="http://127.0.0.1:4000"
+
+  urls=()
+  for service in "${firebase_services[@]}"; do
+    urls+=("$base/$service")
+  done
+
+  echo "$base"
+
+  printf "%s\n" "${urls[@]}"
+}
+
+emulator_urls=$(get_emulator_urls)
 
 quick_urls=(
     "https://github.com"
     "https://console.firebase.google.com/u/0/"
-    "https://console.firebase.google.com/u/0/project/covers-ai/overview"
-    "https://console.firebase.google.com/u/0/project/beastdrop/overview"
     "https://covers.ai/"
     "https://covers.ai/ai-song-generator"
     "https://covers.ai/about"
-    "http://localhost:3000/ai-image"
+#   "http://localhost:3000/ai-image"
+    "http://localhost:3000/"
     "http://localhost:3000/ai-song-generator"
     "http://localhost:3000/record"
     "http://localhost:3000/about"
-    "http://127.0.0.1:4000"
 )
 
-quick_urls+=("$covers_urls")
-quick_urls+=("$mayk_it_urls")
+quick_urls+=("$covers_gh_urls")
+quick_urls+=("$mayk_it_gh_urls")
+quick_urls+=("$popstar_gh_urls")
+quick_urls+=("$songgpt_gh_urls")
+quick_urls+=("$firebase_urls")
+quick_urls+=("$emulator_urls")
 
 # fuzzy find the URLs with fzf
 url=$(printf "%s\n" "${quick_urls[@]}" | fzf)
