@@ -308,3 +308,35 @@ end
 vim.api.nvim_set_keymap('n', '<leader>rs', [[<Cmd>lua run_rust_main()<CR>]], keymap_opts)
 
 
+function run_current_rust_test()
+  -- Find the line number of the current cursor position
+  local current_line = vim.api.nvim_win_get_cursor(0)[1]
+  local buffer_lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+
+  -- Search backward for the function definition
+  local test_name = nil
+  for i = current_line, 1, -1 do
+    local line = buffer_lines[i]
+    if line:match("^%s*fn%s+") then
+      -- Extract the test function name
+      test_name = line:match("^%s*fn%s+([%w_]+)")
+      break
+    end
+  end
+
+  if test_name == nil then
+    print("No test function found above the cursor.")
+    return
+  end
+
+  print("Running test: " .. test_name)
+
+--   -- Run the test
+  local cmd = "!cargo test " .. test_name
+  vim.cmd(cmd)
+end
+
+-- Set the keymap for running the current test
+vim.api.nvim_set_keymap('n', '<leader>tr', [[<Cmd>lua run_current_rust_test()<CR>]], { noremap = true, silent = true })
+
+
