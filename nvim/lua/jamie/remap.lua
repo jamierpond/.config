@@ -332,11 +332,53 @@ function run_current_rust_test()
   print("Running test: " .. test_name)
 
 --   -- Run the test
-  local cmd = "!cargo test " .. test_name
+  local cmd = "!cargo test " .. test_name .. " -- --nocapture"
   vim.cmd(cmd)
 end
 
 -- Set the keymap for running the current test
 vim.api.nvim_set_keymap('n', '<leader>tr', [[<Cmd>lua run_current_rust_test()<CR>]], { noremap = true, silent = true })
+
+
+
+function run_ts_tests()
+  -- cd to the current file's directory
+  local current_file = vim.api.nvim_buf_get_name(0)
+  local cd_current_file = "cd " .. vim.fn.expand("%:p:h")
+  vim.cmd(cd_current_file)
+
+  -- Find the line number of the current cursor position
+  local current_line = vim.api.nvim_win_get_cursor(0)[1]
+  local buffer_lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+
+  -- Search backward for the test definition
+  local test_name = nil
+  for i = current_line, 1, -1 do
+    local line = buffer_lines[i]
+    if line:match('test%("([%w%s_]+)"') then
+      -- Extract the test name
+      test_name = line:match('test%("([%w%s_]+)"')
+      break
+    end
+  end
+
+  if test_name == nil then
+    print("No test found above the cursor.")
+    return
+  end
+
+  print("Running TypeScript test: " .. test_name)
+
+  -- Run the test
+  local current_file = vim.api.nvim_buf_get_name(0)
+  -- npx jest -i ms-oas-client.test.ts -t "hello"
+  local cmd = string.format('!npx jest -i "%s" -t "%s"', current_file, test_name)
+
+  -- print(cmd)
+  vim.cmd(cmd)
+end
+
+-- Set the keymap for running the current TypeScript test
+vim.api.nvim_set_keymap('n', '<leader>ff', [[<Cmd>lua run_ts_tests()<CR>]], { noremap = true, silent = true })
 
 

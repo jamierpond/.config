@@ -1,7 +1,7 @@
-require("theprimeagen.set")
-require("theprimeagen.remap")
-require("theprimeagen.packer")
-require("theprimeagen.set")
+require("jamie.set")
+require("jamie.remap")
+require("jamie.packer")
+require("jamie.set")
 
 
 local augroup = vim.api.nvim_create_augroup
