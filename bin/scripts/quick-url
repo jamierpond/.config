@@ -1,6 +1,30 @@
 #!/usr/bin/env bash
 set -e
 
+gcloud_projects=(
+  "beastdrop"
+  "covers-ai"
+)
+
+get_gcloud_console_urls() {
+  services=(
+    "storage"
+  )
+
+  "https://console.cloud.google.com/$service/browser?project=$project"
+
+  urls=()
+  for project in "${gcloud_projects[@]}"; do
+    for service in "${services[@]}"; do
+      urls+=("https://console.cloud.google.com/$service/browser?project=$project")
+    done
+  done
+
+  printf "%s\n" "${urls[@]}"
+}
+
+gcloud_console_urls=$(get_gcloud_console_urls)
+
 firebase_services=(
   "firestore"
   "functions"
@@ -28,6 +52,7 @@ mayk_it_gh_urls=$(get_gh_urls "mayk-it" "mayk")
 popstar_gh_urls=$(get_gh_urls "mayk-it" "popstar")
 songgpt_gh_urls=$(get_gh_urls "mayk-it" "mayk.studio")
 mayk_it_gh_urls=$(get_gh_urls "jamierpond" ".config")
+mayk_it_gh_urls=$(get_gh_urls "jamierpond" "pond.audio")
 
 function get_firebase_urls() {
   projects=(
@@ -74,8 +99,11 @@ quick_urls=(
     "http://localhost:3000/ai-song-generator"
     "http://localhost:3000/record"
     "http://localhost:3000/about"
+    "https://chat.openai.com/?model=gpt-4"
+    "https://web.whatsapp.com"
 )
 
+quick_urls+=("$gcloud_console_urls")
 quick_urls+=("$covers_gh_urls")
 quick_urls+=("$mayk_it_gh_urls")
 quick_urls+=("$popstar_gh_urls")
