@@ -1,6 +1,6 @@
-require("jamie.set")
+vim.g.mapleader = " "
+require("jamie.lazy")
 require("jamie.remap")
--- require("jamie.lazy")
 require("jamie.set")
 
 local augroup = vim.api.nvim_create_augroup
