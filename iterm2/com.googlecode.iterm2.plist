@@ -6,6 +6,8 @@
 	<true/>
 	<key>AlternateMouseScroll</key>
 	<true/>
+	<key>Control</key>
+	<integer>1</integer>
 	<key>Default Bookmark Guid</key>
 	<string>3A394157-6F3C-4295-A581-21235297B2BE</string>
 	<key>HapticFeedbackForEsc</key>

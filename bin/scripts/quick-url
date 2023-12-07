@@ -2,8 +2,11 @@
 set -e
 
 gcloud_projects=(
-  "beastdrop"
+  "covers-ai-staging"
   "covers-ai"
+  "mayk-studio-staging"
+  "hit-machine-4bf64"
+  "beastdrop"
 )
 
 get_gcloud_console_urls() {
@@ -55,14 +58,9 @@ mayk_it_gh_urls=$(get_gh_urls "jamierpond" ".config")
 mayk_it_gh_urls=$(get_gh_urls "jamierpond" "pond.audio")
 
 function get_firebase_urls() {
-  projects=(
-    "covers-ai"
-    "covers-ai-staging"
-    "beastdrop"
-  )
-
   urls=()
-  for project in "${projects[@]}"; do
+  for project in "${gcloud_projects[@]}"; do
+    urls+=("https://console.cloud.google.com/welcome?project=$project")
     for service in "${firebase_services[@]}"; do
       urls+=("https://console.firebase.google.com/u/0/project/$project/$service")
     done
@@ -88,6 +86,7 @@ function get_emulator_urls() {
 
 emulator_urls=$(get_emulator_urls)
 
+
 quick_urls=(
     "https://github.com"
     "https://console.firebase.google.com/u/0/"
@@ -101,6 +100,7 @@ quick_urls=(
     "http://localhost:3000/about"
     "https://chat.openai.com/?model=gpt-4"
     "https://web.whatsapp.com"
+    "https://beta.popstarz.ai/ai-image"
 )
 
 quick_urls+=("$gcloud_console_urls")
