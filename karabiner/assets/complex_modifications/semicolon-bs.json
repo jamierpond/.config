@@ -1,8 +1,8 @@
 {
-  "title": "Map left ctrl + semi-colon to delete/backspace",
+  "title": "Map left ctrl + semicolon to delete/backspace",
   "rules": [
     {
-      "description": "Map left ctrl + semi-colon to delete/backspace",
+      "description": "Map left ctrl + semicolon to delete/backspace",
       "manipulators": [
         {
           "from": {
