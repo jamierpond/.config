@@ -1,0 +1,25 @@
+{
+  "title": "Map left ctrl + semi-colon to delete/backspace",
+  "rules": [
+    {
+      "description": "Map left ctrl + semi-colon to delete/backspace",
+      "manipulators": [
+        {
+          "from": {
+            "key_code": "semicolon",
+            "modifiers": {
+              "mandatory": ["left_control"],
+              "optional": ["any"]
+            }
+          },
+          "to": [
+            {
+              "key_code": "delete_or_backspace"
+            }
+          ],
+          "type": "basic"
+        }
+      ]
+    }
+  ]
+}

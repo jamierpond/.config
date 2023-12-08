@@ -97,6 +97,30 @@
                                 "type": "basic"
                             }
                         ]
+                    },
+                    {
+                        "description": "Map left ctrl + semi-colon to delete/backspace",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "semicolon",
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_control"
+                                        ],
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "delete_or_backspace"
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
                     }
                 ]
             },
@@ -285,6 +309,16 @@
                     "to": [
                         {
                             "key_code": "delete_or_backspace"
+                        }
+                    ]
+                },
+                {
+                    "from": {
+                        "key_code": "delete_or_backspace"
+                    },
+                    "to": [
+                        {
+                            "key_code": "vk_none"
                         }
                     ]
                 }
