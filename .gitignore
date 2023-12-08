@@ -6,5 +6,6 @@
 !tmux/
 !bin/
 !iterm2/
+!karabiner/
 **Application Support**
 **.DS_Store**
