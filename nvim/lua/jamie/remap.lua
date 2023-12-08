@@ -45,6 +45,8 @@ vim.cmd([[command! Pull !git pull]])
 vim.cmd([[command! Kat !killall tmux]])
 vim.cmd([[command! Kan !killall node]])
 
+vim.cmd([[command! Repo !gh repo view --web]])
+
 vim.cmd([[command! Dogtown !say "dogtown?"]])
 
 -- we want to run the script in ~/.config/bin/scripts/localhost-qr
