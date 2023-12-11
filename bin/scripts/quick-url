@@ -2,6 +2,7 @@
 set -e
 
 gcloud_projects=(
+  "renny-ai"
   "covers-ai-staging"
   "covers-ai"
   "mayk-studio-staging"
@@ -105,6 +106,8 @@ quick_urls=(
     "https://pond.audio/li"
     "https://pond.audio/linkedin"
     "https://pond.audio/gh"
+    "https://vercel.com"
+    "https://calendar.google.com/calendar/u/1/r"
 )
 
 quick_urls+=("$gcloud_console_urls")
