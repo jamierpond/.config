@@ -66,6 +66,19 @@ lazy.setup({
   "tpope/vim-fugitive",
   "nvim-treesitter/nvim-treesitter-context",
 
+  -- null ls
+  {
+    'jose-elias-alvarez/null-ls.nvim',
+    config = "require('null-ls').config{}",
+    requires = {'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig'}
+  },
+
+
+  {
+    'williamboman/mason.nvim',
+    config = "require('mason').setup({})",
+  },
+
   -- LSP Zero
   {
     'VonHeikemen/lsp-zero.nvim',

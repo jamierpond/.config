@@ -9,7 +9,7 @@ vim.api.nvim_set_keymap("v", "J", ":m '>+1<CR>gv=gv", {})
 vim.api.nvim_set_keymap("v", "K", ":m '<-2<CR>gv=gv", {})
 vim.api.nvim_set_keymap("n", "J", "mzJ`z", {})
 vim.api.nvim_set_keymap("n", "<C-d>", "<C-d>zz", {})
-vim.api.nvim_set_keymap("n", "<C-u>", "<C-u>zz", {})
+-- vim.api.nvim_set_keymap("n", "<C-u>", "<C-u>zz", {})
 vim.api.nvim_set_keymap("n", "n", "nzzzv", {})
 vim.api.nvim_set_keymap("n", "N", "Nzzzv", {})
 
@@ -339,8 +339,6 @@ end
 -- Set the keymap for running the current test
 vim.api.nvim_set_keymap('n', '<leader>tr', [[<Cmd>lua run_current_rust_test()<CR>]], { noremap = true, silent = true })
 
-
-
 function run_ts_tests()
   -- cd to the current file's directory
   local current_file = vim.api.nvim_buf_get_name(0)
@@ -380,5 +378,3 @@ end
 
 -- Set the keymap for running the current TypeScript test
 vim.api.nvim_set_keymap('n', '<leader>ff', [[<Cmd>lua run_ts_tests()<CR>]], { noremap = true, silent = true })
-
-
