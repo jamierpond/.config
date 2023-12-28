@@ -2,20 +2,23 @@
 set -e
 
 gcloud_projects=(
-  "renny-ai"
-  "covers-ai-staging"
-  "covers-ai"
-  "mayk-studio-staging"
-  "hit-machine-4bf64"
-  "beastdrop"
+  "renny-ai;Renny AI"
+  "covers-ai-staging;Covers AI Staging"
+  "covers-ai;Covers AI"
+  "mayk-studio-staging;SongGPT Staging"
+  "hit-machine-4bf64;SongGPT _Production"
+  "beastdrop;mayk.it"
+  "instasong-c647a;Popstarz AI"
 )
 
 get_gcloud_console_urls() {
   urls=()
   for project in "${gcloud_projects[@]}"; do
+    project_id=$(echo "$project" | cut -d';' -f1)
+    project_name=$(echo "$project" | cut -d';' -f2)
     services=(
-       "https://console.cloud.google.com/storage?project=$project | Storage"
-       "https://console.cloud.google.com/run?project=$project | Cloud Run"
+       "https://console.cloud.google.com/storage?project=$project_id | $project_name Storage"
+       "https://console.cloud.google.com/run?project=$project_id | $project_name Cloud Run"
     )
     for service in "${services[@]}"; do
       urls+=( "$service" )
