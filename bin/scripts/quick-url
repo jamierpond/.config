@@ -11,16 +11,14 @@ gcloud_projects=(
 )
 
 get_gcloud_console_urls() {
-  services=(
-    "storage"
-  )
-
-  "https://console.cloud.google.com/$service/browser?project=$project"
-
   urls=()
   for project in "${gcloud_projects[@]}"; do
+    services=(
+       "https://console.cloud.google.com/storage?project=$project | Storage"
+       "https://console.cloud.google.com/run?project=$project | Cloud Run"
+    )
     for service in "${services[@]}"; do
-      urls+=("https://console.cloud.google.com/$service/browser?project=$project")
+      urls+=( "$service" )
     done
   done
 
