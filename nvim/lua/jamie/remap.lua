@@ -332,7 +332,7 @@ function run_current_rust_test()
   print("Running test: " .. test_name)
 
 --   -- Run the test
-  local cmd = "!cargo test " .. test_name .. " -- --nocapture"
+  local cmd = "!cargo test " .. test_name .. " -- --nocapture --ignored"
   vim.cmd(cmd)
 end
 
