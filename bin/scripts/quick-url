@@ -112,7 +112,7 @@ quick_urls=(
     "https://calendar.google.com/calendar/u/1/r | Calendar"
     "https://mail.google.com/mail/u/0/#inbox | Gmail Personal"
     "https://mail.google.com/mail/u/1/#inbox | Gmail Mayk Work"
-
+    "https://console.cloud.google.com/run/detail/us-central1/songgpt/logs?project=mayk-studio-staging | SongGPT Staging Logs"
 )
 
 quick_urls+=("$gcloud_console_urls")
