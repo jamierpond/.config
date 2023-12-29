@@ -1,0 +1,36 @@
+#!/bin/bash
+set -e
+
+cmake_list_present=$(ls | grep CMakeLists.txt | wc -l)
+echo "CMakeLists.txt present: $cmake_list_present"
+if [ $cmake_list_present -eq 0 ]; then
+    echo "No CMakeLists.txt found"
+    exit 1
+fi
+
+# contains_project=$(cat CMakeLists.txt | grep "project(" | wc -l)
+# if [ $contains_project -eq 0 ]; then
+#     echo "No project name found"
+#     exit 1
+# fi
+#
+# echo "Project name: $project_name"
+# project_name=$(cat CMakeLists.txt | grep "project(" | sed 's/project(//g' | sed 's/)//g' | sed 's/ //g')
+#
+cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -S .
+
+if [ ! -f build/compile_commands.json ]; then
+    echo "No compile_commands.json found"
+    exit 1
+fi
+
+# echo "Compiling..."
+# cmake --build build
+
+
+compile_please="$1"
+if [ "$compile_please" == "c" ]; then
+    echo "Compiling..."
+    cmake --build "build" --config Release
+fi
+
