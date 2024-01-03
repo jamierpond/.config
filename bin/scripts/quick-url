@@ -114,6 +114,8 @@ quick_urls=(
     "https://mail.google.com/mail/u/1/#inbox | Gmail Mayk Work"
     "https://console.cloud.google.com/run/detail/us-central1/songgpt/logs?project=mayk-studio-staging | SongGPT Staging _Logs"
     "https://app.circleci.com/pipelines/github/mayk-it | CircleCI Dashboard cci"
+    "https://mar.band"
+    "https://song-gpt.com | SongGPT full website"
 )
 
 quick_urls+=("$gcloud_console_urls")

@@ -91,6 +91,9 @@ end
 
 function git_commit()
   display_git_info()
+  -- cd to the root of the git repo
+  local git_root = io.popen("git rev-parse --show-toplevel"):read("*a"):gsub("\n", "")
+  vim.cmd("cd " .. git_root)
   local add_all = "!git add ."
   vim.cmd(add_all)
   local message = vim.fn.input("Commit message: ")
@@ -331,7 +334,7 @@ function run_current_rust_test()
 
   print("Running test: " .. test_name)
 
---   -- Run the test
+  -- Run the test
   local cmd = "!cargo test " .. test_name .. " -- --nocapture"
   vim.cmd(cmd)
 end
@@ -367,7 +370,7 @@ function run_ts_tests()
 
   print("Running TypeScript test: " .. test_name)
 
-  -- Run the test
+  -- hellothe test
   local current_file = vim.api.nvim_buf_get_name(0)
   -- npx jest -i ms-oas-client.test.ts -t "hello"
   local cmd = string.format('!npx jest -i "%s" -t "%s"', current_file, test_name)
@@ -378,3 +381,5 @@ end
 
 -- Set the keymap for running the current TypeScript test
 vim.api.nvim_set_keymap('n', '<leader>ff', [[<Cmd>lua run_ts_tests()<CR>]], { noremap = true, silent = true })
+
+
