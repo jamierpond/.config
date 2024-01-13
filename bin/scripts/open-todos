@@ -1,14 +1,12 @@
 #!/bin/bash
 set -e
 
-# e.g. 2019-01-01.md
-today=$(date +%Y-%m-%d)
-today_path="~/projects/journal/days/$today.md"
+today_path="~/projects/journal/todo.md"
 
 # check for today's journal tmux session
 if tmux has-session -t journal 2> /dev/null; then
     # close the current today window if there is one
-    today_journal_window_name="today"
+    today_journal_window_name="todo"
     tmux kill-window -t journal:$today_journal_window_name 2> /dev/null || true
     # new window
     tmux new-window -t journal -n $today_journal_window_name -c ~/projects/journal "nvim $today_path"
@@ -18,3 +16,4 @@ fi
 
 tmux new-session -s journal -c ~/projects/journal/days -d "nvim $today_path"
 tmux switch-client -t journal
+
