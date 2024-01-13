@@ -14,6 +14,6 @@ if tmux has-session -t journal 2> /dev/null; then
     exit 0
 fi
 
-tmux new-session -s journal -c ~/projects/journal/days -d "nvim $today_path"
+tmux new-session -s journal -c ~/projects/journal -d "nvim $today_path"
 tmux switch-client -t journal
 
