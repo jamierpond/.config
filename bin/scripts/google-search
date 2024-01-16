@@ -1,0 +1,30 @@
+#!/bin/bash
+set -e
+
+# use this script to search google easily
+read -p "Search: " search
+
+search_term=$(echo "$search" | sed 's/ /+/g')
+url="https://www.google.com/search?q=$search_term"
+
+echo "Searching for '$url'..."
+
+open "$url"
+
+
+# google_base_url="https://www.google.com/search?q="
+# 
+# if [ $# -eq 0 ]; then
+#     echo "Usage: google-search <search term>"
+#     exit 1
+# fi
+# 
+# search_term=$(echo "$*" | sed 's/ /+/g')
+# 
+# url="$google_base_url$search_term"
+# 
+# echo "Searching for '$*'..."
+# 
+# open "$url"
+
+

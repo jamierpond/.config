@@ -79,7 +79,7 @@ function get_emulator_urls() {
 
   urls=()
   for service in "${firebase_services[@]}"; do
-    urls+=("$base/$service | Local $service emulator")
+    urls+=("$base/$service | _Local $service emulator")
   done
 
   echo "$base"
@@ -97,7 +97,7 @@ quick_urls=(
     "https://covers.ai/ai-song-generator"
     "https://covers.ai/about"
 #   "http://localhost:3000/ai-image"
-    "http://localhost:3000/"
+    "http://localhost:3000/ | localhost"
     "http://localhost:3000/ai-song-generator"
     "http://localhost:3000/record"
     "http://localhost:3000/about"

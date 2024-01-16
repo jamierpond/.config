@@ -272,6 +272,22 @@ vim.api.nvim_set_keymap('n', '<leader>lk', [[<Cmd>lua open_local_host()<CR>]], k
 
 vim.api.nvim_set_keymap('n', '<leader>ll', [[<Cmd>lua open_local_host()<CR>]], keymap_opts)
 
+function google_search()
+  local query = vim.fn.input("Enter query: ")
+  local base_url = "https://www.google.com/search?q="
+
+  local escaped_query = query:gsub(" ", "+")
+
+  -- print(base_url .. escaped_query)
+
+  local cmd = "!open '" .. base_url .. escaped_query .. "'"
+
+  print(cmd)
+
+  vim.cmd(cmd)
+end
+
+vim.api.nvim_set_keymap('n', '<leader>g', [[<Cmd>lua google_search()<CR>]], keymap_opts)
 
 
 -- some useful python ones
