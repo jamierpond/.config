@@ -2,13 +2,14 @@
 set -e
 
 gcloud_projects=(
-  "renny-ai;Renny AI"
-  "covers-ai-staging;Covers AI Staging"
-  "covers-ai;Covers AI"
-  "mayk-studio-staging;SongGPT Staging"
-  "hit-machine-4bf64;SongGPT _Production"
-  "beastdrop;mayk.it"
-  "instasong-c647a;Popstarz AI"
+ "renny-ai"
+ "covers-ai-staging"
+ "covers-ai"
+ "mayk-studio-staging"
+ "hit-machine-4bf64"
+ "beastdrop"
+ "instasong-c647a"
+ "onejourney-test"
 )
 
 get_gcloud_console_urls() {
@@ -35,7 +36,7 @@ firebase_services=(
   "functions"
   "storage"
   "hosting"
-  "auth"
+  "authentication/users"
 )
 
 function get_gh_urls() {
@@ -119,10 +120,13 @@ quick_urls=(
     "https://song-gpt.com | SongGPT full _website"
     "https://staging.song-gpt.com | Staging SongGPT Staging full _website"
     "https://vercel.com/mayk-it/mayk-studio | SongGPT Vercel"
-    "https://vercel.com/mayk-it/mayk-studio/logs | SongGPT Vercel _Logs"
+#   "https://vercel.com/mayk-it/mayk-studio/logs | SongGPT Vercel _Logs"
     "https://vercel.com/mayk-it/covers-ai | Covers Vercel "
     "https://vercel.com/mayk-it/popstar | Popstarz Vercel "
     "https://docs.google.com/document/d/1LuOCWHJ8C2GzEjts2ZkuUXggkC4_BkkHIGSiVCd6Km4/edit | SongGPT _Roadmap"
+    "https://github.com/pulls | My _Pull Requests"
+    "https://mayk.atlassian.net/jira/software/c/projects/MAYK/boards/2?assignee=5f94739dddb0df006e98c181 | Jira"
+    "https://docs.google.com/document/d/1X9jZAIaNLJNGMzag-rdrN0FLRp10xkHkZzbr54QFQLk/edit | Empire State of Audio, Audio Engine _Roadmap"
 )
 
 quick_urls+=("$audioengine_gh_urls")
