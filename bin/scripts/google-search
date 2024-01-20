@@ -1,30 +1,37 @@
 #!/bin/bash
 set -e
 
-# use this script to search google easily
-read -p "Search: " search
+# Function to wait for Esc key in the background
+wait_for_esc() {
+    while true; do
+        # Read a single character
+        IFS= read -rsn1 key
+        # Check for Esc key (ASCII 27)
+        if [ "$(printf "%d" "'$key")" -eq 27 ]; then
+            echo "Exiting..."
+            # Kill the parent process (the main script)
+            kill -s TERM $$
+        fi
+    done
+}
 
-search_term=$(echo "$search" | sed 's/ /+/g')
-url="https://www.google.com/search?q=$search_term"
+# Start the wait_for_esc function in the background
+wait_for_esc &
 
-echo "Searching for '$url'..."
+# Store the background process ID
+bg_pid=$!
 
-open "$url"
+# Use trap to clean up the background process when the script exits
+trap "kill $bg_pid 2>/dev/null" EXIT
 
+# Main loop for the search functionality
+while true; do
+    read -p "Enter your search term: " search
+    search_term=$(echo "$search" | sed 's/ /+/g')
+    url="https://www.google.com/search?q=$search_term"
 
-# google_base_url="https://www.google.com/search?q="
-# 
-# if [ $# -eq 0 ]; then
-#     echo "Usage: google-search <search term>"
-#     exit 1
-# fi
-# 
-# search_term=$(echo "$*" | sed 's/ /+/g')
-# 
-# url="$google_base_url$search_term"
-# 
-# echo "Searching for '$*'..."
-# 
-# open "$url"
-
+    echo "Searching for '$url'..."
+    open "$url"
+    exit 0
+done
 

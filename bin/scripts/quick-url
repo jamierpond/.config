@@ -127,6 +127,11 @@ quick_urls=(
     "https://github.com/pulls | My _Pull Requests"
     "https://mayk.atlassian.net/jira/software/c/projects/MAYK/boards/2?assignee=5f94739dddb0df006e98c181 | Jira"
     "https://docs.google.com/document/d/1X9jZAIaNLJNGMzag-rdrN0FLRp10xkHkZzbr54QFQLk/edit | Empire State of Audio, Audio Engine _Roadmap"
+    "https://app.slack.com/client/T018TFZ34EL/D033C1DPV7V | Stefan Slack"
+    "https://app.slack.com/client/T018TFZ34EL/D033QK7LBAM | Akiva Slack"
+    "https://app.slack.com/client/T018TFZ34EL/C063MK5HN78 | SongGPT Slack"
+    "https://app.slack.com/client/T018TFZ34EL/D04AMVA3KAP | Kelly Slack"
+    "https://app.slack.com/client/T018TFZ34EL/D03LCE84GNT | Matthew Rice Slack"
 )
 
 quick_urls+=("$audioengine_gh_urls")
