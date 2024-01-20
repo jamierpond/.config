@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
+
 set -e
 
 gcloud_projects=(
@@ -135,6 +136,7 @@ quick_urls=(
     "https://app.slack.com/client/T018TFZ34EL/D04PZT0J6PK | Marianne Slack"
     "https://app.slack.com/client/T018TFZ34EL/C060XSTPT7G | Popstarz _Channel Slack"
     "https://github.com/pulls/review-requested | Pull _Review Requests"
+    "https://onejourney.vercel.app/ | OneJourney"
 )
 
 quick_urls+=("$audioengine_gh_urls")
