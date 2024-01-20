@@ -132,6 +132,9 @@ quick_urls=(
     "https://app.slack.com/client/T018TFZ34EL/C063MK5HN78 | SongGPT Slack"
     "https://app.slack.com/client/T018TFZ34EL/D04AMVA3KAP | Kelly Slack"
     "https://app.slack.com/client/T018TFZ34EL/D03LCE84GNT | Matthew Rice Slack"
+    "https://app.slack.com/client/T018TFZ34EL/D04PZT0J6PK | Marianne Slack"
+    "https://app.slack.com/client/T018TFZ34EL/C060XSTPT7G | Popstarz _Channel Slack"
+    "https://github.com/pulls/review-requested | Pull _Review Requests"
 )
 
 quick_urls+=("$audioengine_gh_urls")
