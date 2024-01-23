@@ -1,0 +1,6 @@
+#!/bin/bash
+set -e
+
+# open a new tmux window within the current session, and open lazygit in it
+current_session=$(tmux display-message -p '#S')
+tmux new-window -t "$current_session" -n "lazygit" "lazygit"

@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+
+today_path="~/projects/journal/todo.md"
+
+# check for today's journal tmux session
+if tmux has-session -t journal 2> /dev/null; then
+    # close the current today window if there is one
+    today_journal_window_name="todo"
+    tmux kill-window -t journal:$today_journal_window_name 2> /dev/null || true
+    # new window
+    tmux new-window -t journal -n $today_journal_window_name -c ~/projects/journal "nvim $today_path"
+    tmux switch-client -t journal
+    exit 0
+fi
+
+tmux new-session -s journal -c ~/projects/journal -d "nvim $today_path"
+tmux switch-client -t journal
+

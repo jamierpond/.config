@@ -91,6 +91,9 @@ end
 
 function git_commit()
   display_git_info()
+  -- cd to the root of the git repo
+  local git_root = io.popen("git rev-parse --show-toplevel"):read("*a"):gsub("\n", "")
+  vim.cmd("cd " .. git_root)
   local add_all = "!git add ."
   vim.cmd(add_all)
   local message = vim.fn.input("Commit message: ")
@@ -269,6 +272,22 @@ vim.api.nvim_set_keymap('n', '<leader>lk', [[<Cmd>lua open_local_host()<CR>]], k
 
 vim.api.nvim_set_keymap('n', '<leader>ll', [[<Cmd>lua open_local_host()<CR>]], keymap_opts)
 
+function google_search()
+  local query = vim.fn.input("Enter query: ")
+  local base_url = "https://www.google.com/search?q="
+
+  local escaped_query = query:gsub(" ", "+")
+
+  -- print(base_url .. escaped_query)
+
+  local cmd = "!open '" .. base_url .. escaped_query .. "'"
+
+  print(cmd)
+
+  vim.cmd(cmd)
+end
+
+vim.api.nvim_set_keymap('n', '<leader>g', [[<Cmd>lua google_search()<CR>]], keymap_opts)
 
 
 -- some useful python ones
@@ -331,8 +350,8 @@ function run_current_rust_test()
 
   print("Running test: " .. test_name)
 
---   -- Run the test
-  local cmd = "!cargo test " .. test_name .. " -- --nocapture --ignored"
+  -- Run the test
+  local cmd = "!cargo test " .. test_name .. " -- --nocapture"
   vim.cmd(cmd)
 end
 
@@ -367,7 +386,7 @@ function run_ts_tests()
 
   print("Running TypeScript test: " .. test_name)
 
-  -- Run the test
+  -- hellothe test
   local current_file = vim.api.nvim_buf_get_name(0)
   -- npx jest -i ms-oas-client.test.ts -t "hello"
   local cmd = string.format('!npx jest -i "%s" -t "%s"', current_file, test_name)
@@ -378,3 +397,5 @@ end
 
 -- Set the keymap for running the current TypeScript test
 vim.api.nvim_set_keymap('n', '<leader>ff', [[<Cmd>lua run_ts_tests()<CR>]], { noremap = true, silent = true })
+
+

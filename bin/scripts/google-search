@@ -1,0 +1,37 @@
+#!/bin/bash
+set -e
+
+# Function to wait for Esc key in the background
+wait_for_esc() {
+    while true; do
+        # Read a single character
+        IFS= read -rsn1 key
+        # Check for Esc key (ASCII 27)
+        if [ "$(printf "%d" "'$key")" -eq 27 ]; then
+            echo "Exiting..."
+            # Kill the parent process (the main script)
+            kill -s TERM $$
+        fi
+    done
+}
+
+# Start the wait_for_esc function in the background
+wait_for_esc &
+
+# Store the background process ID
+bg_pid=$!
+
+# Use trap to clean up the background process when the script exits
+trap "kill $bg_pid 2>/dev/null" EXIT
+
+# Main loop for the search functionality
+while true; do
+    read -p "Enter your search term: " search
+    search_term=$(echo "$search" | sed 's/ /+/g')
+    url="https://www.google.com/search?q=$search_term"
+
+    echo "Searching for '$url'..."
+    open "$url"
+    exit 0
+done
+
