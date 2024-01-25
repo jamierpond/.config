@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+current_branch=$(git branch --show-current)
+
+echo "Current branch: $current_branch"
+
+existing_pr=$(gh pr list --state open --head "$current_branch")
+
+if [ -n "$existing_pr" ]; then
+  echo "PR already exists: $existing_pr"
+  open "$existing_pr"
+  exit 0
+fi
+
+gh pr create
+
