@@ -9,9 +9,12 @@ existing_pr=$(gh pr list --state open --head "$current_branch")
 
 if [ -n "$existing_pr" ]; then
   echo "PR already exists: $existing_pr"
-  open "$existing_pr"
+  gh pr view --web
   exit 0
 fi
 
+export EDITOR="nvim"
 gh pr create
+
+gh pr view --web
 
