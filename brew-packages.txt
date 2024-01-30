@@ -5,6 +5,7 @@ aribb24
 autoconf
 automake
 awscli
+bat
 bazelisk
 bdw-gc
 berkeley-db
@@ -119,6 +120,7 @@ libbluray
 libevent
 libffi
 libgcrypt
+libgit2
 libgpg-error
 libidn
 libidn2
