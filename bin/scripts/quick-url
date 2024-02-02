@@ -10,6 +10,7 @@ gcloud_projects=(
  "beastdrop"
  "instasong-c647a"
  "onejourney-test"
+ "drayk-it-f3e35"
 )
 
 get_gcloud_console_urls() {
@@ -137,6 +138,7 @@ quick_urls=(
     "https://app.slack.com/client/T018TFZ34EL/C060XSTPT7G | Popstarz _Channel Slack"
     "https://github.com/pulls/review-requested | Pull _Review Requests"
     "https://onejourney.vercel.app/ | OneJourney"
+    "https://dash.cloudflare.com/ | Cloudflare"
 )
 
 quick_urls+=("$audioengine_gh_urls")

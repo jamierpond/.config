@@ -3,7 +3,15 @@ set -e
 
 # e.g. 2019-01-01.md
 today=$(date +%Y-%m-%d)
-today_path="~/projects/journal/days/$today.md"
+year_string=$(date +%Y)
+# mon, tues, etc
+month_as_string=$(date +%b)
+
+today_dir="$HOME/projects/journal/days/$year_string/$month_as_string"
+mkdir -p $today_dir
+today_path="$today_dir/$today.md"
+
+
 
 # check for today's journal tmux session
 if tmux has-session -t journal 2> /dev/null; then
