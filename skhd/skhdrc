@@ -5,9 +5,10 @@ alt - k : yabai -m window --focus north
 alt - h : yabai -m window --focus west
 alt - l : yabai -m window --focus east
 
-shift + alt -m : yabai -m window --toggle zoom-fullscreen
+ctrl - m : yabai -m window --toggle zoom-fullscreen
 
+# should probs be able to make some kind of auto-layout function for web-dev or something
 ctrl - 1 : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "Slack"))[0].id')
-ctrl - 2 : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "Arc"))[0].id')
-ctrl - 3 : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "iTerm2"))[0].id')
+ctrl - 2 : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "iTerm2"))[0].id')
+ctrl - 3 : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "Arc"))[0].id')
 ctrl - 4 : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "Finder"))[0].id')
