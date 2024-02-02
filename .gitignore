@@ -10,5 +10,7 @@
 !brew-packages.txt
 !README.md
 !update-brew-packages.sh
+!skhd/
+!yabai/
 **Application Support**
 **.DS_Store**
