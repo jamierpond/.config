@@ -1,14 +1,18 @@
 # changing window focus
 
-alt - j : yabai -m window --focus south
-alt - k : yabai -m window --focus north
-alt - h : yabai -m window --focus west
-alt - l : yabai -m window --focus east
+ctrl - j : yabai -m window --focus south
+ctrl - k : yabai -m window --focus north
+ctrl - h : yabai -m window --focus west
+ctrl - l : yabai -m window --focus east
+
+ctrl - s : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "Slack"))[0].id')
+ctrl - d : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "iTerm2"))[0].id')
+ctrl - f : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "Firefox"))[0].id')
 
 ctrl - m : yabai -m window --toggle zoom-fullscreen
 
 # should probs be able to make some kind of auto-layout function for web-dev or something
-ctrl - 1 : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "Slack"))[0].id')
-ctrl - 2 : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "iTerm2"))[0].id')
-ctrl - 3 : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "Arc"))[0].id')
-ctrl - 4 : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "Finder"))[0].id')
+ctrl - 7 : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "iTerm2"))[0].id')
+ctrl - 8 : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "Slack"))[0].id')
+ctrl - 9 : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "Arc"))[0].id')
+ctrl - 0 : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "Finder"))[0].id')

@@ -1,0 +1,20 @@
+#!/bin/bash
+
+window_json=$(yabai -m query --windows)
+
+# get the app name followe by the title "Window Title - App Name"
+names_list=$(echo $window_json | jq -r '.[] | "\(.app) - \(.title)"')
+
+chosen=$(echo "$names_list" | fzf)
+
+# remove the title from the chosen string
+chosen=$(echo $chosen | sed -E 's/ - .+//')
+
+if [ -n "$chosen" ]; then
+  id=$(echo $window_json | jq -r ".[] | select(.app == \"$chosen\") | .id")
+  # make sure we don't hang around for this to finish
+  yabai -m window --focus $id
+  echo more
+  exit 1
+fi
+

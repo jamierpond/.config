@@ -139,6 +139,7 @@ quick_urls=(
     "https://github.com/pulls/review-requested | Pull _Review Requests"
     "https://onejourney.vercel.app/ | OneJourney"
     "https://dash.cloudflare.com/ | Cloudflare"
+    "https://console.firebase.google.com/u/0/project/drayk-it-f3e35/firestore/data/~2Frender-tasks~2F0008393ffe924e1f8faa1ba84c27584d | Fayk render data songs info "
 )
 
 quick_urls+=("$audioengine_gh_urls")
@@ -156,5 +157,7 @@ url=$(printf "%s\n" "${quick_urls[@]}" | fzf)
 # strip everything after the first pipe (and spaces)
 url=$(echo "$url" | cut -d'|' -f1 | tr -d '[:space:]')
 
-open "$url"
+/Applications/Firefox.app/Contents/MacOS/firefox --new-tab "$url"
+
+
 
