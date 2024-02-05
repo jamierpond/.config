@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+ip=$(wget -q -O - https://loca.lt/mytunnelpassword)
+echo "$ip" | pbcopy
+echo "Your IP ($ip) has been copied to the clipboard!"
