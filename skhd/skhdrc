@@ -5,8 +5,9 @@ alt - k : yabai -m window --focus north
 alt - h : yabai -m window --focus west
 alt - l : yabai -m window --focus east
 
-ctrl - s : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "Slack"))[0].id')
-ctrl - f : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "Firefox"))[0].id')
+# ctrl - s : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "Slack"))[0].id')
+# ctrl - a : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "iTerm2"))[0].id')
+# ctrl - f : yabai -m window --focus $(yabai -m query --windows | jq 'map(select(.app == "iTerm2"))[0].id')
 
 ctrl - m : yabai -m window --toggle zoom-fullscreen
 

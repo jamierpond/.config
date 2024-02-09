@@ -16,7 +16,7 @@ fi
 #
 # echo "Project name: $project_name"
 # project_name=$(cat CMakeLists.txt | grep "project(" | sed 's/project(//g' | sed 's/)//g' | sed 's/ //g')
-#
+
 cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -S .
 
 if [ ! -f build/compile_commands.json ]; then
@@ -26,7 +26,6 @@ fi
 
 # echo "Compiling..."
 # cmake --build build
-
 
 compile_please="$1"
 if [ "$compile_please" == "c" ]; then

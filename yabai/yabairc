@@ -20,4 +20,16 @@ yabai -m rule --add app="^System Settings$" manage=off
 yabai -m rule --add app="^Calculator$" manage=off
 yabai -m rule --add app="^Karabiner-Elements$" manage=off
 yabai -m rule --add app="^Slack$" manage=off
+yabai -m rule --add app="^Github Desktop$" manage=off
 yabai -m rule --add app="^Finder$" manage=off
+
+# Set all padding and gaps to 20pt (default: 0)
+yabai -m config top_padding    10
+yabai -m config bottom_padding 10
+yabai -m config left_padding   10
+yabai -m config right_padding  10
+yabai -m config window_gap     10
+
+# Override gaps for space 2 only
+yabai -m config --space 2 window_gap 0
+
