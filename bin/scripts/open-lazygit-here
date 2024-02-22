@@ -2,5 +2,6 @@
 set -e
 
 # open a new tmux window within the current session, and open lazygit in it
+cwd=$(tmux display-message -p '#{pane_current_path}')
 current_session=$(tmux display-message -p '#S')
-tmux new-window -t "$current_session" -n "lazygit" "lazygit"
+tmux new-window -t "$current_session" -n "lazygit" "cd $cwd && lazygit"

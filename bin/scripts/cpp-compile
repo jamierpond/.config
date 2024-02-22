@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+other_args="$2"
+
 cmake_list_present=$(ls | grep CMakeLists.txt | wc -l)
 echo "CMakeLists.txt present: $cmake_list_present"
 if [ $cmake_list_present -eq 0 ]; then
@@ -17,7 +19,7 @@ fi
 # echo "Project name: $project_name"
 # project_name=$(cat CMakeLists.txt | grep "project(" | sed 's/project(//g' | sed 's/)//g' | sed 's/ //g')
 
-cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -S .
+cmake -G Ninja -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -S . $other_args
 
 if [ ! -f build/compile_commands.json ]; then
     echo "No compile_commands.json found"
@@ -30,6 +32,6 @@ fi
 compile_please="$1"
 if [ "$compile_please" == "c" ]; then
     echo "Compiling..."
-    cmake --build "build" --config Release
+    cmake --build "build" --config Release -j 16
 fi
 
