@@ -1,4 +1,0 @@
-#!/bin/bash
-set -e
-selected=$(git grep --cached -Il '' | xargs awk '{print FNR, $0 " | " FILENAME}' | fzf | awk '{print $NF ":" $1}')
-echo $selected

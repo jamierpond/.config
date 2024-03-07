@@ -399,23 +399,3 @@ end
 vim.api.nvim_set_keymap('n', '<leader>ff', [[<Cmd>lua run_ts_tests()<CR>]], { noremap = true, silent = true })
 
 
-vim.keymap.set('n', '<leader>ps', function()
-  -- Temporary file to hold the output
-  local tmp_file = "/tmp/grep_nice_output.txt"
-
-  -- Command that runs your script, uses fzf, and redirects the selected output to a temporary file
-  local cmd = "terminal zsh -c 'source /Users/jamiepond/.config/bin/scripts/grep-nice > " .. tmp_file .. "'"
-
-  -- Execute the command in a Vim terminal
-  vim.cmd(cmd)
-
-  -- get the output of the command
-  local output = io.popen("cat " .. tmp_file):read("*a")
-
-  -- open the file in the output "./filename:linenum"
-  local file = output:match("(.+):%d+")
-  local line = output:match(".+:(%d+)")
-
-  print("File: " .. file)
-end)
-
