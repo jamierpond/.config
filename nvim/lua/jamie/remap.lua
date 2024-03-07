@@ -399,23 +399,27 @@ end
 vim.api.nvim_set_keymap('n', '<leader>ff', [[<Cmd>lua run_ts_tests()<CR>]], { noremap = true, silent = true })
 
 
-vim.keymap.set('n', '<leader>ps', function()
-  -- Temporary file to hold the output
-  local tmp_file = "/tmp/grep_nice_output.txt"
+local api = vim.api
 
-  -- Command that runs your script, uses fzf, and redirects the selected output to a temporary file
-  local cmd = "terminal zsh -c 'source /Users/jamiepond/.config/bin/scripts/grep-nice > " .. tmp_file .. "'"
+local function search_in_files()
+  local fzf = require('fzf').fzf
+  local action = require('fzf.actions').action
 
-  -- Execute the command in a Vim terminal
-  vim.cmd(cmd)
+  local preview_cmd = 'bat --style=numbers --color=always --line-range :500 {}'
 
-  -- get the output of the command
-  local output = io.popen("cat " .. tmp_file):read("*a")
+  local fzf_command = 'git grep --line-number -- .'
+  local options = '--delimiter : --nth 2.. --preview ' .. preview_cmd
 
-  -- open the file in the output "./filename:linenum"
-  local file = output:match("(.+):%d+")
-  local line = output:match(".+:(%d+)")
+  coroutine.wrap(function()
+    local result = fzf(fzf_command, options)
+    if result then
+      local split_result = vim.split(result[1], ':')
+      local file = split_result[1]
+      local line = split_result[2]
+      vim.cmd('e +' .. line .. ' ' .. file)
+    end
+  end)()
+end
 
-  print("File: " .. file)
-end)
-
+-- Register the command in Neovim
+api.nvim_create_user_command('FzfGitGrep', search_in_files, {})

@@ -22,7 +22,7 @@ lazy.setup({
   {"hrsh7th/nvim-compe"},
 
   {"sindrets/diffview.nvim"},
-  {'junegunn/fzf'}, -- , { 'do': { -> fzf#install() } }
+  {'vijaymarupudi/nvim-fzf'},
 
   -- install with yarn or npm
   {
