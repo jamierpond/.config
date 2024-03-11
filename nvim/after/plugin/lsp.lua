@@ -69,4 +69,6 @@ vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
   }
 )
 
+local lspconfig = require('lspconfig')
+lspconfig.htmx.setup{}
 
