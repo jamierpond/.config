@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-other_args="$2"
+# all args except the first
+other_args="${@:2}"
 
 cmake_list_present=$(ls | grep CMakeLists.txt | wc -l)
 echo "CMakeLists.txt present: $cmake_list_present"
@@ -32,6 +33,6 @@ fi
 compile_please="$1"
 if [ "$compile_please" == "c" ]; then
     echo "Compiling..."
-    cmake --build "build" --config Release -j 16
+    cmake --build "build" --config Release -j 16 # -DCMAKE_LINKER=$(which lld)
 fi
 

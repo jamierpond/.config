@@ -16,6 +16,7 @@ local lazy = require("lazy")
 lazy.setup({
   {"nvim-lua/plenary.nvim"},
   {"lervag/vimtex"},
+  {"nvim-telescope/telescope-live-grep-args.nvim"},
 
   {"mg979/vim-visual-multi"},
 
