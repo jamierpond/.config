@@ -35,6 +35,9 @@ vim.api.nvim_set_keymap("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = tru
 -- vim.api.nvim_set_keymap("n", "<leader>vpp", "<cmd>e ~/.dotfiles/nvim/.config/nvim/lua/theprimeagen/packer.lua<CR>", {})
 vim.api.nvim_set_keymap("n", "<leader>mr", "<cmd>CellularAutomaton make_it_rain<CR>", {})
 
+-- make remap to do code action for <leader>ca
+vim.api.nvim_set_keymap("n", "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<CR>", { noremap = true })
+
 vim.api.nvim_set_keymap("n", "<leader><leader>", ":so<CR>", {})
 
 vim.api.nvim_set_keymap("v", "<leader>y", [["*y]], {})
