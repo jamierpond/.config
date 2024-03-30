@@ -1,0 +1,21 @@
+#!/bin/bash
+
+function changes-this-week() {
+  repo_name=$(basename $(git rev-parse --show-toplevel))
+  git log --author="Jamie Pond" --since="1 week ago" --pretty=format:"%h" | xargs -I{} git --no-pager diff {}
+}
+
+projects_dir="$HOME/projects/mayk-it"
+cd "$projects_dir"
+
+repos=$(find . -maxdepth 1 -mindepth 1 -type d)
+
+
+for repo in $repos; do
+  cd "$projects_dir/$repo"
+  changes-this-week
+  cd "$projects_dir"
+done
+
+# output all changes to a single file
+

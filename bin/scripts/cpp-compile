@@ -33,6 +33,6 @@ fi
 compile_please="$1"
 if [ "$compile_please" == "c" ]; then
     echo "Compiling..."
-    cmake --build "build" --config Release -j 16 # -DCMAKE_LINKER=$(which lld)
+    cmake --build "build" --config Release -j16 # -DCMAKE_LINKER=$(which lld)
 fi
 
