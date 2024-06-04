@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+home_dir="$HOME"
+tmux_running=$(pgrep tmux)
+
+function open_zshrc() {
+  nvim $HOME/.zshrc
+}
+
+if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
+    tmux new-session -s $home_dir -c $selected
+    exit 0
+fi
+
+if ! tmux has-session -t=$home_dir 2> /dev/null; then
+    tmux new-session -ds $home_dir -c $selected
+fi
+
+tmux switch-client -t $home_dir

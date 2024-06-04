@@ -41,3 +41,16 @@ vim.cmd [[
     autocmd FileType markdown setlocal columns=90
   augroup END
 ]]
+
+-- Set indentation for all files in projects with 'zoo' in the path
+vim.api.nvim_create_autocmd({"BufNewFile", "BufRead"}, {
+  pattern = "*/zoo/*/*",
+  callback = function()
+    vim.bo.tabstop = 4
+    vim.bo.shiftwidth = 4
+    vim.bo.softtabstop = 4
+    vim.bo.expandtab = true
+  end
+})
+
+

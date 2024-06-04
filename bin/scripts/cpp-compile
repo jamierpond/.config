@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+
+
 # all args except the first
 other_args="${@:2}"
 
@@ -20,7 +22,9 @@ fi
 # echo "Project name: $project_name"
 # project_name=$(cat CMakeLists.txt | grep "project(" | sed 's/project(//g' | sed 's/)//g' | sed 's/ //g')
 
-cmake -G Ninja -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -S . $other_args
+cmake -G Ninja -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
+  -DCMAKE_TOOLCHAIN_FILE=~/vcpkg/scripts/buildsystems/vcpkg.cmake \
+  -S . $other_args
 
 if [ ! -f build/compile_commands.json ]; then
     echo "No compile_commands.json found"

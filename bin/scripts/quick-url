@@ -54,6 +54,9 @@ function get_gh_urls() {
   printf "%s\n" "${urls[@]}"
 }
 
+tracktion_gh_urls=$(get_gh_urls "mayk-it" "tracktion_engine")
+juce_gh_urls=$(get_gh_urls "mayk-it" "juce")
+
 audioengine_gh_urls=$(get_gh_urls "mayk-it" "audioengine")
 covers_gh_urls=$(get_gh_urls "mayk-it" "covers.ai")
 mayk_it_gh_urls=$(get_gh_urls "mayk-it" "mayk")
@@ -151,6 +154,8 @@ quick_urls+=("$popstar_gh_urls")
 quick_urls+=("$songgpt_gh_urls")
 quick_urls+=("$firebase_urls")
 quick_urls+=("$emulator_urls")
+quick_urls+=("$juce_gh_urls")
+quick_urls+=("$tracktion_gh_urls")
 
 # fuzzy find the URLs with fzf
 url=$(printf "%s\n" "${quick_urls[@]}" | fzf)
