@@ -305,16 +305,6 @@
                                     "key_code": "left_command"
                                 }
                             ]
-                        },
-                        {
-                            "from": {
-                                "key_code": "up_arrow"
-                            },
-                            "to": [
-                                {
-                                    "key_code": "caps_lock"
-                                }
-                            ]
                         }
                     ],
                     "treat_as_built_in_keyboard": false

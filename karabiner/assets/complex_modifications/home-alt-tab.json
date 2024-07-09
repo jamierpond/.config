@@ -1,0 +1,26 @@
+{
+  "title": "map j to tab if left command is down",
+  "rules": [
+    {
+      "description": "map j to tab if left command is down",
+      "manipulators": [
+        {
+          "from": {
+            "key_code": "j",
+            "modifiers": {
+              "mandatory": ["left_command"],
+              "optional": ["any"]
+            }
+          },
+          "to": [
+            {
+              "key_code": "tab"
+            }
+          ],
+          "type": "basic"
+        }
+      ]
+    }
+  ]
+}
+

@@ -7,6 +7,7 @@ gcloud_projects=(
  "covers-ai"
  "mayk-studio-staging"
  "hit-machine-4bf64"
+ "audio-ml-375919"
  "beastdrop"
  "instasong-c647a"
  "onejourney-test"
