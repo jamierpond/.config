@@ -22,6 +22,7 @@ get_gcloud_console_urls() {
     services=(
        "https://console.cloud.google.com/storage?project=$project_id | $project_name Storage"
        "https://console.cloud.google.com/run?project=$project_id | $project_name Cloud Run"
+       "https://console.cloud.google.com/cloudtasks?project=$project_id | $project_name Cloud Tasks"
     )
     for service in "${services[@]}"; do
       urls+=( "$service" )
