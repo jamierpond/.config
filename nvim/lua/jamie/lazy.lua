@@ -36,15 +36,15 @@ lazy.setup({
   },
 
   -- ChatGPT plugin
-  {
-    "jackMort/ChatGPT.nvim",
-    config = "require('chatgpt').setup()",
-    dependencies = {
-      "MunifTanjim/nui.nvim",
-      "nvim-lua/plenary.nvim",
-      "nvim-telescope/telescope.nvim"
-    }
-  },
+--   {
+--     "jackMort/ChatGPT.nvim",
+--     config = "require('chatgpt').setup()",
+--     dependencies = {
+--       "MunifTanjim/nui.nvim",
+--       "nvim-lua/plenary.nvim",
+--       "nvim-telescope/telescope.nvim"
+--     }
+--   },
 
   -- Telescope
   {
