@@ -11,6 +11,7 @@ alias so="source ~/.zshrc && source ~/.bashrc"
 
 alias "pipi"="pip install -r requirements.txt"
 
+alias "gpu"="while [ 1 ] ; do nvidia-smi ; sleep 0.5; clear ;  done"
 
 alias ddd="rm -rf ~/Library/Developer/Xcode/DerivedData"
 alias smu="git submodule update --init --recursive"
