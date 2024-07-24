@@ -1,3 +1,5 @@
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
 alias ll="ls -alF"
 alias la="ls -A"
 alias ls="ls -CF"
