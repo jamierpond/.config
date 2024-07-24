@@ -12,6 +12,7 @@
 !update-brew-packages.sh
 !skhd/
 !yabai/
+!zshrc
 !bash_aliases.sh
 **Application Support**
 **.DS_Store**
