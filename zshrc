@@ -1,7 +1,7 @@
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # if is linux
-if [ "$(uname)" == "Linux" ]; then
+if [[ "$(uname)" == "Linux" ]]; then
     source /usr/share/doc/fzf/examples/key-bindings.zsh
     alias pbcopy='xclip -selection clipboard'
     alias pbpaste='xclip -selection clipboard -o'
