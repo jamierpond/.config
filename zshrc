@@ -1,10 +1,9 @@
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 source /usr/share/doc/fzf/examples/key-bindings.zsh
 
-
 alias ll="ls -alF"
 alias la="ls -A"
-alias ls="ls -CF"
+alias ls='ls -a --color=auto'
 
 alias bwon="shortcuts run \"bw-on\""
 alias bwoff="shortcuts run \"bw-off\""
