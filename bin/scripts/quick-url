@@ -61,6 +61,7 @@ juce_gh_urls=$(get_gh_urls "mayk-it" "juce")
 
 audioengine_gh_urls=$(get_gh_urls "mayk-it" "audioengine")
 covers_gh_urls=$(get_gh_urls "mayk-it" "covers.ai")
+covers_gh_urls=$(get_gh_urls "mayk-it" "stable-audio-tools")
 mayk_it_gh_urls=$(get_gh_urls "mayk-it" "mayk")
 popstar_gh_urls=$(get_gh_urls "mayk-it" "popstar")
 songgpt_gh_urls=$(get_gh_urls "mayk-it" "mayk.studio")
