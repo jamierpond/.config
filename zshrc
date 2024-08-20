@@ -29,6 +29,8 @@ alias smu="git submodule update --init --recursive"
 alias "new-venv"="python3 -m venv venv"
 alias "act-venv"="source venv/bin/activate"
 
+alias "ta"="tmux attach"
+alias "va"="source venv/bin/activate"
 
 # gcloud compute instances list
 function gssh() {
