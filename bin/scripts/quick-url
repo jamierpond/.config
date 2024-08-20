@@ -22,6 +22,7 @@ get_gcloud_console_urls() {
     services=(
        "https://console.cloud.google.com/storage?project=$project_id | $project_name Storage"
        "https://console.cloud.google.com/run?project=$project_id | $project_name Cloud Run"
+       "https://console.cloud.google.com/compute?project=$project_id | $project_name Compute Engine"
        "https://console.cloud.google.com/cloudtasks?project=$project_id | $project_name Cloud Tasks"
     )
     for service in "${services[@]}"; do
@@ -61,6 +62,7 @@ juce_gh_urls=$(get_gh_urls "mayk-it" "juce")
 
 audioengine_gh_urls=$(get_gh_urls "mayk-it" "audioengine")
 covers_gh_urls=$(get_gh_urls "mayk-it" "covers.ai")
+covers_gh_urls=$(get_gh_urls "mayk-it" "stable-audio-tools")
 mayk_it_gh_urls=$(get_gh_urls "mayk-it" "mayk")
 popstar_gh_urls=$(get_gh_urls "mayk-it" "popstar")
 songgpt_gh_urls=$(get_gh_urls "mayk-it" "mayk.studio")

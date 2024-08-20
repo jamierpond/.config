@@ -29,3 +29,12 @@ alias smu="git submodule update --init --recursive"
 alias "new-venv"="python3 -m venv venv"
 alias "act-venv"="source venv/bin/activate"
 
+
+# gcloud compute instances list
+function gssh() {
+  instances=$(gcloud compute instances list)
+  instance=$(echo "$instances" | fzf --height 40% --reverse --prompt "Select instance: " --header-lines 1)
+  chosen_instance=$(echo "$instance" | awk '{print $1}')
+  gcloud compute ssh $chosen_instance
+}
+
