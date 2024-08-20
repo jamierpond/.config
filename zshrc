@@ -32,6 +32,9 @@ alias "act-venv"="source venv/bin/activate"
 alias "ta"="tmux attach"
 alias "va"="source venv/bin/activate"
 
+alias "lm"="sh ~/projects/lambda-machine/remote.sh"
+alias "vie"="sh ~/projects/lambda-machine/vienna-remote.sh"
+
 # gcloud compute instances list
 function gssh() {
   instances=$(gcloud compute instances list)
