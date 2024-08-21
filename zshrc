@@ -21,8 +21,6 @@ alias so="source ~/.zshrc"
 
 alias "pipi"="pip install -r requirements.txt"
 
-alias "gpu"="while [ 1 ] ; do nvidia-smi ; sleep 0.5; clear ;  done"
-
 alias ddd="rm -rf ~/Library/Developer/Xcode/DerivedData"
 alias smu="git submodule update --init --recursive"
 
@@ -31,6 +29,9 @@ alias "act-venv"="source venv/bin/activate"
 
 alias "ta"="tmux attach"
 alias "va"="source venv/bin/activate"
+alias "gpu"="watch -n 0.5 nvidia-smi"
+alias "pgpu"="nvidia-smi --query-compute-apps=pid --format=csv,noheader"
+
 
 alias "lm"="sh ~/projects/lambda-machine/remote.sh"
 alias "vie"="sh ~/projects/lambda-machine/vienna-remote.sh"
