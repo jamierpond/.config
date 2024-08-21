@@ -44,3 +44,11 @@ function gssh() {
   gcloud compute ssh $chosen_instance
 }
 
+# clone from github
+function cl() {
+  repo=$((gh repo list mayk-it --json nameWithOwner | jq ".[].nameWithOwner" && gh repo  list jamierpond --json nameWithOwner | jq ".[].nameWithOwner") | fzf )
+  repo=$(echo $repo | tr -d '"')
+  echo "Cloning '$repo'"
+  gh repo clone $repo
+}
+
