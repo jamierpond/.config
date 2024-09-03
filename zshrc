@@ -52,3 +52,8 @@ function cl() {
   gh repo clone $repo
 }
 
+function co() {
+  git checkout $(git branch -r | fzf | sed "s|origin/||")
+  git status
+}
+
