@@ -5,7 +5,7 @@ set -e
 today=$(date +%Y-%m-%d)
 year_string=$(date +%Y)
 # mon, tues, etc
-month_as_string=$(date +%b)
+month_as_string="$(date +%m)-$(date +%b)"
 
 today_dir="$HOME/projects/journal/days/$year_string/$month_as_string"
 mkdir -p $today_dir
