@@ -30,11 +30,13 @@ alias "nv"="python3 -m venv venv"
 
 alias "ta"="tmux attach"
 alias "va"="source venv/bin/activate"
+alias "nva"="nv && va"
 alias "gpu"="watch -n 0.5 nvidia-smi"
 alias "pgpu"="nvidia-smi --query-compute-apps=pid --format=csv,noheader"
 
 alias "lm"="sh ~/projects/lambda-machine/remote.sh"
 alias "vie"="sh ~/projects/lambda-machine/vienna-remote.sh"
+alias "gls"="git ls-files"
 
 # gcloud compute instances list
 function gssh() {
