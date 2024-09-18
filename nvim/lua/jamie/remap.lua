@@ -257,7 +257,17 @@ vim.api.nvim_set_keymap('n', '<leader>gcp', [[<Cmd>lua git_commit_and_push()<CR>
 vim.api.nvim_set_keymap('n', '<leader>co', [[<Cmd>lua git_checkout()<CR>]], keymap_opts)
 vim.api.nvim_set_keymap('n', '<leader>pr', [[<Cmd>lua create_gh_pr()<CR>]], keymap_opts)
 
-vim.api.nvim_set_keymap('n', '<leader>b', [[<Cmd>lua create_new_branch()<CR>]], keymap_opts)
+
+function toggle_blame()
+    local ft = vim.bo.filetype
+    if ft == "fugitiveblame" then
+        vim.cmd("q")
+    else
+        vim.cmd("Git blame")
+    end
+end
+
+vim.api.nvim_set_keymap('n', '<leader>w', [[<Cmd>lua toggle_blame()<CR>]], keymap_opts)
 
 -- web dev stuff
 function open_local_host()
