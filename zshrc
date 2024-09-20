@@ -25,6 +25,8 @@ alias ddd="rm -rf ~/Library/Developer/Xcode/DerivedData"
 alias smu="git submodule update --init --recursive"
 
 alias "new-venv"="python3 -m venv venv"
+alias "nv"="python3 -m venv venv"
+alias "cv"="python3 -m venv venv"
 alias "act-venv"="source venv/bin/activate"
 alias "nv"="python3 -m venv venv"
 
@@ -37,6 +39,8 @@ alias "pgpu"="nvidia-smi --query-compute-apps=pid --format=csv,noheader"
 alias "lm"="sh ~/projects/lambda-machine/remote.sh"
 alias "vie"="sh ~/projects/lambda-machine/vienna-remote.sh"
 alias "gls"="git ls-files"
+alias "ka"="killall"
+alias "kaf"="killall -9"
 
 # gcloud compute instances list
 function gssh() {
@@ -59,3 +63,36 @@ function co() {
   git status
 }
 
+function port() {
+  port="$1"
+  lsof -i tcp:"$port"
+}
+
+function npmf() {
+  # Extract scripts from package.json
+  scripts=$(cat package.json | jq -r '.scripts | to_entries[] | .key + "- " + .value')
+
+  # Use fzf to select a script
+  selected=$(echo "$scripts" | fzf --height 40% --border --prompt="Select a script to run: ")
+
+  # Extract the script name (everything before the first dash)
+  script_name=$(echo "$selected" | cut -d'-' -f1)
+
+  # Run the selected script
+  if [ -n "$script_name" ]; then
+      echo "Running: npm run $script_name"
+      npm run "$script_name"
+  else
+      echo "No script selected. Exiting."
+  fi
+}
+
+function npf() {
+  npmf
+}
+
+
+
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"

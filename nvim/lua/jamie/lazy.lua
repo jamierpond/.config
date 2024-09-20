@@ -17,6 +17,8 @@ lazy.setup({
   {"nvim-lua/plenary.nvim"},
   {"lervag/vimtex"},
   {"nvim-telescope/telescope-live-grep-args.nvim"},
+  {'mfussenegger/nvim-dap'},
+
 
   {"mg979/vim-visual-multi"},
 
