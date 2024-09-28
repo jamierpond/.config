@@ -11,6 +11,7 @@ alias ll="ls -alF"
 alias la="ls -A"
 alias ls='ls -a --color=auto'
 
+
 alias bwon="shortcuts run \"bw-on\""
 alias bwoff="shortcuts run \"bw-off\""
 
@@ -20,6 +21,8 @@ alias cppc="~/.config/bin/scripts/cpp-compile"
 alias so="source ~/.zshrc"
 
 alias "pipi"="pip install -r requirements.txt"
+alias "tarls"="tar -tvf"
+alias "tls"="tar -tvf"
 
 alias ddd="rm -rf ~/Library/Developer/Xcode/DerivedData"
 alias smu="git submodule update --init --recursive"
