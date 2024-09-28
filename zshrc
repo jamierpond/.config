@@ -41,6 +41,7 @@ alias "vie"="sh ~/projects/lambda-machine/vienna-remote.sh"
 alias "gls"="git ls-files"
 alias "ka"="killall"
 alias "kaf"="killall -9"
+alias "pos"="poetry shell"
 
 # gcloud compute instances list
 function gssh() {
@@ -90,6 +91,7 @@ function npmf() {
 function npf() {
   npmf
 }
+
 
 
 
