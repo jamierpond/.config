@@ -145,8 +145,9 @@ function tcat() {
     dest=$(pwd)
   fi
   file=$(tls "$tar" | head  | awk '{ print $6 }' | fzf)
-  out=$(tar -xOf "$tar" "$file")
-  echo "$out"
+  command="tar -xOf '$tar' '$file'"
+  eval "$command"
+  print -s "$command"
 }
 
 
