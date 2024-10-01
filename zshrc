@@ -57,14 +57,6 @@ function gscp() {
   gcloud compute scp "$chosen_instance_ip:$1" "$2"
 }
 
-# clone from github
-function cl() {
-  repo=$((gh repo list mayk-it --json nameWithOwner | jq ".[].nameWithOwner" && gh repo  list jamierpond --json nameWithOwner | jq ".[].nameWithOwner") | fzf )
-  repo=$(echo $repo | tr -d '"')
-  echo "Cloning '$repo'"
-  gh repo clone $repo
-}
-
 function co() {
   git checkout $(git branch -r | fzf | sed "s|origin/||")
   git status
@@ -92,6 +84,17 @@ function npmf() {
   else
       echo "No script selected. Exiting."
   fi
+}
+
+# clone from github
+function cl() {
+  mayk_repos=$(gh repo list mayk-it --json nameWithOwner | jq ".[].nameWithOwner")
+  jamie_repos=$(gh repo  list jamierpond --json nameWithOwner | jq ".[].nameWithOwner")
+  repo=$(echo $mayk_repos $jamie_repos | fzf --height 40% --reverse --prompt "Select repo: " --header-lines 1)
+  # replace double quotes
+  repo=$(echo $repo | tr -d '"')
+  echo "Cloning $repo"
+  gh repo clone "$repo"
 }
 
 function npf() {
