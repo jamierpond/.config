@@ -19,7 +19,6 @@ alias cpp-compile="~/.config/bin/scripts/cpp-compile"
 alias cppc="~/.config/bin/scripts/cpp-compile"
 
 alias so="source ~/.zshrc"
-
 alias "pipi"="pip install -r requirements.txt"
 alias "tarls"="tar -tvf"
 alias "tls"="tar -tvf"
@@ -38,7 +37,7 @@ alias "va"="source venv/bin/activate"
 alias "nva"="nv && va"
 alias "gpu"="watch -n 0.5 nvidia-smi"
 alias "pgpu"="nvidia-smi --query-compute-apps=pid --format=csv,noheader"
-
+alias "fgpu"="sudo fuser -v /dev/nvidia*"
 alias "lm"="sh ~/projects/lambda-machine/remote.sh"
 alias "vie"="sh ~/projects/lambda-machine/vienna-remote.sh"
 alias "gls"="git ls-files"
@@ -96,6 +95,49 @@ function npf() {
 }
 
 
+function tget () {
+  tar="$1"
+  dest="$2"
+  if [ -z "$tar" ]; then
+    echo "Usage: tget <tarfile>"
+    return 1
+  fi
+  # if file doesan't exit ezit
+  if [ ! -f "$tar" ]; then
+    echo "File '$tar' does not exist"
+    echo "Usage: tget <tarfile>"
+    return 1
+  fi
+  if [ -z "$dest" ]; then
+    dest=$(pwd)
+  fi
+  file=$(tls "$tar" | head  | awk '{ print $6 }' | fzf)
+  base=$(basename "$file")
+  dest_file="$dest/$base"
+  echo "Extracting $base"
+  tar -xvf "$tar" "$file" -C "$dest"
+}
+
+function tcat() {
+  tar="$1"
+  dest="$2"
+  if [ -z "$tar" ]; then
+    echo "Usage: tget <tarfile>"
+    return 1
+  fi
+  # if file doesan't exit ezit
+  if [ ! -f "$tar" ]; then
+    echo "File '$tar' does not exist"
+    echo "Usage: tget <tarfile>"
+    return 1
+  fi
+  if [ -z "$dest" ]; then
+    dest=$(pwd)
+  fi
+  file=$(tls "$tar" | head  | awk '{ print $6 }' | fzf)
+  out=$(tar -xOf "$tar" "$file")
+  echo "$out"
+}
 
 
 export PYENV_ROOT="$HOME/.pyenv"
