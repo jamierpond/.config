@@ -53,12 +53,11 @@ function gssh() {
   gcloud compute ssh $chosen_instance
 }
 
-# clone from github
-function cl() {
-  repo=$((gh repo list mayk-it --json nameWithOwner | jq ".[].nameWithOwner" && gh repo  list jamierpond --json nameWithOwner | jq ".[].nameWithOwner") | fzf )
-  repo=$(echo $repo | tr -d '"')
-  echo "Cloning '$repo'"
-  gh repo clone $repo
+function gscp() {
+  instances=$(gcloud compute instances list)
+  instance=$(echo "$instances" | fzf --height 40% --reverse --prompt "Select instance: " --header-lines 1)
+  chosen_instance_ip=$(echo "$instance" | awk '{print $1}')
+  gcloud compute scp "$chosen_instance_ip:$1" "$2"
 }
 
 function co() {
@@ -88,6 +87,17 @@ function npmf() {
   else
       echo "No script selected. Exiting."
   fi
+}
+
+# clone from github
+function cl() {
+  mayk_repos=$(gh repo list mayk-it --json nameWithOwner | jq ".[].nameWithOwner")
+  jamie_repos=$(gh repo  list jamierpond --json nameWithOwner | jq ".[].nameWithOwner")
+  repo=$(echo $mayk_repos $jamie_repos | fzf --height 40% --reverse --prompt "Select repo: " --header-lines 1)
+  # replace double quotes
+  repo=$(echo $repo | tr -d '"')
+  echo "Cloning $repo"
+  gh repo clone "$repo"
 }
 
 function npf() {
