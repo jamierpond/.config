@@ -2,7 +2,7 @@
 
 # if is linux
 if [[ "$(uname)" == "Linux" ]]; then
-    source /usr/share/doc/fzf/examples/key-bindings.zsh
+    # source /usr/share/doc/fzf/examples/key-bindings.zsh
     alias pbcopy='xclip -selection clipboard'
     alias pbpaste='xclip -selection clipboard -o'
 fi
@@ -19,6 +19,7 @@ alias cpp-compile="~/.config/bin/scripts/cpp-compile"
 alias cppc="~/.config/bin/scripts/cpp-compile"
 
 alias so="source ~/.zshrc"
+alias bso="source ~/.bashrc"
 alias "pipi"="pip install -r requirements.txt"
 alias "tarls"="tar -tvf"
 alias "tls"="tar -tvf"
@@ -152,7 +153,7 @@ function tcat() {
     fi
 }
 
-export PYENV_ROOT="$HOME/.pyenv"
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
+# export PYENV_ROOT="$HOME/.pyenv"
+# [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+# eval "$(pyenv init -)"
 
