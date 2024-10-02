@@ -128,7 +128,7 @@ tar_helper() {
     echo "$file"
 }
 
-tget() {
+function tget() {
     local tar="$1"
     local dest="${2:-$(pwd)}"
     local file=$(tar_helper "$tar" "tget <tarfile> [destination]" "$dest")
@@ -143,7 +143,7 @@ tget() {
     fi
 }
 
-tcat() {
+function tcat() {
     local tar="$1"
     local file=$(tar_helper "$tar" "tcat <tarfile>")
 
