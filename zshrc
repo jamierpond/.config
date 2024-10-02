@@ -137,7 +137,9 @@ tget() {
         local base=$(basename "$file")
         local dest_file="$dest/$base"
         echo "Extracting $base"
-        tar -xvf "$tar" "$file" -C "$dest"
+        command="tar -xvf '$tar' '$file' -C '$dest'"
+        eval "$command"
+        print -s "$command"
     fi
 }
 
@@ -146,7 +148,9 @@ tcat() {
     local file=$(tar_helper "$tar" "tcat <tarfile>")
 
     if [ $? -eq 0 ]; then
-        tar -xOf "$tar" "$file"
+        command="tar -xOf '$tar' '$file'"
+        eval "$command"
+        print -s "$command"
     fi
 }
 
