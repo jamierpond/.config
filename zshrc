@@ -105,10 +105,8 @@ function npf() {
 }
 
 
-#!/bin/bash
-
 # Helper function to handle common operations
-tar_helper() {
+function tar_helper() {
     local tar="$1"
     local usage="$2"
     local dest="${3:-$(pwd)}"
