@@ -105,52 +105,56 @@ function npf() {
 }
 
 
-function tget () {
-  tar="$1"
-  dest="$2"
-  if [ -z "$tar" ]; then
-    echo "Usage: tget <tarfile>"
-    return 1
-  fi
-  # if file doesan't exit ezit
-  if [ ! -f "$tar" ]; then
-    echo "File '$tar' does not exist"
-    echo "Usage: tget <tarfile>"
-    return 1
-  fi
-  if [ -z "$dest" ]; then
-    dest=$(pwd)
-  fi
-  file=$(tls "$tar" | head  | awk '{ print $6 }' | fzf)
-  base=$(basename "$file")
-  dest_file="$dest/$base"
-  echo "Extracting $base"
-  tar -xvf "$tar" "$file" -C "$dest"
+#!/bin/bash
+
+# Helper function to handle common operations
+tar_helper() {
+    local tar="$1"
+    local usage="$2"
+    local dest="${3:-$(pwd)}"
+
+    if [ -z "$tar" ]; then
+        echo "Usage: $usage"
+        return 1
+    fi
+
+    if [ ! -f "$tar" ]; then
+        echo "File '$tar' does not exist"
+        echo "Usage: $usage"
+        return 1
+    fi
+
+    local file=$(tls "$tar" | awk '{ print $6 }' | fzf)
+    echo "$file"
 }
 
-function tcat() {
-  tar="$1"
-  dest="$2"
-  if [ -z "$tar" ]; then
-    echo "Usage: tget <tarfile>"
-    return 1
-  fi
-  # if file doesan't exit ezit
-  if [ ! -f "$tar" ]; then
-    echo "File '$tar' does not exist"
-    echo "Usage: tget <tarfile>"
-    return 1
-  fi
-  if [ -z "$dest" ]; then
-    dest=$(pwd)
-  fi
-  file=$(tls "$tar" | head  | awk '{ print $6 }' | fzf)
-  command="tar -xOf '$tar' '$file'"
-  eval "$command"
-  print -s "$command"
+tget() {
+    local tar="$1"
+    local dest="${2:-$(pwd)}"
+    local file=$(tar_helper "$tar" "tget <tarfile> [destination]" "$dest")
+
+    if [ $? -eq 0 ]; then
+        local base=$(basename "$file")
+        local dest_file="$dest/$base"
+        echo "Extracting $base"
+        command="tar -xvf '$tar' '$file' -C '$dest'"
+        eval "$command"
+        print -s "$command"
+    fi
 }
 
+tcat() {
+    local tar="$1"
+    local file=$(tar_helper "$tar" "tcat <tarfile>")
+
+    if [ $? -eq 0 ]; then
+        command="tar -xOf '$tar' '$file'"
+        eval "$command"
+        print -s "$command"
+    fi
+}
 
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
+
