@@ -10,7 +10,8 @@ fi
 alias ll="ls -alF"
 alias la="ls -A"
 alias ls='ls -a --color=auto'
-
+alias dec2hex="printf '%x\n'"
+alias d2h="printf '%x\n'"
 
 alias bwon="shortcuts run \"bw-on\""
 alias bwoff="shortcuts run \"bw-off\""
@@ -49,8 +50,13 @@ alias "pos"="poetry shell"
 function gssh() {
   instances=$(gcloud compute instances list)
   instance=$(echo "$instances" | fzf --height 40% --reverse --prompt "Select instance: " --header-lines 1)
+  if [ -z "$instance" ]; then
+    return
+  fi
   chosen_instance=$(echo "$instance" | awk '{print $1}')
-  gcloud compute ssh $chosen_instance
+  command="gcloud compute ssh $chosen_instance"
+  eval "$command"
+  print -s "$command"
 }
 
 function gscp() {
