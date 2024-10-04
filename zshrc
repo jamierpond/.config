@@ -47,6 +47,7 @@ alias "ka"="killall"
 alias "kaf"="killall -9"
 alias "pos"="poetry shell"
 
+# todo simplify these three
 # gcloud compute instances list
 function gssh() {
   instances=$(gcloud compute instances list)
@@ -56,6 +57,32 @@ function gssh() {
   fi
   chosen_instance=$(echo "$instance" | awk '{print $1}')
   command="gcloud compute ssh $chosen_instance"
+  eval "$command"
+  print -s "$command"
+}
+
+# gcloud compute instances list
+function gstart() {
+  instances=$(gcloud compute instances list)
+  instance=$(echo "$instances" | fzf --height 40% --reverse --prompt "Select instance: " --header-lines 1)
+  if [ -z "$instance" ]; then
+    return
+  fi
+  chosen_instance=$(echo "$instance" | awk '{print $1}')
+  command="gcloud compute instances start $chosen_instance"
+  eval "$command"
+  print -s "$command"
+}
+
+# gcloud compute instances list
+function gstop() {
+  instances=$(gcloud compute instances list)
+  instance=$(echo "$instances" | fzf --height 40% --reverse --prompt "Select instance: " --header-lines 1)
+  if [ -z "$instance" ]; then
+    return
+  fi
+  chosen_instance=$(echo "$instance" | awk '{print $1}')
+  command="gcloud compute instances stop $chosen_instance"
   eval "$command"
   print -s "$command"
 }
