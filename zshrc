@@ -38,6 +38,7 @@ alias "va"="source venv/bin/activate"
 alias "nva"="nv && va"
 alias "gpu"="watch -n 0.5 nvidia-smi"
 alias "pgpu"="nvidia-smi --query-compute-apps=pid --format=csv,noheader"
+alias "rgpu"="pkill wandb && pgpu | xargs -I {} kill -9 {}"
 alias "fgpu"="sudo fuser -v /dev/nvidia*"
 alias "lm"="sh ~/projects/lambda-machine/remote.sh"
 alias "vie"="sh ~/projects/lambda-machine/vienna-remote.sh"
@@ -130,7 +131,11 @@ function tar_helper() {
 function tget() {
     local tar="$1"
     local dest="${2:-$(pwd)}"
-    local file=$(tar_helper "$tar" "tget <tarfile> [destination]" "$dest")
+
+    local file="$3"
+    if [ -z "$file" ]; then
+        file=$(tar_helper "$tar" "tget <tarfile> [destination]" "$dest")
+    fi
 
     if [ $? -eq 0 ]; then
         local base=$(basename "$file")
