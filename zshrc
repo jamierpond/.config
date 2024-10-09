@@ -47,51 +47,41 @@ alias "ka"="killall"
 alias "kaf"="killall -9"
 alias "pos"="poetry shell"
 
-# todo simplify these three
-# gcloud compute instances list
+# Function to select an instance
+function select_instance() {
+  instances=$(gcloud compute instances list)
+  instance=$(echo "$instances" | fzf --height 40% --reverse --prompt "Select instance: " --header-lines 1)
+  if [ -z "$instance" ]; then
+    return 1
+  fi
+  echo "$instance" | awk '{print $1}'
+}
+
+# Function to execute and save a command
+function execute_command() {
+  local command="$1"
+  eval "$command"
+  print -s "$command"
+}
+
 function gssh() {
-  instances=$(gcloud compute instances list)
-  instance=$(echo "$instances" | fzf --height 40% --reverse --prompt "Select instance: " --header-lines 1)
-  if [ -z "$instance" ]; then
-    return
-  fi
-  chosen_instance=$(echo "$instance" | awk '{print $1}')
-  command="gcloud compute ssh $chosen_instance"
-  eval "$command"
-  print -s "$command"
+  chosen_instance=$(select_instance) || return
+  execute_command "gcloud compute ssh $chosen_instance"
 }
 
-# gcloud compute instances list
 function gstart() {
-  instances=$(gcloud compute instances list)
-  instance=$(echo "$instances" | fzf --height 40% --reverse --prompt "Select instance: " --header-lines 1)
-  if [ -z "$instance" ]; then
-    return
-  fi
-  chosen_instance=$(echo "$instance" | awk '{print $1}')
-  command="gcloud compute instances start $chosen_instance"
-  eval "$command"
-  print -s "$command"
+  chosen_instance=$(select_instance) || return
+  execute_command "gcloud compute instances start $chosen_instance"
 }
 
-# gcloud compute instances list
 function gstop() {
-  instances=$(gcloud compute instances list)
-  instance=$(echo "$instances" | fzf --height 40% --reverse --prompt "Select instance: " --header-lines 1)
-  if [ -z "$instance" ]; then
-    return
-  fi
-  chosen_instance=$(echo "$instance" | awk '{print $1}')
-  command="gcloud compute instances stop $chosen_instance"
-  eval "$command"
-  print -s "$command"
+  chosen_instance=$(select_instance) || return
+  execute_command "gcloud compute instances stop $chosen_instance"
 }
 
 function gscp() {
-  instances=$(gcloud compute instances list)
-  instance=$(echo "$instances" | fzf --height 40% --reverse --prompt "Select instance: " --header-lines 1)
-  chosen_instance_ip=$(echo "$instance" | awk '{print $1}')
-  gcloud compute scp "$chosen_instance_ip:$1" "$2"
+  chosen_instance=$(select_instance) || return
+  gcloud compute scp "$chosen_instance:$1" "$2"
 }
 
 function co() {
