@@ -18,7 +18,21 @@ alias bwoff="shortcuts run \"bw-off\""
 
 alias cpp-compile="~/.config/bin/scripts/cpp-compile"
 alias cppc="~/.config/bin/scripts/cpp-compile"
-alias c='cd $(find . -maxdepth 1 -type d | fzf) && ls'
+
+
+function c() {
+  while true; do
+    current_dir=$(pwd)
+    dirs=$(find . -maxdepth 1 -type d)
+    dir=$(echo "$dirs" | fzf --height 40% --reverse --prompt "Select dir: " --header-lines 1)
+    if [ -z "$dir" ]; then
+      echo "No dir selected. Exiting..."
+      break
+    fi
+    echo "cd $dir"
+    cd "$dir"
+  done
+}
 
 alias so="source ~/.zshrc"
 alias bso="source ~/.bashrc"
