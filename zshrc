@@ -24,9 +24,8 @@ function c() {
   while true; do
     current_dir=$(pwd)
     dirs=$(find . -maxdepth 1 -type d)
-    dir=$(echo "$dirs" | fzf --height 40% --reverse --prompt "Select dir: " --header-lines 1)
+    dir=$(echo "$dirs" | fzf --reverse --prompt "Select dir: " --header-lines 1)
     if [ -z "$dir" ]; then
-      echo "No dir selected. Exiting..."
       break
     fi
     echo "cd $dir"
