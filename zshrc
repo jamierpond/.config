@@ -32,6 +32,10 @@ function c() {
   done
 }
 
+function tsz() {
+  python -c "import torch; print(torch.load('$1').shape)"
+}
+
 alias so="source ~/.zshrc"
 alias bso="source ~/.bashrc"
 alias "pipi"="pip install -r requirements.txt"
