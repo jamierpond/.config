@@ -32,8 +32,8 @@ function c() {
   done
 }
 
-function tsz() {
-  python -c "import torch; print(torch.load('$1').shape)"
+function tsh() {
+  python -i -c "import torch; t = torch.load('$1'); print('Shape:', t.shape)"
 }
 
 alias so="source ~/.zshrc"
@@ -56,8 +56,12 @@ alias "va"="source venv/bin/activate"
 alias "nva"="nv && va"
 alias "gpu"="watch -n 0.5 nvidia-smi"
 alias "pgpu"="nvidia-smi --query-compute-apps=pid --format=csv,noheader"
-alias "rgpu"="pkill wandb && pgpu | xargs -I {} kill -9 {}"
 alias "fgpu"="sudo fuser -v /dev/nvidia*"
+alias "kgpu"="fgpu | grep . | tr ' ' '\n' | xargs kill -9"
+#
+# mercilessly kill all gpu/ai processes
+alias "rgpu"="pkill wandb && pgpu | xargs -I {} kill -9 {} && kgpu"
+
 alias "lm"="sh ~/projects/lambda-machine/remote.sh"
 alias "vie"="sh ~/projects/lambda-machine/vienna-remote.sh"
 alias "gls"="git ls-files"
