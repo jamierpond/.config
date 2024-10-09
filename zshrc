@@ -17,6 +17,7 @@ alias bwoff="shortcuts run \"bw-off\""
 
 alias cpp-compile="~/.config/bin/scripts/cpp-compile"
 alias cppc="~/.config/bin/scripts/cpp-compile"
+alias c='cd $(find . -maxdepth 1 -type d | fzf)'
 
 alias so="source ~/.zshrc"
 alias bso="source ~/.bashrc"
