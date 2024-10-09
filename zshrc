@@ -10,7 +10,8 @@ fi
 alias ll="ls -alF"
 alias la="ls -A"
 alias ls='ls -a --color=auto'
-
+alias dec2hex="printf '%x\n'"
+alias d2h="printf '%x\n'"
 
 alias bwon="shortcuts run \"bw-on\""
 alias bwoff="shortcuts run \"bw-off\""
@@ -48,19 +49,41 @@ alias "ka"="killall"
 alias "kaf"="killall -9"
 alias "pos"="poetry shell"
 
-# gcloud compute instances list
-function gssh() {
+# Function to select an instance
+function select_instance() {
   instances=$(gcloud compute instances list)
   instance=$(echo "$instances" | fzf --height 40% --reverse --prompt "Select instance: " --header-lines 1)
-  chosen_instance=$(echo "$instance" | awk '{print $1}')
-  gcloud compute ssh $chosen_instance
+  if [ -z "$instance" ]; then
+    return 1
+  fi
+  echo "$instance" | awk '{print $1}'
+}
+
+# Function to execute and save a command
+function execute_command() {
+  local command="$1"
+  eval "$command"
+  print -s "$command"
+}
+
+function gssh() {
+  chosen_instance=$(select_instance) || return
+  execute_command "gcloud compute ssh $chosen_instance"
+}
+
+function gstart() {
+  chosen_instance=$(select_instance) || return
+  execute_command "gcloud compute instances start $chosen_instance"
+}
+
+function gstop() {
+  chosen_instance=$(select_instance) || return
+  execute_command "gcloud compute instances stop $chosen_instance"
 }
 
 function gscp() {
-  instances=$(gcloud compute instances list)
-  instance=$(echo "$instances" | fzf --height 40% --reverse --prompt "Select instance: " --header-lines 1)
-  chosen_instance_ip=$(echo "$instance" | awk '{print $1}')
-  gcloud compute scp "$chosen_instance_ip:$1" "$2"
+  chosen_instance=$(select_instance) || return
+  gcloud compute scp "$chosen_instance:$1" "$2"
 }
 
 function co() {
