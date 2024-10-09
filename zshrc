@@ -28,7 +28,6 @@ function c() {
     if [ -z "$dir" ]; then
       break
     fi
-    echo "cd $dir"
     cd "$dir"
   done
 }
