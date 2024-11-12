@@ -13,11 +13,23 @@ alias ls='ls -a --color=auto'
 alias dec2hex="printf '%x\n'"
 alias d2h="printf '%x\n'"
 
+alias dls="lsblk"
+
 alias bwon="shortcuts run \"bw-on\""
 alias bwoff="shortcuts run \"bw-off\""
 
 alias cpp-compile="~/.config/bin/scripts/cpp-compile"
 alias cppc="~/.config/bin/scripts/cpp-compile"
+
+function sz() {
+  if [ -z "$1" ]; then
+    du -csh *
+    return
+  fi
+
+  du -csh "$1"
+}
+
 
 
 function c() {
@@ -84,6 +96,20 @@ function execute_command() {
   local command="$1"
   eval "$command"
   print -s "$command"
+}
+
+function e() {
+  git_files=$(git ls-files)
+  shell_scripts=$(echo "$git_files" | grep -E '\.sh$')
+  script=$(echo "$shell_scripts" | fzf --reverse --prompt "Select script: " --header-lines 1)
+  if [ -z "$script" ]; then
+    return
+  fi
+  shell="$SHELL"
+  if [ -z "$shell" ]; then
+    shell="/bin/bash"
+  fi
+  execute_command "$shell $script"
 }
 
 function gssh() {
