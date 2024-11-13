@@ -94,7 +94,13 @@ function select_instance() {
 # Function to execute and save a command
 function execute_command() {
   local command="$1"
-  history -s "$command"
+  # if mac use print -s
+  if [[ "$(uname)" == "Darwin" ]]; then
+    print -s "$command"
+  else
+    history -s "$command"
+  fi
+
   eval "$command"
 }
 
