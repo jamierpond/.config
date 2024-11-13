@@ -94,8 +94,8 @@ function select_instance() {
 # Function to execute and save a command
 function execute_command() {
   local command="$1"
+  history -s "$command"
   eval "$command"
-  print -s "$command"
 }
 
 function e() {
@@ -109,6 +109,7 @@ function e() {
   if [ -z "$shell" ]; then
     shell="/bin/bash"
   fi
+  echo "$shell $script"
   execute_command "$shell $script"
 }
 
