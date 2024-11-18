@@ -95,11 +95,8 @@ function select_instance() {
 function execute_command() {
   local command="$1"
   # if mac use print -s
-  if [[ "$(uname)" == "Darwin" ]]; then
-    print -s "$command"
-  else
-    history -s "$command"
-  fi
+  print -s "$command"
+  # history -s "$command"
 
   eval "$command"
 }
@@ -111,10 +108,7 @@ function e() {
   if [ -z "$script" ]; then
     return
   fi
-  shell="$SHELL"
-  if [ -z "$shell" ]; then
-    shell="/bin/bash"
-  fi
+  shell="/bin/bash"
   echo "$shell $script"
   execute_command "$shell $script"
 }
