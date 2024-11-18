@@ -30,7 +30,25 @@ function sz() {
   du -csh "$1"
 }
 
+# jump directory
+function jd() {
+  files=$(git ls-files)
+  echo "$files"
+  dirs=$(xargs -n 1 dirname <<< "$files" | sort -u)
+  echo "===================="
+  echo "$dirs"
+  dir=$(echo "$dirs" | fzf --reverse --prompt "Select dir: " --header-lines 1)
+  cd "$dir"
+}
 
+# validate json
+function jv() {
+  if [ -z "$1" ]; then
+    echo "Usage: jv <file> to validate a json file."
+    return
+  fi
+  cat "$1" | jq .
+}
 
 function c() {
   while true; do
