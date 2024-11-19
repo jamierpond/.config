@@ -13,25 +13,57 @@ alias ls='ls -a --color=auto'
 alias dec2hex="printf '%x\n'"
 alias d2h="printf '%x\n'"
 
+alias dls="lsblk"
+
 alias bwon="shortcuts run \"bw-on\""
 alias bwoff="shortcuts run \"bw-off\""
 
 alias cpp-compile="~/.config/bin/scripts/cpp-compile"
 alias cppc="~/.config/bin/scripts/cpp-compile"
 
+function sz() {
+  if [ -z "$1" ]; then
+    du -csh *
+    return
+  fi
+
+  du -csh "$1"
+}
+
+# jump directory
+function jd() {
+  files=$(git ls-files)
+  echo "$files"
+  dirs=$(xargs -n 1 dirname <<< "$files" | sort -u)
+  echo "===================="
+  echo "$dirs"
+  dir=$(echo "$dirs" | fzf --reverse --prompt "Select dir: " --header-lines 1)
+  cd "$dir"
+}
+
+# validate json
+function jv() {
+  if [ -z "$1" ]; then
+    echo "Usage: jv <file> to validate a json file."
+    return
+  fi
+  cat "$1" | jq .
+}
 
 function c() {
   while true; do
     current_dir=$(pwd)
     dirs=$(find . -maxdepth 1 -type d)
-    dir=$(echo "$dirs" | fzf --height 40% --reverse --prompt "Select dir: " --header-lines 1)
+    dir=$(echo "$dirs" | fzf --reverse --prompt "Select dir: " --header-lines 1)
     if [ -z "$dir" ]; then
-      echo "No dir selected. Exiting..."
       break
     fi
-    echo "cd $dir"
     cd "$dir"
   done
+}
+
+function tsh() {
+  python -i -c "import torch; t = torch.load('$1'); print('Shape:', t.shape)"
 }
 
 alias so="source ~/.zshrc"
@@ -54,8 +86,12 @@ alias "va"="source venv/bin/activate"
 alias "nva"="nv && va"
 alias "gpu"="watch -n 0.5 nvidia-smi"
 alias "pgpu"="nvidia-smi --query-compute-apps=pid --format=csv,noheader"
-alias "rgpu"="pkill wandb && pgpu | xargs -I {} kill -9 {}"
 alias "fgpu"="sudo fuser -v /dev/nvidia*"
+alias "kgpu"="fgpu | grep . | tr ' ' '\n' | xargs kill -9"
+#
+# mercilessly kill all gpu/ai processes
+alias "rgpu"="pkill wandb && pgpu | xargs -I {} kill -9 {} && kgpu"
+
 alias "lm"="sh ~/projects/lambda-machine/remote.sh"
 alias "vie"="sh ~/projects/lambda-machine/vienna-remote.sh"
 alias "gls"="git ls-files"
@@ -76,8 +112,23 @@ function select_instance() {
 # Function to execute and save a command
 function execute_command() {
   local command="$1"
-  eval "$command"
+  # if mac use print -s
   print -s "$command"
+  # history -s "$command"
+
+  eval "$command"
+}
+
+function e() {
+  git_files=$(git ls-files)
+  shell_scripts=$(echo "$git_files" | grep -E '\.sh$')
+  script=$(echo "$shell_scripts" | fzf --reverse --prompt "Select script: " --header-lines 1)
+  if [ -z "$script" ]; then
+    return
+  fi
+  shell="/bin/bash"
+  echo "$shell $script"
+  execute_command "$shell $script"
 }
 
 function gssh() {
@@ -133,7 +184,7 @@ function npmf() {
 function cl() {
   mayk_repos=$(gh repo list mayk-it --json nameWithOwner | jq ".[].nameWithOwner")
   jamie_repos=$(gh repo  list jamierpond --json nameWithOwner | jq ".[].nameWithOwner")
-  repo=$(echo $mayk_repos $jamie_repos | fzf --height 40% --reverse --prompt "Select repo: " --header-lines 1)
+  repo=$(echo $mayk_repos $jamie_repos | fzf --height 40% --reverse --prompt "Select repo: " --header-lines 0)
   # replace double quotes
   repo=$(echo $repo | tr -d '"')
   echo "Cloning $repo"

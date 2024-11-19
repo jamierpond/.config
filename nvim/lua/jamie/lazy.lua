@@ -55,6 +55,21 @@ lazy.setup({
     dependencies = {'nvim-lua/plenary.nvim'}
   },
 
+  {
+  "nvim-telescope/telescope-frecency.nvim",
+  config = function()
+    require("telescope").setup({
+      extensions = {
+        frecency = {
+          auto_validate = false,
+          matcher = "fuzzy",
+          path_display = { "filename_first" }
+        }
+      }
+    })
+  end
+},
+
   -- Rose-pine theme
   {
     'rose-pine/neovim',
