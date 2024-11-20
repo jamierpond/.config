@@ -7,6 +7,8 @@ if [[ "$(uname)" == "Linux" ]]; then
     alias pbpaste='xclip -selection clipboard -o'
 fi
 
+PS1='%F{green}%n@%m%f:%F{blue}%~%f$ '
+
 alias ll="ls -alF"
 alias la="ls -A"
 alias ls='ls -a --color=auto'
