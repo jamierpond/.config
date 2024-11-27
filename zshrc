@@ -124,7 +124,7 @@ function execute_command() {
 function e() {
   git_files=$(git ls-files)
   shell_scripts=$(echo "$git_files" | grep -E '\.sh$')
-  script=$(echo "$shell_scripts" | fzf --reverse --prompt "Select script: " --header-lines 1)
+  script=$(echo "$shell_scripts" | fzf --reverse --prompt "Select script: ")
   if [ -z "$script" ]; then
     return
   fi
