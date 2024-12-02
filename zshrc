@@ -19,6 +19,7 @@ alias dls="lsblk"
 
 alias bwon="shortcuts run \"bw-on\""
 alias bwoff="shortcuts run \"bw-off\""
+alias t="tmux"
 
 alias cpp-compile="~/.config/bin/scripts/cpp-compile"
 alias cppc="~/.config/bin/scripts/cpp-compile"
