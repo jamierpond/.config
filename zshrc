@@ -113,8 +113,8 @@ function select_instance() {
 function execute_command() {
   local command="$1"
   # if mac use print -s
-  print -s "$command"
-  # history -s "$command"
+  # print -s "$command"
+  history -s "$command"
 
   eval "$command"
 }
