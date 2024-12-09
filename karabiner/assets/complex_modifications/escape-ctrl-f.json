@@ -1,0 +1,27 @@
+{
+  "title": "map ctrl + f to escape",
+  "rules": [
+    {
+      "description": "map ctrl + f to escape",
+      "manipulators": [
+        {
+          "from": {
+            "key_code": "f",
+            "modifiers": {
+              "mandatory": ["left_control"],
+              "optional": ["any"]
+            }
+          },
+          "to": [
+            {
+              "key_code": "escape"
+            }
+          ],
+          "type": "basic"
+        }
+      ]
+    }
+  ]
+}
+
+

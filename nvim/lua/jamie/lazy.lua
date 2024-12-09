@@ -16,6 +16,38 @@ local lazy = require("lazy")
 lazy.setup({
   {"nvim-lua/plenary.nvim"},
   {"lervag/vimtex"},
+
+
+  {
+    "neovim/nvim-lspconfig",
+    event = { "BufReadPre", "BufNewFile" },
+    dependencies = {
+      "hrsh7th/cmp-nvim-lsp",
+      { "antosha417/nvim-lsp-file-operations", config = true },
+    },
+    config = function()
+      local lspconfig = require("lspconfig")
+      local util = require("lspconfig.util")
+      local cmp_nvim_lsp = require("cmp_nvim_lsp")
+      local capabilities = cmp_nvim_lsp.default_capabilities()
+      local opts = { noremap = true, silent = true }
+      local on_attach = function(_, bufnr)
+        opts.buffer = bufnr
+
+        opts.desc = "Show line diagnostics"
+        vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, opts)
+
+        opts.desc = "Show documentation for what is under cursor"
+        vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+      end
+
+      lspconfig["sourcekit"].setup({
+        capabilities = capabilities,
+        on_attach = on_attach,
+      })
+    end,
+  },
+
   {"nvim-telescope/telescope-live-grep-args.nvim"},
   {'mfussenegger/nvim-dap'},
 
@@ -137,6 +169,86 @@ lazy.setup({
     'filipdutescu/renamer.nvim',
     branch = 'master',
     dependencies = {'nvim-lua/plenary.nvim'}
+  },
+
+  -- xbase, it's a big one
+  {
+      'xbase-lab/xbase',
+      build = 'make install',  -- Changed 'run' to 'build' for lazy.nvim
+      dependencies = {         -- Changed 'requires' to 'dependencies' for lazy.nvim
+          "neovim/nvim-lspconfig",
+          "nvim-telescope/telescope.nvim", -- optional
+          "nvim-lua/plenary.nvim", -- optional/requirement of telescope.nvim
+          -- "stevearc/dressing.nvim", -- optional (in case you don't use telescope but something else)
+      },
+      config = function()
+          require('xbase').setup({
+          -- NOTE: Defaults
+          -- Log level. Set it to ERROR to ignore everything
+          log_level = vim.log.levels.DEBUG,
+
+          -- Options to be passed to lspconfig.nvim's sourcekit setup function.
+          -- Setting this to {} is sufficient, However, it is strongly recommended to use on_attach key to setup custom mappings
+          sourcekit = {
+            cmd = { "sourcekit-lsp", "--log-level", "error" },
+            filetypes = { "swift" },
+            root_dir = require('lspconfig').util.root_pattern("Package.swift", ".git", "project.yml", "Project.swift", ".xcodeproj"),
+          },
+
+          -- Statusline provider configurations
+          statusline = {
+            watching = { icon = "", color = "#1abc9c" },
+            device_running = { icon = "", color = "#4a6edb" },
+            success = { icon = "", color = "#1abc9c" },
+            failure = { icon = "", color = "#db4b4b" },
+          },
+
+          -- Simulators to only include.
+          -- run `xcrun simctl list` to get a full list of available simulator
+          -- If the list is empty then all simulator available will be included
+          simctl = {
+            iOS = {
+              -- "iPhone 13 Pro", --- only use this devices
+            },
+            watchOS = {}, -- all available devices
+            tvOS = {}, -- all available devices
+          },
+
+          -- Log buffer configurations
+          log_buffer = {
+            -- Whether toggling the buffer should auto focus to it?
+            focus = true,
+            -- Split Log buffer height
+            height = 20,
+            -- Vsplit Log buffer width
+            width = 75,
+            -- Default log buffer direction: { "horizontal", "vertical" }
+            default_direction = "horizontal",
+          },
+
+          -- Mappings
+          mappings = {
+            -- Whether xbase mapping should be disabled.
+            enable = true,
+            -- Open build picker. showing targets and configuration.
+            build_picker = "<leader>b", -- set to 0 to disable
+            -- Open run picker. showing targets, devices and configuration
+            run_picker = "<leader>r", -- set to 0 to disable
+            -- Open watch picker. showing run or build, targets, devices and configuration
+            watch_picker = "<leader>s", -- set to 0 to disable
+            -- A list of all the previous pickers
+            all_picker = "<leader>ef", -- set to 0 to disable
+            -- horizontal toggle log buffer
+            toggle_split_log_buffer = "<leader>ls",
+            -- vertical toggle log buffer
+            toggle_vsplit_log_buffer = "<leader>lv",
+          },
+
+          })
+
+          -- diff function
+          require("xbase.statusline").feline()
+      end,
   },
 
   -- Comment plugin

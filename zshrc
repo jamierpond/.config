@@ -7,6 +7,8 @@ if [[ "$(uname)" == "Linux" ]]; then
     alias pbpaste='xclip -selection clipboard -o'
 fi
 
+PS1='%F{green}%n@%m%f:%F{blue}%~%f$ '
+
 alias ll="ls -alF"
 alias la="ls -A"
 alias ls='ls -a --color=auto'
@@ -17,6 +19,7 @@ alias dls="lsblk"
 
 alias bwon="shortcuts run \"bw-on\""
 alias bwoff="shortcuts run \"bw-off\""
+alias t="tmux"
 
 alias cpp-compile="~/.config/bin/scripts/cpp-compile"
 alias cppc="~/.config/bin/scripts/cpp-compile"
@@ -122,7 +125,7 @@ function execute_command() {
 function e() {
   git_files=$(git ls-files)
   shell_scripts=$(echo "$git_files" | grep -E '\.sh$')
-  script=$(echo "$shell_scripts" | fzf --reverse --prompt "Select script: " --header-lines 1)
+  script=$(echo "$shell_scripts" | fzf --reverse --prompt "Select script: ")
   if [ -z "$script" ]; then
     return
   fi
@@ -184,7 +187,7 @@ function npmf() {
 function cl() {
   mayk_repos=$(gh repo list mayk-it --json nameWithOwner | jq ".[].nameWithOwner")
   jamie_repos=$(gh repo  list jamierpond --json nameWithOwner | jq ".[].nameWithOwner")
-  repo=$(echo $mayk_repos $jamie_repos | fzf --height 40% --reverse --prompt "Select repo: " --header-lines 1)
+  repo=$(echo $mayk_repos $jamie_repos | fzf --height 40% --reverse --prompt "Select repo: " --header-lines 0)
   # replace double quotes
   repo=$(echo $repo | tr -d '"')
   echo "Cloning $repo"
@@ -247,7 +250,37 @@ function tcat() {
     fi
 }
 
-# export PYENV_ROOT="$HOME/.pyenv"
-# [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-# eval "$(pyenv init -)"
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
 
+set -o vi
+
+# =============================================================================
+# bindkey -v
+# export KEYTIMEOUT=1
+
+# # Change cursor with support for inside/outside tmux
+# function _set_cursor() {
+#     if [[ $TMUX = '' ]]; then
+#       echo -ne $1
+#     else
+#       echo -ne "\ePtmux;\e\e$1\e\\"
+#     fi
+# }
+#
+# function _set_block_cursor() { _set_cursor '\e[2 q' }
+# function _set_beam_cursor() { _set_cursor '\e[6 q' }
+#
+# function zle-keymap-select {
+#   if [[ ${KEYMAP} == vicmd ]] || [[ $1 = 'block' ]]; then
+#       _set_block_cursor
+#   else
+#       _set_beam_cursor
+#   fi
+# }
+# zle -N zle-keymap-select
+# # ensure beam cursor when starting new terminal
+# precmd_functions+=(_set_beam_cursor) #
+# # ensure insert mode and beam cursor when exiting vim
+# zle-line-init() { zle -K viins; _set_beam_cursor }

@@ -4,6 +4,9 @@ lsp.preset("recommended")
 lsp.ensure_installed({
   'tsserver',
   'rust_analyzer',
+  -- also json and yaml
+  'jsonls',
+  'yamlls',
   'clangd',
   'pyright',
 })
