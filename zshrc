@@ -226,6 +226,11 @@ function tget() {
         file=$(tar_helper "$tar" "tget <tarfile> [destination]" "$dest")
     fi
 
+    # if file is empty, return
+    if [ -z "$file" ]; then
+        return
+    fi
+
     if [ $? -eq 0 ]; then
         local base=$(basename "$file")
         local dest_file="$dest/$base"
@@ -245,6 +250,16 @@ function tcat() {
         eval "$command"
         print -s "$command"
     fi
+}
+
+function gls() {
+    git ls-files | fzf
+}
+
+function go() {
+  files=$(git ls-files)
+  file=$(echo "$files" | fzf --reverse --prompt "Select file: ")
+  nvim "$file"
 }
 
 # export PYENV_ROOT="$HOME/.pyenv"
