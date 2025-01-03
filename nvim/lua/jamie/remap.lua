@@ -40,7 +40,17 @@ vim.api.nvim_set_keymap("n", "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<C
 
 vim.api.nvim_set_keymap("n", "<leader><leader>", ":so<CR>", {})
 
-vim.api.nvim_set_keymap("v", "<leader>y", [["*y]], {})
+-- vim.keymap.set('n', '<leader>c', require('osc52').copy_operator, {expr = true})
+-- vim.keymap.set('n', '<leader>cc', '<leader>c_', {remap = true})
+-- vim.keymap.set('v', '<leader>c', require('osc52').copy_visual)
+-- vim.api.nvim_set_keymap("v", "<leader>y", [["*y]], {})
+vim.keymap.set('v', '<leader>y', function()
+    -- First yank to system clipboard
+    vim.cmd([[normal! "*y]])
+    -- Then also copy to OSC52
+    require('osc52').copy_visual()
+end, { noremap = true })
+
 
 vim.cmd([[command! -nargs=+ Gc !git commit -a -m "<args>"]])
 vim.cmd([[command! Gp !git push]])

@@ -17,6 +17,8 @@ lazy.setup({
   {"nvim-lua/plenary.nvim"},
   {"lervag/vimtex"},
 
+  {'ojroques/nvim-osc52'},
+
 
   {
     "neovim/nvim-lspconfig",

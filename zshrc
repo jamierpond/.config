@@ -266,10 +266,15 @@ function go() {
 # [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 # eval "$(pyenv init -)"
 
-function rpt() {
-  tests=$(rg -N "def test_" ./tests/ --no-filename | awk -F'[( ]' '{print $2}')
+# functM2 3.5.10n ahpython test
+function pt() {
+  tests=$(rg -N "^\s*def test_" ./tests/ --no-filename | awk -F'[( ]' '{print $2}')
   to_run=$(echo "$tests" | fzf)
-  if [ -n "$to_run" ]; then
-      python -m pytest -s -k "$to_run"
+  if [ -z "$to_run" ]; then
+    echo "No test selected"
+    return
   fi
+  command="python -m pytest -s -k $to_run"
+  echo "$command"
+  execute_command "$command"
 }
