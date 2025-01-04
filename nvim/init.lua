@@ -12,5 +12,8 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
+-- conceallevel 1
+vim.opt.conceallevel = 1
+
 require("jamie")
 
