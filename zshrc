@@ -33,6 +33,33 @@ function sz() {
   du -csh "$1"
 }
 
+png() {
+    pngcrush -brute "$1"{,.} && du -b "$1"{,.}
+}
+gif() {
+    gifsicle -O "$1" -o "$1." && du -b "$1"{,.}
+}
+jpeg() {
+    jpegtran "$1" > "$1." && du -b "$1"{,.}
+}
+# Just for easy access in history
+mpng() {
+    mv "$1"{.,}
+}
+mgif() {
+    newsize=$(wc -c <"$1.")
+    oldsize=$(wc -c <"$1")
+    if [ $oldsize -gt $newsize ] ; then
+        mv "$1"{.,}
+    else
+        rm "$1."
+    fi
+}
+mjpeg() {
+    mv "$1"{.,}
+}
+
+
 # jump directory
 function jd() {
   files=$(git ls-files)
@@ -102,6 +129,15 @@ alias "ka"="killall"
 alias "kaf"="killall -9"
 alias "pos"="poetry shell"
 
+function select_project() {
+  projects=$(gcloud projects list)
+  project=$(echo "$projects" | fzf --height 40% --reverse --prompt "Select project: " --header-lines 1)
+  if [ -z "$project" ]; then
+    return 1
+  fi
+  echo "$project" | awk '{print $1}'
+}
+
 # Function to select an instance
 function select_instance() {
   instances=$(gcloud compute instances list)
@@ -132,6 +168,18 @@ function e() {
   shell="/bin/bash"
   echo "$shell $script"
   execute_command "$shell $script"
+}
+
+function gp() {
+  current_project=$(gcloud config get-value project)
+  echo "Current project: $current_project"
+  project=$(select_project) || return
+  execute_command "gcloud config set project $project"
+}
+
+function gpls() {
+  # list projects
+  gcloud projects list
 }
 
 function gssh() {
@@ -284,3 +332,4 @@ set -o vi
 # precmd_functions+=(_set_beam_cursor) #
 # # ensure insert mode and beam cursor when exiting vim
 # zle-line-init() { zle -K viins; _set_beam_cursor }
+#
