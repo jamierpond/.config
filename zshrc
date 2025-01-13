@@ -14,6 +14,7 @@ alias la="ls -A"
 alias ls='ls -a --color=auto'
 alias dec2hex="printf '%x\n'"
 alias d2h="printf '%x\n'"
+alias grape="git grep"
 
 alias dls="lsblk"
 
@@ -297,6 +298,7 @@ function tcat() {
         print -s "$command"
     fi
 }
+
 
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
