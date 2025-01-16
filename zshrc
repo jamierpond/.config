@@ -12,6 +12,9 @@ alias la="ls -A"
 alias ls='ls -a --color=auto'
 alias dec2hex="printf '%x\n'"
 alias d2h="printf '%x\n'"
+alias grape="git grep"
+alias t="tmux"
+alias f="ranger"
 
 alias dls="lsblk"
 
@@ -29,6 +32,33 @@ function sz() {
 
   du -csh "$1"
 }
+
+png() {
+    pngcrush -brute "$1"{,.} && du -b "$1"{,.}
+}
+gif() {
+    gifsicle -O "$1" -o "$1." && du -b "$1"{,.}
+}
+jpeg() {
+    jpegtran "$1" > "$1." && du -b "$1"{,.}
+}
+# Just for easy access in history
+mpng() {
+    mv "$1"{.,}
+}
+mgif() {
+    newsize=$(wc -c <"$1.")
+    oldsize=$(wc -c <"$1")
+    if [ $oldsize -gt $newsize ] ; then
+        mv "$1"{.,}
+    else
+        rm "$1."
+    fi
+}
+mjpeg() {
+    mv "$1"{.,}
+}
+
 
 # jump directory
 function jd() {
@@ -99,6 +129,15 @@ alias "ka"="killall"
 alias "kaf"="killall -9"
 alias "pos"="poetry shell"
 
+function select_project() {
+  projects=$(gcloud projects list)
+  project=$(echo "$projects" | fzf --height 40% --reverse --prompt "Select project: " --header-lines 1)
+  if [ -z "$project" ]; then
+    return 1
+  fi
+  echo "$project" | awk '{print $1}'
+}
+
 # Function to select an instance
 function select_instance() {
   instances=$(gcloud compute instances list)
@@ -129,6 +168,18 @@ function e() {
   shell="/bin/bash"
   echo "$shell $script"
   execute_command "$shell $script"
+}
+
+function gp() {
+  current_project=$(gcloud config get-value project)
+  echo "Current project: $current_project"
+  project=$(select_project) || return
+  execute_command "gcloud config set project $project"
+}
+
+function gpls() {
+  # list projects
+  gcloud projects list
 }
 
 function gssh() {
@@ -252,6 +303,12 @@ function tcat() {
     fi
 }
 
+#<<<<<<< HEAD
+#
+#export PYENV_ROOT="$HOME/.pyenv"
+#[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+#eval "$(pyenv init -)"
+#=======
 function gls() {
     git ls-files | fzf
 }
