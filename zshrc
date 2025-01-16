@@ -14,6 +14,7 @@ alias dec2hex="printf '%x\n'"
 alias d2h="printf '%x\n'"
 alias grape="git grep"
 alias t="tmux"
+alias f="ranger"
 
 alias dls="lsblk"
 
