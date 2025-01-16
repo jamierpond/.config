@@ -268,7 +268,7 @@ function go() {
 
 # functM2 3.5.10n ahpython test
 function pt() {
-  tests=$(rg -N "^\s*def test_" ./tests/ --no-filename | awk -F'[( ]' '{print $2}')
+  tests=$(rg -N "^\s*def test_" ./tests/ --no-filename | sed 's/^\s*//' | awk -F'[( ]' '{print $2}')
   to_run=$(echo "$tests" | fzf)
   if [ -z "$to_run" ]; then
     echo "No test selected"
