@@ -22,11 +22,18 @@ fi
 # echo "Project name: $project_name"
 # project_name=$(cat CMakeLists.txt | grep "project(" | sed 's/project(//g' | sed 's/)//g' | sed 's/ //g')
 
+ninja_present=$(which ninja | wc -l)
+generator="Ninja"
+if [ $ninja_present -eq 0 ]; then
+    generator="Unix Makefiles"
+fi
 
-cmake -G Ninja -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
+cmake -G "$generator" -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
+  -DCMAKE_C_COMPILER=clang \
+  -DCMAKE_CXX_COMPILER=clang++ \
   -S . $other_args
-# -DCMAKE_TOOLCHAIN_FILE=~/vcpkg/scripts/buildsystems/vcpkg.cmake \
-
+  # -DCMAKE_TOOLCHAIN_FILE=~/vcpkg/scripts/buildsystems/vcpkg.cmake \
+  #
 if [ ! -f build/compile_commands.json ]; then
     echo "No compile_commands.json found"
     exit 1

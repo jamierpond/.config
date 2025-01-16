@@ -48,6 +48,8 @@ lazy.setup({
     },
   },
 
+  {'ojroques/nvim-osc52'},
+
 
   {
     "neovim/nvim-lspconfig",
