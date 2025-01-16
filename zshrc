@@ -12,6 +12,7 @@ alias la="ls -A"
 alias ls='ls -a --color=auto'
 alias dec2hex="printf '%x\n'"
 alias d2h="printf '%x\n'"
+alias t="tmux"
 
 alias dls="lsblk"
 
