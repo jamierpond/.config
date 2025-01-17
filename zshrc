@@ -123,6 +123,7 @@ alias "kgpu"="fgpu | grep . | tr ' ' '\n' | xargs kill -9"
 alias "rgpu"="pkill wandb && pgpu | xargs -I {} kill -9 {} && kgpu"
 
 alias "lm"="sh ~/projects/lambda-machine/remote.sh"
+alias "mm"="ssh jamie@mm.pond.audio"
 alias "vie"="sh ~/projects/lambda-machine/vienna-remote.sh"
 alias "gls"="git ls-files"
 alias "ka"="killall"
