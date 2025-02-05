@@ -15,6 +15,7 @@ alias d2h="printf '%x\n'"
 alias grape="git grep"
 alias t="tmux"
 alias f="ranger"
+alias fcp="~/.config/bin/scripts/ffplay-local.sh"
 
 alias dls="lsblk"
 
