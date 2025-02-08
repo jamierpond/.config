@@ -13,7 +13,7 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 -- conceallevel 1
-vim.opt.conceallevel = 1
+-- vim.opt.conceallevel = 1
 
 require("jamie")
 
