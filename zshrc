@@ -131,6 +131,21 @@ alias "ka"="killall"
 alias "kaf"="killall -9"
 alias "pos"="poetry shell"
 
+# docker run -it --entrypoint /bin/bash cog-yue-exllamav2
+function select_docker_img() {
+  projects=$(docker image list)
+  project=$(echo "$projects" | fzf --height 40% --reverse --prompt "Select image: " --header-lines 1)
+  if [ -z "$project" ]; then
+    return 1
+  fi
+  echo "$project" | awk '{print $1}'
+}
+
+function dsh() {
+  chosen_instance=$(select_docker_img) || return
+  execute_command "docker run -it --entrypoint /bin/bash $chosen_instance"
+}
+
 function select_project() {
   projects=$(gcloud projects list)
   project=$(echo "$projects" | fzf --height 40% --reverse --prompt "Select project: " --header-lines 1)
