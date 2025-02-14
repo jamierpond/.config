@@ -151,12 +151,15 @@ function select_instance() {
 
 # Function to execute and save a command
 function execute_command() {
-  local command="$1"
-  # if mac use print -s
-  # print -s "$command"
-  history -s "$command"
+  local cmd="$1"
 
-  eval "$command"
+  if ! print -s "$cmd" &>/dev/null; then
+    if ! history -s "$cmd" &>/dev/null; then
+      echo "Both print and history commands failed"
+    fi
+  fi
+
+  eval "$cmd"
 }
 
 function e() {
