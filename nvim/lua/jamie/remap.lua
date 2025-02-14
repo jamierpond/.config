@@ -16,6 +16,10 @@ vim.api.nvim_set_keymap("n", "N", "Nzzzv", {})
 vim.api.nvim_set_keymap("n", "<leader>vwm", "<cmd>lua require('vim-with-me').StartVimWithMe()<CR>", { noremap = true })
 vim.api.nvim_set_keymap("n", "<leader>svwm", "<cmd>lua require('vim-with-me').StopVimWithMe()<CR>", { noremap = true })
 
+-- :TSContextToggle
+vim.api.nvim_set_keymap("n", "<leader>c", "<cmd>TSContextToggle<CR>", { noremap = true })
+
+
 vim.api.nvim_set_keymap("x", "<leader>p", [["_dP"]], {})
 vim.api.nvim_set_keymap("n", "<leader>y", [["+y]], {})
 vim.api.nvim_set_keymap("n", "<leader>Y", [["+Y]], {})
