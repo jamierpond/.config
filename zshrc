@@ -141,11 +141,6 @@ function select_docker_img() {
   echo "$project" | awk '{print $1}'
 }
 
-function dsh() {
-  chosen_instance=$(select_docker_img) || return
-  execute_command "docker run -it --entrypoint /bin/bash $chosen_instance"
-}
-
 function select_project() {
   projects=$(gcloud projects list)
   project=$(echo "$projects" | fzf --height 40% --reverse --prompt "Select project: " --header-lines 1)
@@ -174,6 +169,12 @@ function execute_command() {
 
   eval "$command"
 }
+
+function dsh() {
+  chosen_instance=$(select_docker_img) || return
+  execute_command "docker run -it --entrypoint /bin/bash $chosen_instance"
+}
+
 
 function e() {
   git_files=$(git ls-files)
