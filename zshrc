@@ -356,3 +356,21 @@ function pt() {
   echo "$command"
   execute_command "$command"
 }
+
+# personal use only!
+function yt() {
+  link="$1"
+  if [ -z "$link" ]; then
+    echo "Paste the youtube link"
+    read -r link
+  fi
+
+  output="$2"
+  if [ -z "$output" ]; then
+    echo "Enter the output file"
+    read -r output
+  fi
+
+  yt-dlp -x "$link" --audio-format mp3 -o "$output"
+}
+
