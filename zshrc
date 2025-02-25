@@ -16,6 +16,7 @@ alias grape="git grep"
 alias t="tmux"
 alias f="ranger"
 alias fcp="~/.config/bin/scripts/ffplay-local.sh"
+alias fpl="~/.config/bin/scripts/ffplay-local.sh"
 
 alias dls="lsblk"
 
@@ -334,11 +335,11 @@ function gls() {
     git ls-files | fzf
 }
 
-function go() {
-  files=$(git ls-files)
-  file=$(echo "$files" | fzf --reverse --prompt "Select file: ")
-  nvim "$file"
-}
+# function go() {
+#   files=$(git ls-files)
+#   file=$(echo "$files" | fzf --reverse --prompt "Select file: ")
+#   nvim "$file"
+# }
 
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
@@ -374,3 +375,4 @@ function yt() {
   yt-dlp -x "$link" --audio-format mp3 -o "$output"
 }
 
+export PATH=$PATH:$(go env GOPATH)/bin

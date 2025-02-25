@@ -4,6 +4,7 @@ lsp.preset("recommended")
 lsp.ensure_installed({
   'tsserver',
   'rust_analyzer',
+  'gopls',
   -- also json and yaml
   'jsonls',
   'yamlls',
