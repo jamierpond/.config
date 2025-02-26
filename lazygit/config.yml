@@ -1,0 +1,3 @@
+os:
+  # Command for editing a file. Should contain "{{filename}}".
+  edit: "nvim {{filename}}"
