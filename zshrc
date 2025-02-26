@@ -7,6 +7,8 @@ if [[ "$(uname)" == "Linux" ]]; then
     alias pbpaste='xclip -selection clipboard -o'
 fi
 
+export XDG_CONFIG_HOME="$HOME/.config"
+
 alias ll="ls -alF"
 alias la="ls -A"
 alias ls='ls -a --color=auto'
@@ -325,12 +327,6 @@ function tcat() {
     fi
 }
 
-#<<<<<<< HEAD
-#
-#export PYENV_ROOT="$HOME/.pyenv"
-#[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-#eval "$(pyenv init -)"
-#=======
 function gls() {
     git ls-files | fzf
 }
@@ -377,4 +373,20 @@ function yt() {
 
 export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:$(go env GOPATH)/bin
+
+function ytv() {
+  link="$1"
+  if [ -z "$link" ]; then
+    echo "Paste the youtube link"
+    read -r link
+  fi
+
+  output="$2"
+  if [ -z "$output" ]; then
+    echo "Enter the output file"
+    read -r output
+  fi
+
+  yt-dlp "$link" --recode-video m4a -o "$output"
+}
 
