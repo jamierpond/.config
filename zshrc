@@ -7,6 +7,8 @@ if [[ "$(uname)" == "Linux" ]]; then
     alias pbpaste='xclip -selection clipboard -o'
 fi
 
+export XDG_CONFIG_HOME="$HOME/.config"
+
 alias ll="ls -alF"
 alias la="ls -A"
 alias ls='ls -a --color=auto'
@@ -334,11 +336,11 @@ function gls() {
     git ls-files | fzf
 }
 
-function go() {
-  files=$(git ls-files)
-  file=$(echo "$files" | fzf --reverse --prompt "Select file: ")
-  nvim "$file"
-}
+# function go() {
+#   files=$(git ls-files)
+#   file=$(echo "$files" | fzf --reverse --prompt "Select file: ")
+#   nvim "$file"
+# }
 
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
@@ -372,5 +374,22 @@ function yt() {
   fi
 
   yt-dlp -x "$link" --audio-format mp3 -o "$output"
+}
+
+# personal use only!
+function ytv() {
+  link="$1"
+  if [ -z "$link" ]; then
+    echo "Paste the youtube link"
+    read -r link
+  fi
+
+  output="$2"
+  if [ -z "$output" ]; then
+    echo "Enter the output file"
+    read -r output
+  fi
+
+  yt-dlp "$link" --recode-video m4a -o "$output"
 }
 
