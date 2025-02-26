@@ -375,4 +375,6 @@ function yt() {
   yt-dlp -x "$link" --audio-format mp3 -o "$output"
 }
 
+export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:$(go env GOPATH)/bin
+

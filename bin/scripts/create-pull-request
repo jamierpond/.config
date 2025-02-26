@@ -7,14 +7,23 @@ echo "Current branch: $current_branch"
 
 existing_pr=$(gh pr list --state open --head "$current_branch")
 
+function openweb() {
+  if [ $(uname) == "Darwin" ]; then
+    gh pr view --web
+  else
+    gh pr view
+    read -n 1 -s -r -p "Press any key to continue"
+  fi
+}
+
 if [ -n "$existing_pr" ]; then
   echo "PR already exists: $existing_pr"
-  gh pr view --web
+  openweb
   exit 0
 fi
 
 export EDITOR="nvim"
 gh pr create
+openweb
 
-gh pr view --web
 
