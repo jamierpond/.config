@@ -1,0 +1,6 @@
+#!/bin/bash
+set -e
+command="$1"
+ssh-keygen -f "$HOME/.ssh/known_hosts" -R "ssh.pond.audio"
+ssh_host="jamiepond@ssh.pond.audio"
+ssh -o "StrictHostKeyChecking=accept-new" $ssh_host -x "$command"
