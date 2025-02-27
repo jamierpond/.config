@@ -392,10 +392,20 @@ function ytv() {
 
 function da() {
   # rm header which is the first line
-  imgs=$(docker ps | tail -n +2 | fzf)
+  imgs=$(docker ps | tail -n +2)
   if [ -z "$imgs" ]; then
     return
   fi
-  container_id=$(echo "$imgs" | awk '{print $1}')
+
+  # if there is only one container, just exec into it
+  # otherwise, select the container
+  if [ $(echo "$imgs" | wc -l) -eq 1 ]; then
+    container_id=$(echo "$imgs" | awk '{print $1}')
+    execute_command "docker exec -it $container_id /bin/bash"
+    return
+  fi
+
+  img=$(echo "$imgs" | fzf --reverse --prompt "Select container: " --header-lines 1)
+  container_id=$(echo "$img" | awk '{print $1}')
   execute_command "docker exec -it $container_id /bin/bash"
 }
