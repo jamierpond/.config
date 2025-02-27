@@ -393,10 +393,9 @@ function ytv() {
 function da() {
   # rm header which is the first line
   imgs=$(docker ps | tail -n +2 | fzf)
-  if [ -z "$runned" ]; then
+  if [ -z "$imgs" ]; then
     return
   fi
-  container_id=$(echo "$runned" | awk '{print $1}')
+  container_id=$(echo "$imgs" | awk '{print $1}')
   execute_command "docker exec -it $container_id /bin/bash"
-
 }
