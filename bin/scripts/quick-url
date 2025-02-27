@@ -169,10 +169,11 @@ url=$(printf "%s\n" "${quick_urls[@]}" | fzf)
 url=$(echo "$url" | cut -d'|' -f1 | tr -d '[:space:]')
 
 if [ $(uname) == "Darwin" ]; then
+  echo "Running open $url"
   open $url
 else
   echo "Running open $url"
-  bash "~/.config/bin/scripts/do-on-mac" "open $url"
+  bash -c "~/.config/bin/scripts/do-on-mac \"open $url\""
 fi
 
 
