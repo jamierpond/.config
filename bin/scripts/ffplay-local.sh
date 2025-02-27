@@ -1,7 +1,7 @@
-# copy a file from whever we are onto my local machine and play it >:)
-
 #!/bin/bash
 set -e
+
+# copy a file from whever we are onto my local machine and play it >:)
 
 input_file="$1"
 if [ -z "$input_file" ]; then
