@@ -390,3 +390,13 @@ function ytv() {
   yt-dlp "$link" --recode-video m4a -o "$output"
 }
 
+function da() {
+  # rm header which is the first line
+  imgs=$(docker ps | tail -n +2 | fzf)
+  if [ -z "$runned" ]; then
+    return
+  fi
+  container_id=$(echo "$runned" | awk '{print $1}')
+  execute_command "docker exec -it $container_id /bin/bash"
+
+}

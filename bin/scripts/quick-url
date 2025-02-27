@@ -68,6 +68,8 @@ popstar_gh_urls=$(get_gh_urls "mayk-it" "popstar")
 songgpt_gh_urls=$(get_gh_urls "mayk-it" "mayk.studio")
 mayk_it_gh_urls=$(get_gh_urls "jamierpond" ".config")
 mayk_it_gh_urls=$(get_gh_urls "jamierpond" "pond.audio")
+yueexllama=$(get_gh_urls "mayk-it" "YuE-exllamav2")
+yueclient=$(get_gh_urls "mayk-it" "yue-client")
 
 function get_firebase_urls() {
   urls=()
@@ -161,6 +163,8 @@ quick_urls+=("$firebase_urls")
 quick_urls+=("$emulator_urls")
 quick_urls+=("$juce_gh_urls")
 quick_urls+=("$tracktion_gh_urls")
+quick_urls+=("$yueexllama")
+quick_urls+=("$yueclient")
 
 # fuzzy find the URLs with fzf
 url=$(printf "%s\n" "${quick_urls[@]}" | fzf)
