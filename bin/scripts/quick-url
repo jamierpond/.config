@@ -168,7 +168,12 @@ url=$(printf "%s\n" "${quick_urls[@]}" | fzf)
 # strip everything after the first pipe (and spaces)
 url=$(echo "$url" | cut -d'|' -f1 | tr -d '[:space:]')
 
-open $url
+if [ $(uname) == "Darwin" ]; then
+  open $url
+else
+  echo "Running open $url"
+  bash "~/.config/bin/scripts/do-on-mac" "open $url"
+fi
 
 
 

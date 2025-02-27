@@ -1,16 +1,31 @@
+# copy a file from whever we are onto my local machine and play it >:)
+
+#!/bin/bash
 set -e
 
-echo "playing locally"
-# copy file to jamiepond@ssh.pond.audio:/home/jamiepond/.audiotmp
-
 input_file="$1"
-ssh-keygen -f "/home/jamie/.ssh/known_hosts" -R "ssh.pond.audio"
-output_file="/Users/jamiepond/.audiotmp/$(basename $input_file)"
+if [ -z "$input_file" ]; then
+  echo "Usage: $0 <input_file>"
+  exit 1
+fi
 
-ssh_host="jamiepond@ssh.pond.audio"
+if [ ! -f "$input_file" ]; then
+  echo "File not found: $input_file"
+  exit 1
+fi
 
-# Add the host key automatically on first connection
-scp -o "StrictHostKeyChecking=accept-new" "$input_file" $ssh_host:$output_file
+sha=$(sha256sum $input_file | awk '{print $1}')
+trimmed_sha=$(echo $sha | cut -c1-8)
+extension="${input_file##*.}"
 
-# Use the same option for SSH
-ssh -o "StrictHostKeyChecking=accept-new" $ssh_host -x "/opt/homebrew/bin/ffplay $output_file"
+ssh_user="jamiepond"
+ssh_host="$ssh_user@ssh.pond.audio"
+output_file="/Users/$ssh_user/.audiotmp/$trimmed_sha.$extension"
+
+function cp_file {
+  scp -o "StrictHostKeyChecking=accept-new" "$input_file" "$ssh_host:$output_file"
+}
+
+ssh -q "$ssh_host" [[ -f "$output_file" ]] && echo "File exists on host" || cp_file
+
+ssh -o "StrictHostKeyChecking=accept-new" "$ssh_host" -x "/opt/homebrew/bin/ffplay $output_file"
