@@ -11,7 +11,7 @@ function openweb() {
   if [ $(uname) == "Darwin" ]; then
     gh pr view --web
   else
-    ~/.config/bin/scripts/do-on-mac "open $(gh pr view --json url | jq '.url')"
+    "$HOME/.config/bin/scripts/do-on-mac" "open $(gh pr view --json url | jq '.url')"
   fi
 }
 
