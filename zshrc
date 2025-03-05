@@ -1,5 +1,9 @@
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
+# always display the current directory
+export PROMPT_DIRTRIM=2
+export PS1='%n@%m %~$ '
+
 # if is linux
 if [[ "$(uname)" == "Linux" ]]; then
     # source /usr/share/doc/fzf/examples/key-bindings.zsh
@@ -406,6 +410,27 @@ function da() {
   fi
 
   img=$(echo "$imgs" | fzf --reverse --prompt "Select container: " --header-lines 1)
+
   container_id=$(echo "$img" | awk '{print $1}')
   execute_command "docker exec -it $container_id /bin/bash"
+}
+
+function dcp() {
+  # rm header which is the first line
+  file_name="$1"
+  imgs=$(docker ps | tail -n +2)
+  if [ -z "$imgs" ]; then
+    return
+  fi
+
+  if [ $(echo "$imgs" | wc -l) -eq 1 ]; then
+    container_id=$(echo "$imgs" | awk '{print $1}')
+    execute_command "docker cp $container_id:$file_name ."
+    return
+  fi
+
+  img=$(echo "$imgs" | fzf --reverse --prompt "Select container: " --header-lines 1)
+
+  container_id=$(echo "$img" | awk '{print $1}')
+  execute_command "docker cp $container_id:$file_name ."
 }
