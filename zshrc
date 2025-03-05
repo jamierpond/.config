@@ -434,3 +434,11 @@ function dcp() {
   container_id=$(echo "$img" | awk '{print $1}')
   execute_command "docker cp $container_id:$file_name ."
 }
+
+# if zsh not bash, source oh-my-zsh
+is_zsh=$(ps -p $$ -o comm= | grep zsh)
+
+if [ -n "$is_zsh" ]; then
+  this_dir=$(dirname "$0")
+  source "$this_dir/ohmyzsh_config.sh"
+fi

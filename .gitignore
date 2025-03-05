@@ -18,3 +18,5 @@
 !lazygit/
 **Application Support**
 **.DS_Store**
+!ohmyzsh/
+!ohmyzsh_config.sh
