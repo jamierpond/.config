@@ -1,8 +1,13 @@
+# if zsh not bash, source oh-my-zsh
+is_zsh=$(ps -p $$ -o comm= | grep zsh)
+
+if [ -n "$is_zsh" ]; then
+  this_dir=$(dirname "$0")
+  source "$this_dir/ohmyzsh_config.sh"
+fi
+
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-# always display the current directory
-export PROMPT_DIRTRIM=2
-export PS1='%n@%m %~$ '
 
 # if is linux
 if [[ "$(uname)" == "Linux" ]]; then
@@ -435,10 +440,3 @@ function dcp() {
   execute_command "docker cp $container_id:$file_name ."
 }
 
-# if zsh not bash, source oh-my-zsh
-is_zsh=$(ps -p $$ -o comm= | grep zsh)
-
-if [ -n "$is_zsh" ]; then
-  this_dir=$(dirname "$0")
-  source "$this_dir/ohmyzsh_config.sh"
-fi
