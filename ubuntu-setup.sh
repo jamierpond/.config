@@ -4,7 +4,7 @@ set -e
 # install boring things we probably need
 sudo apt update && sudo apt install -y build-essential nodejs npm unzip zip \
   fzf ripgrep snapd ffmpeg sox libsox-dev pkg-config protobuf-compiler cmake linux-libc-dev clang git-secret \
-  libomp-dev ranger
+  libomp-dev ranger zsh
 sudo apt upgrade
 
 LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
@@ -51,4 +51,5 @@ sudo snap install nvim --classic
 # tmux alias, so we can use our config
 echo "alias tmux='tmux -f ~/.config/tmux/tmux.conf'" >> ~/.bashrc
 
-
+# default to zsh
+chsh -s $(which zsh)
