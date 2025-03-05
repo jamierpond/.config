@@ -409,3 +409,13 @@ function da() {
   container_id=$(echo "$img" | awk '{print $1}')
   execute_command "docker exec -it $container_id /bin/bash"
 }
+
+# if zsh not bash, source oh-my-zsh
+is_zsh=$(ps -p $$ -o comm= | grep zsh)
+
+if [ -n "$is_zsh" ]; then
+  echo "Sourcing oh-my-zsh"
+  source ./ohmyzsh_config.sh
+else
+  echo "Not zsh"
+fi
