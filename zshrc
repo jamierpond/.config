@@ -414,8 +414,6 @@ function da() {
 is_zsh=$(ps -p $$ -o comm= | grep zsh)
 
 if [ -n "$is_zsh" ]; then
-  echo "Sourcing oh-my-zsh"
-  source ./ohmyzsh_config.sh
-else
-  echo "Not zsh"
+  this_dir=$(dirname "$0")
+  source "$this_dir/ohmyzsh_config.sh"
 fi
