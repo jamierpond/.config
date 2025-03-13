@@ -444,3 +444,6 @@ function dcp() {
 }
 
 export PATH=$PATH:/snap/bin
+
+# source nvm
+source ./nvm/nvm.sh
