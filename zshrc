@@ -1,7 +1,5 @@
 # if zsh not bash, source oh-my-zsh
-export SHELL=`which zsh`
-zsh
-exit
+chsh -s $(which zsh)
 
 is_zsh=$(ps -p $$ -o comm= | grep zsh)
 
@@ -10,17 +8,19 @@ if [ -n "$is_zsh" ]; then
   source "$this_dir/ohmyzsh_config.sh"
 fi
 
+
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 
 # if is linux
-if [[ "$(uname)" == "Linux" ]]; then
-    # source /usr/share/doc/fzf/examples/key-bindings.zsh
-    alias pbcopy='xclip -selection clipboard'
-    alias pbpaste='xclip -selection clipboard -o'
-fi
+# if [[ "$(uname)" == "Linux" ]]; then
+#     # source /usr/share/doc/fzf/examples/key-bindings.zsh
+#     alias pbcopy='xclip -selection clipboard'
+#     alias pbpaste='xclip -selection clipboard -o'
+# fi
 
 export XDG_CONFIG_HOME="$HOME/.config"
+
 
 alias ll="ls -alF"
 alias la="ls -A"
