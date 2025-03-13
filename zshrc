@@ -1,5 +1,4 @@
 # if zsh not bash, source oh-my-zsh
-chsh -s $(which zsh)
 
 is_zsh=$(ps -p $$ -o comm= | grep zsh)
 
@@ -444,3 +443,4 @@ function dcp() {
   execute_command "docker cp $container_id:$file_name ."
 }
 
+export PATH=$PATH:/snap/bin
