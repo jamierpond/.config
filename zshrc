@@ -1,4 +1,8 @@
 # if zsh not bash, source oh-my-zsh
+export SHELL=`which zsh`
+zsh
+exit
+
 is_zsh=$(ps -p $$ -o comm= | grep zsh)
 
 if [ -n "$is_zsh" ]; then
