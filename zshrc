@@ -1,17 +1,25 @@
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+# if zsh not bash, source oh-my-zsh
 
-# always display the current directory
-export PROMPT_DIRTRIM=2
-export PS1='%n@%m %~$ '
+is_zsh=$(ps -p $$ -o comm= | grep zsh)
 
-# if is linux
-if [[ "$(uname)" == "Linux" ]]; then
-    # source /usr/share/doc/fzf/examples/key-bindings.zsh
-    alias pbcopy='xclip -selection clipboard'
-    alias pbpaste='xclip -selection clipboard -o'
+if [ -n "$is_zsh" ]; then
+  this_dir=$(dirname "$0")
+  source "$this_dir/ohmyzsh_config.sh"
 fi
 
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+
+# if is linux
+# if [[ "$(uname)" == "Linux" ]]; then
+#     # source /usr/share/doc/fzf/examples/key-bindings.zsh
+#     alias pbcopy='xclip -selection clipboard'
+#     alias pbpaste='xclip -selection clipboard -o'
+# fi
+
 export XDG_CONFIG_HOME="$HOME/.config"
+
 
 alias ll="ls -alF"
 alias la="ls -A"
@@ -435,10 +443,7 @@ function dcp() {
   execute_command "docker cp $container_id:$file_name ."
 }
 
-# if zsh not bash, source oh-my-zsh
-is_zsh=$(ps -p $$ -o comm= | grep zsh)
+export PATH=$PATH:/snap/bin
 
-if [ -n "$is_zsh" ]; then
-  this_dir=$(dirname "$0")
-  source "$this_dir/ohmyzsh_config.sh"
-fi
+# source nvm
+source ./nvm/nvm.sh
