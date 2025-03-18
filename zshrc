@@ -119,7 +119,8 @@ alias "tarls"="tar -tvf"
 alias "tls"="tar -tvf"
 
 alias ddd="rm -rf ~/Library/Developer/Xcode/DerivedData"
-alias smu="git submodule update --init --recursive"
+alias smu="git submodule update --init"
+alias smur="git submodule update --init --recursive"
 
 alias "new-venv"="python3 -m venv venv"
 alias "nv"="python3 -m venv venv"
