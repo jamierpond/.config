@@ -22,5 +22,5 @@
 !ohmyzsh_config.sh
 !.gitmodules
 !ubuntu-setup.sh
-!./omz-custom/
+!omz-custom/
 !nvm/
