@@ -448,3 +448,18 @@ export PATH=$PATH:/snap/bin
 
 # source nvm
 source $HOME/.config/nvm/nvm.sh
+
+
+# if ./venv exists, activate it
+if [ -d "./venv" ]; then
+  echo "Found venv at ./venv"
+  source ./venv/bin/activate
+else
+  # goto git root and try the same
+  git_root=$(git rev-parse --show-toplevel)
+  if [ -d "$git_root/venv" ]; then
+    echo "Found venv at $git_root/venv"
+    source "$git_root/venv/bin/activate"
+  fi
+fi
+
