@@ -63,3 +63,21 @@ fi
 git config --global user.email "jamiepond259@gmail.com"
 git config --global user.name "Jamie Pond"
 
+echo "============================="
+echo "✅ Verifying installation..."
+echo "============================="
+
+# Check if essential tools are installed
+for cmd in lazygit gh nvim tmux docker go node npm fzf ripgrep; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "❌ Error: $cmd is not installed properly." >&2
+    exit 1
+  else
+    echo "✅ $cmd is installed."
+  fi
+done
+
+echo "============================="
+echo "🚀 Setup complete! Restart your shell or run 'exec zsh' to apply changes."
+echo "============================="
+
