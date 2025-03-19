@@ -1,11 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 # install boring things we probably need
-sudo apt update && sudo apt install -y build-essential nodejs npm unzip zip \
-  fzf ripgrep snapd ffmpeg sox libsox-dev pkg-config protobuf-compiler cmake linux-libc-dev clang git-secret \
-  libomp-dev ranger zsh
-sudo apt upgrade
+sudo apt update && sudo apt install -y build-essential nodejs npm unzip zip    \
+  fzf ripgrep snapd ffmpeg sox libsox-dev pkg-config protobuf-compiler cmake   \
+  linux-libc-dev clang git-secret libomp-dev ranger zsh -y
 
 LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
 curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
