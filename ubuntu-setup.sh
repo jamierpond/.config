@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+cd "$HOME" || exit
+
 # install boring things we probably need
 sudo apt update && sudo apt install -y build-essential nodejs npm unzip zip    \
   fzf ripgrep snapd ffmpeg sox libsox-dev pkg-config protobuf-compiler cmake   \
@@ -31,9 +33,27 @@ curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo 
 
 # login to gh
 
+
+# TODO make this also copy the dotfiles (.git and .gitignore)
+# if the .config already exits then skip cloning it, else clone
+if [ ! -f ~/.config ]; then
+  echo "it doesn't already exist"
+#   rm -rf ~/jamie-config
+#   git clone https://github.com/jamierpond/.config ~/jamie-config
+#   cp -r ~/jamie-config/* ~/.config
+else
+  echo "not recloning"
+fi
+
+# tmux alias, so we can use our config
+echo "alias tmux='tmux -f ~/.config/tmux/tmux.conf'" >> ~/zshrc
+
+# default to zsh
+chsh -s $(which zsh)
+
 gh auth status
-if [ $? -eq 0 ]; then
-  echo "Already logged in to gh"
+if [ $? -eq 0 || "$CI" = "true" ]; then
+  echo "Already logged in to gh, skipping"
 else
   gh auth login
   gh auth setup-git
@@ -43,20 +63,3 @@ fi
 git config --global user.email "jamiepond259@gmail.com"
 git config --global user.name "Jamie Pond"
 
-# TODO make this also copy the dotfiles (.git and .gitignore)
-cd "$HOME"
-# if the .config already exits then skip cloning it, else clone
-if [ ! -f ~/.config ]; then
-  echo "it doesn't already exist"
-  rm -rf ~/jamie-config
-  git clone https://github.com/jamierpond/.config ~/jamie-config
-  cp -r ~/jamie-config/* ~/.config
-else
-  echo "not recloning"
-fi
-
-# tmux alias, so we can use our config
-echo "alias tmux='tmux -f ~/.config/tmux/tmux.conf'" >> ~/.bashrc
-
-# default to zsh
-chsh -s $(which zsh)

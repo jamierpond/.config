@@ -32,6 +32,7 @@ alias f="ranger"
 alias fcp="~/.config/bin/scripts/ffplay-local.sh"
 alias fpl="~/.config/bin/scripts/ffplay-local.sh"
 
+alias tmux='tmux -f ~/.config/tmux/tmux.conf'
 alias dls="lsblk"
 
 alias bwon="shortcuts run \"bw-on\""
@@ -464,4 +465,7 @@ set +e
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
+
+# ensure /home/jamie/.local/bin is in the PATH
+export PATH=$PATH:$HOME/.local/bin
 
