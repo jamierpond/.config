@@ -7,8 +7,8 @@
 	url = "https://github.com/nvm-sh/nvm.git"
   commit = "179d450"
 
-[submodule "plugins/zsh-vim-mode"]
-	path = "plugins/zsh-vim-mode"
+[submodule "omz-custom/plugins/zsh-vi-mode"]
+	path = "omz-custom/plugins/zsh-vi-mode"
 	url = "https://github.com/jeffreytse/zsh-vi-mode.git"
 
 
