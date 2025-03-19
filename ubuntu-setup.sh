@@ -81,3 +81,4 @@ echo "============================="
 echo "🚀 Setup complete! Restart your shell or run 'exec zsh' to apply changes."
 echo "============================="
 
+
