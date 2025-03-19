@@ -19,7 +19,7 @@ sudo snap install docker
 # curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 #
 # # go
-# sudo snap install go --classic
+sudo snap install go --classic
 
 # todo just make this using a token
 # install gh cli
@@ -31,8 +31,14 @@ curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo 
   && sudo apt install gh -y
 
 # login to gh
-gh auth login
-gh auth setup-git
+
+gh auth status
+if [ $? -eq 0 ]; then
+  echo "Already logged in to gh"
+else
+  gh auth login
+  gh auth setup-git
+fi
 
 # setup git
 git config --global user.email "jamiepond259@gmail.com"

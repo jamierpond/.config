@@ -19,6 +19,15 @@ vim.api.nvim_set_keymap("n", "<leader>svwm", "<cmd>lua require('vim-with-me').St
 -- :TSContextToggle
 vim.api.nvim_set_keymap("n", "<leader>c", "<cmd>TSContextToggle<CR>", { noremap = true })
 
+-- nmap <silent> <c-k> :wincmd k<CR>
+-- nmap <silent> <c-j> :wincmd j<CR>
+-- nmap <silent> <c-h> :wincmd h<CR>
+-- nmap <silent> <c-l> :wincmd l<CR>
+vim.api.nvim_set_keymap("n", "<C-k>", "<cmd>wincmd k<CR>", { noremap = true })
+vim.api.nvim_set_keymap("n", "<C-j>", ":wincmd j<CR>", { noremap = true })
+vim.api.nvim_set_keymap("n", "<C-h>", ":wincmd h<CR>", { noremap = true })
+vim.api.nvim_set_keymap("n", "<C-l>", ":wincmd l<CR>", { noremap = true })
+
 
 vim.api.nvim_set_keymap("x", "<leader>p", [["_dP"]], {})
 vim.api.nvim_set_keymap("n", "<leader>y", [["+y]], {})
@@ -29,8 +38,8 @@ vim.api.nvim_set_keymap("n", "Q", "<nop>", {})
 vim.api.nvim_set_keymap("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>", {})
 vim.api.nvim_set_keymap("n", "<leader>f", ":lua vim.lsp.buf.format()<CR>", {})
 
-vim.api.nvim_set_keymap("n", "<C-k>", "<cmd>cnext<CR>zz", {})
-vim.api.nvim_set_keymap("n", "<C-j>", "<cmd>cprev<CR>zz", {})
+-- vim.api.nvim_set_keymap("n", "<C-k>", "<cmd>cnext<CR>zz", {})
+-- vim.api.nvim_set_keymap("n", "<C-j>", "<cmd>cprev<CR>zz", {})
 vim.api.nvim_set_keymap("n", "<leader>k", "<cmd>lnext<CR>zz", {})
 vim.api.nvim_set_keymap("n", "<leader>j", "<cmd>lprev<CR>zz", {})
 

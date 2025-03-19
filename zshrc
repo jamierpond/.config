@@ -1,4 +1,4 @@
-# if zsh not bash, source oh-my-zsh
+# if zsh not bash, source oh-my-zs
 
 is_zsh=$(ps -p $$ -o comm= | grep zsh)
 
@@ -350,9 +350,6 @@ function gls() {
 #   nvim "$file"
 # }
 
-export PYENV_ROOT="$HOME/.pyenv"
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
 
 # functM2 3.5.10n ahpython test
 function pt() {
@@ -462,4 +459,9 @@ else
     source "$git_root/venv/bin/activate"
   fi
 fi
+
+set +e
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
 
