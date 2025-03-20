@@ -27,6 +27,7 @@ jobs:
 
       - name: Run Script in Docker, Then Source zshrc
         run: |
+          DEBIAN_FRONTEND=noninteractive
           UBUNTU_VERSION=${{ matrix.ubuntu_version }}
           docker run --rm \
             -v "$(pwd):/repo" \
