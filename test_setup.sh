@@ -1,3 +1,5 @@
-docker run --rm -it --entrypoint /bin/bash ubuntu:22.04 -c \
-  -e "CI=true" \
-  "apt-get update && apt-get install -y curl sudo && curl -fsSL https://pond.audio/setup | bash"
+docker run --rm -it \
+  -v "$(realpath ./ubuntu-setup.sh):/tmp/ubuntu-setup.sh" \
+  --entrypoint /bin/bash ubuntu:22.04 -c \
+  "apt-get update && apt-get install -y curl sudo && chmod +x /tmp/ubuntu-setup.sh && /tmp/ubuntu-setup.sh"
+
