@@ -25,6 +25,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Update git submodules
+        run: git submodule update --init
+
       - name: Run Script in Docker, Then Source zshrc
         run: |
           DEBIAN_FRONTEND=noninteractive
