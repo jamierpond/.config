@@ -105,6 +105,4 @@ check_command "lazygit" "lazygit"
 
 echo -e "\nVerification complete."
 
-# Source ZSH configuration
-[ -f "$CONFIG_DIR/zshrc" ] && source "$CONFIG_DIR/zshrc"
 
