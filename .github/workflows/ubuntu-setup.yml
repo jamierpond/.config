@@ -25,11 +25,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Run Script in Docker
+      - name: Run Script in Docker, Then Source zshrc
         run: |
           UBUNTU_VERSION=${{ matrix.ubuntu_version }}
           docker run --rm \
-            -v "$(pwd)/ubuntu-setup.sh:/tmp/ubuntu-setup.sh" \
+            -v "$(pwd):/repo" \
             --entrypoint /bin/bash ubuntu:$UBUNTU_VERSION -c \
-            "apt-get update && apt-get install -y curl sudo && chmod +x /tmp/ubuntu-setup.sh && /tmp/ubuntu-setup.sh"
+            "chmod +x /repo/ubuntu-setup.sh && /repo/ubuntu-setup.sh && \
+            exec zsh -c 'source /repo/zshrc && exec zsh'"
 
