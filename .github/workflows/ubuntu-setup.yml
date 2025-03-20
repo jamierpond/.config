@@ -31,6 +31,7 @@ jobs:
           docker run --rm \
             -v "$(pwd):/repo" \
             --entrypoint /bin/bash ubuntu:$UBUNTU_VERSION -c \
-            "chmod +x /repo/ubuntu-setup.sh && /repo/ubuntu-setup.sh && \
-            exec zsh -c 'source /repo/zshrc && exec zsh'"
+            "apt-get update && apt-get install -y curl sudo && \
+            chmod +x /repo/ubuntu-setup.sh && /repo/ubuntu-setup.sh && \
+            exec zsh -c 'source /repo/zshrc && echo \"✅ zshrc sourced!\" && exec zsh'"
 
