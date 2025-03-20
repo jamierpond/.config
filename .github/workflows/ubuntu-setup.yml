@@ -28,7 +28,7 @@ jobs:
       - name: Run Script in Docker
         run: |
           UBUNTU_VERSION=${{ matrix.ubuntu_version }}
-          docker run --rm -it \
+          docker run --rm \
             -v "$(pwd)/ubuntu-setup.sh:/tmp/ubuntu-setup.sh" \
             --entrypoint /bin/bash ubuntu:$UBUNTU_VERSION -c \
             "apt-get update && apt-get install -y curl sudo && chmod +x /tmp/ubuntu-setup.sh && /tmp/ubuntu-setup.sh"
