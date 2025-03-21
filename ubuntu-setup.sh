@@ -65,7 +65,7 @@ rm -rf "$TMP_DIR"
 
 # Install Neovim =======================================================================
 TMP_DIR=$(mktemp -d)
-NVIM_URL=https://github.com/neovim/neovim/releases/download/stable/nvim-linux-arm64.tar.gz
+NVIM_URL=https://github.com/neovim/neovim/releases/download/stable/nvim-linux-amd64.tar.gz
 wget -qO "$TMP_DIR/nvim.tar.gz" "$NVIM_URL"
 tar -xf "$TMP_DIR/nvim.tar.gz" -C "$TMP_DIR"
 sudo cp -r "$TMP_DIR/nvim-linux-arm64"/* /usr/local
@@ -99,7 +99,6 @@ check_command() {
   if [ -n "$2" ]; then
     if command -v "$2" &>/dev/null; then
       echo "[✔] $1 ($2) is installed"
-      bash -c "$2 --version"
     else
       echo "[✘] $1 ($2) is NOT installed"
     fi
