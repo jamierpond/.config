@@ -77,7 +77,11 @@ rm -rf "$TMP_DIR"
 CONFIG_DIR="$HOME/.config"
 if [ ! -d "$CONFIG_DIR/.git" ]; then
   echo "Cloning dotfiles..."
+  # clone with submodules
   git clone https://github.com/jamierpond/.config "$HOME/jamie-config"
+  cd "$HOME/jamie-config"
+  git submodule update --init  # don't recurse
+  cd ..
   mkdir -p "$CONFIG_DIR"
   rsync -av --ignore-existing "$HOME/jamie-config/" "$CONFIG_DIR/"
 else
