@@ -1,5 +1,6 @@
 #!/bin/bash
-set -e
+set -ex
+
 
 # assumes curl and sudo are available
 
@@ -65,10 +66,10 @@ rm -rf "$TMP_DIR"
 
 # Install Neovim =======================================================================
 TMP_DIR=$(mktemp -d)
-NVIM_URL=https://github.com/neovim/neovim/releases/download/stable/nvim-linux-amd64.tar.gz
+NVIM_URL=https://github.com/neovim/neovim/releases/download/stable/nvim-linux-x86_64.tar.gz
 wget -qO "$TMP_DIR/nvim.tar.gz" "$NVIM_URL"
 tar -xf "$TMP_DIR/nvim.tar.gz" -C "$TMP_DIR"
-sudo cp -r "$TMP_DIR/nvim-linux-arm64"/* /usr/local
+sudo cp -r "$TMP_DIR/nvim-linux-x86_64/bin/" /usr/local/
 rm -rf "$TMP_DIR"
 
 
