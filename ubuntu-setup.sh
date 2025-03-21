@@ -99,6 +99,7 @@ check_command() {
   if [ -n "$2" ]; then
     if command -v "$2" &>/dev/null; then
       echo "[✔] $1 ($2) is installed"
+      bash -c "$2 --version"
     else
       echo "[✘] $1 ($2) is NOT installed"
     fi
@@ -114,8 +115,12 @@ for package_tuple in "${PACKAGES[@]}"; do
   check_command "$package" "$command"
 done
 
+# install pyenv
+curl -fsSL https://pyenv.run | bash
+
 # Verify LazyGit separately
 check_command "lazygit" "lazygit"
+check_command "pyenv" "pyenv"
 check_command "nvim" "nvim"
 
 echo -e "\nVerification complete."
