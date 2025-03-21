@@ -40,14 +40,18 @@ PACKAGES=(
   "rsync:rsync"
 )
 
+
+
 # Install necessary packages
 echo "Installing required packages..."
-sudo apt update && sudo apt install -y $(printf "%s " "${PACKAGES[@]%%:*}")  # Extract package names only
+sudo apt update
+sudo DEBIAN_FRONTEND=noninteractive TZ=America/Los_Angeles apt-get -y install tzdata
+sudo apt install -y $(printf "%s " "${PACKAGES[@]%%:*}")  # Extract package names only
 
 # Uncomment if snap installations are needed
-# sudo snap install docker go tmux nvim
+# sudo snap install docker go tmux nvim
 
-# Install LazyGit
+# Install LazyGit =======================================================================
 echo "Installing LazyGit..."
 TMP_DIR=$(mktemp -d)
 LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | jq -r .tag_name | sed 's/^v//')
@@ -57,6 +61,16 @@ wget -qO "$TMP_DIR/lazygit.tar.gz" "$LAZYGIT_URL"
 tar -xf "$TMP_DIR/lazygit.tar.gz" -C "$TMP_DIR" lazygit
 sudo install "$TMP_DIR/lazygit" /usr/local/bin
 rm -rf "$TMP_DIR"
+
+
+# Install Neovim =======================================================================
+TMP_DIR=$(mktemp -d)
+NVIM_URL=https://github.com/neovim/neovim/releases/download/stable/nvim-linux-arm64.tar.gz
+wget -qO "$TMP_DIR/nvim.tar.gz" "$NVIM_URL"
+tar -xf "$TMP_DIR/nvim.tar.gz" -C "$TMP_DIR"
+sudo cp -r "$TMP_DIR/nvim-linux-arm64"/* /usr/local
+rm -rf "$TMP_DIR"
+
 
 # Clone dotfiles only if necessary
 CONFIG_DIR="$HOME/.config"
@@ -102,6 +116,7 @@ done
 
 # Verify LazyGit separately
 check_command "lazygit" "lazygit"
+check_command "nvim" "nvim"
 
 echo -e "\nVerification complete."
 
