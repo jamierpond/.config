@@ -274,7 +274,7 @@ function npmf() {
 function cl() {
   mayk_repos=$(gh repo list mayk-it --json nameWithOwner | jq ".[].nameWithOwner")
   jamie_repos=$(gh repo  list jamierpond --json nameWithOwner | jq ".[].nameWithOwner")
-  repo=$(echo $mayk_repos $jamie_repos | fzf --height 40% --reverse --prompt "Select repo: " --header-lines 1)
+  repo=$(echo $mayk_repos $jamie_repos | fzf --reverse --prompt "Select repo: " --header-lines 0)
   # replace double quotes
   repo=$(echo $repo | tr -d '"')
   echo "Cloning $repo"
