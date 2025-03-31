@@ -25,4 +25,5 @@
 !omz-custom/
 !nvm/
 !test_setup.sh
+!Makefile
 !.github
