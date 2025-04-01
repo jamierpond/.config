@@ -273,8 +273,12 @@ function npmf() {
 # clone from github
 function cl() {
   mayk_repos=$(gh repo list mayk-it --json nameWithOwner | jq ".[].nameWithOwner")
-  jamie_repos=$(gh repo  list jamierpond --json nameWithOwner | jq ".[].nameWithOwner")
-  repo=$(echo $mayk_repos $jamie_repos | fzf --reverse --prompt "Select repo: " --header-lines 0)
+  jamie_repos=$(gh repo list jamierpond --json nameWithOwner | jq ".[].nameWithOwner")
+  repo=$(echo "$mayk_repos\n$jamie_repos" | fzf --reverse --prompt "Select repo: " --header-lines 0)
+  if [ -z "$repo" ]; then
+    echo "No repo selected"
+    return
+  fi
   # replace double quotes
   repo=$(echo $repo | tr -d '"')
   echo "Cloning $repo"
