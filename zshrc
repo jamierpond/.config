@@ -366,21 +366,37 @@ function pt() {
   execute_command "$command"
 }
 
-# personal use only!
-function yt() {
-  link="$1"
-  if [ -z "$link" ]; then
-    echo "Paste the youtube link"
-    read -r link
+yt() {
+  local video=false
+
+  if [[ "$1" == "-v" ]]; then
+    video=true
+    shift
   fi
 
-  output="$2"
-  if [ -z "$output" ]; then
-    echo "Enter the output file"
-    read -r output
+  local url="$1"
+  if [[ -z "$url" ]]; then
+    read -rp "Paste the YouTube link: " url
   fi
 
-  yt-dlp -x "$link" --audio-format mp3 -o "$output"
+  local title
+  title=$(yt-dlp --get-title "$url" | tr -cd '[:alnum:] _-' | tr ' ' '_')
+
+  local output="$2"
+  if [[ -z "$output" ]]; then
+    if [[ "$video" == true ]]; then
+      output="${title}.mp4"
+    else
+      output="${title}.mp3"
+    fi
+  fi
+
+  if [[ "$video" == true ]]; then
+    yt-dlp "$url" -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4' \
+      --merge-output-format mp4 -o "$output"
+  else
+    yt-dlp -x "$url" --audio-format mp3 -o "$output"
+  fi
 }
 
 export PATH=$PATH:/usr/local/go/bin
