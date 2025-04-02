@@ -63,14 +63,15 @@ ZSH_THEME="robbyrussell"
 # HIST_STAMPS="mm/dd/yyyy"
 
 # Would you like to use another custom folder than $ZSH/custom?
-ZSH_CUSTOM=$HOME/.config/omz-custom
+THIS_DIR=$(dirname $(readlink -f $0))
+ZSH_CUSTOM=$THIS_DIR/omz-custom
 
 # Which plugins would you like to load?
 # Standard plugins can be found in $ZSH/plugins/
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git zsh-vi-mode)
+plugins=(git textmate vi-mode)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -105,4 +106,16 @@ source $ZSH/oh-my-zsh.sh
 
 # source $HOME/.config/zshrc
 
+# Vi mode cursor settings
+VI_MODE_SET_CURSOR=true
+MODE_CURSOR_VIINS="#5f87ff blinking bar"
+MODE_CURSOR_REPLACE="$MODE_CURSOR_VIINS #ff0000"
+MODE_CURSOR_VICMD="green block"
+MODE_CURSOR_SEARCH="#ff00ff steady underline"
+MODE_CURSOR_VISUAL="$MODE_CURSOR_VICMD steady block"
+MODE_CURSOR_VLINE="$MODE_CURSOR_VISUAL #00ffff"
+
+# Enable searching with / in normal mode
+bindkey -M vicmd '/' history-incremental-search-backward
+bindkey -M vicmd '?' history-incremental-search-forward
 
