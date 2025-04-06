@@ -33,7 +33,7 @@ cmake -G "$generator" -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
   -DCMAKE_CXX_COMPILER=clang++ \
   -S . $other_args
   # -DCMAKE_TOOLCHAIN_FILE=~/vcpkg/scripts/buildsystems/vcpkg.cmake \
-  #
+
 if [ ! -f build/compile_commands.json ]; then
     echo "No compile_commands.json found"
     exit 1

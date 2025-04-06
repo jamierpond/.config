@@ -8,8 +8,9 @@ vim.keymap.set("n", "<leader>a", function()
   ui.toggle_quick_menu()
 end)
 
-vim.keymap.set("n", "<C-n>", function() ui.nav_file(1) end)
-vim.keymap.set("n", "<C-m>", function() ui.nav_file(2) end)
-vim.keymap.set("n", "<C-,>", function() ui.nav_file(3) end)
-vim.keymap.set("n", "<C-.>", function() ui.nav_file(4) end)
+-- print someting
+vim.keymap.set("n", "<C-7>", function() ui.nav_file(1) end)
+vim.keymap.set("n", "<C-f>", function() print("test") end)
+vim.keymap.set("n", "<C-9>", function() ui.nav_file(3) end)
+vim.keymap.set("n", "<C-0>", function() ui.nav_file(4) end)
 
