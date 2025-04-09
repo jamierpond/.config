@@ -238,7 +238,7 @@ function gstop() {
 
 function gscp() {
   chosen_instance=$(select_instance) || return
-  gcloud compute scp "$chosen_instance:$1" "$2"
+  execute_command "gcloud compute scp $chosen_instance:$1 $2"
 }
 
 function co() {
