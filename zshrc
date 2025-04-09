@@ -20,6 +20,8 @@ fi
 
 export XDG_CONFIG_HOME="$HOME/.config"
 
+alias qb="/Applications/qutebrowser.app/Contents/MacOS/qutebrowser"
+alias cf="git --no-pager diff --name-only"
 
 alias ll="ls -alF"
 alias la="ls -A"
