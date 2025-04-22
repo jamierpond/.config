@@ -1,6 +1,18 @@
- options = (
-   ("http://d.liveatc.net/ksmo2_atis")
-   ("http://d.liveatc.net/ksmo2_gnd")
-   ("http://d.liveatc.net/ksmo2_twr")
- )
- echo $options
+#!/bin/bash
+
+# Define streams with descriptive names
+streams=(
+  "KSMO ATIS|http://d.liveatc.net/ksmo2_atis"
+  "KSMO Ground|http://d.liveatc.net/ksmo2_gnd"
+  "KSMO Tower|http://d.liveatc.net/ksmo2_twr"
+)
+
+# Use fzf to select stream
+selected=$(printf "%s\n" "${streams[@]}" | fzf --height 40% --reverse --prompt="Select KSMO stream: ")
+
+# Extract URL from selection
+if [[ -n "$selected" ]]; then
+  url=$(echo "$selected" | cut -d'|' -f2)
+  echo "Playing: $selected"
+  ffplay -hide_banner "$url"
+fi

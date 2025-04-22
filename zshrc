@@ -25,6 +25,7 @@ alias cf="git --no-pager diff --name-only"
 
 alias ll="ls -alF"
 alias la="ls -A"
+alias ksmo='~/.config/bin/scripts/ksmo'
 alias ls='ls -a --color=auto'
 alias dec2hex="printf '%x\n'"
 alias d2h="printf '%x\n'"
