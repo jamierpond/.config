@@ -2,6 +2,7 @@
 # configs can often contain private data!
 /*
 !.gitignore
+!./bin/scripts/ksmo
 !nvim/
 !tmux/
 !bin/
