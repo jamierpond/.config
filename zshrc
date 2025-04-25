@@ -25,6 +25,7 @@ alias cf="git --no-pager diff --name-only"
 
 alias ll="ls -alF"
 alias la="ls -A"
+alias ms="ssh administrator@208.52.154.141"
 alias ksmo='~/.config/bin/scripts/ksmo'
 alias ls='ls -a --color=auto'
 alias dec2hex="printf '%x\n'"
@@ -472,17 +473,16 @@ export PATH=$PATH:/snap/bin
 source $HOME/.config/nvm/nvm.sh
 
 
-# if ./venv exists, activate it
-if [ -d "./venv" ]; then
-  echo "Found venv at ./venv"
-  source ./venv/bin/activate
-else
-  # goto git root and try the same
-  git_root=$(git rev-parse --show-toplevel)
-  if [ -d "$git_root/venv" ]; then
-    echo "Found venv at $git_root/venv"
-    source "$git_root/venv/bin/activate"
-  fi
+# goto git root and try the same
+git_root=$(git rev-parse --show-toplevel)
+if [ -d "$git_root/venv" ]; then
+  echo "Found venv at $git_root/venv"
+  source "$git_root/venv/bin/activate"
+fi
+
+if [ -d "$git_root/.venv" ]; then
+  echo "Found venv at $git_root/.venv"
+  source "$git_root/.venv/bin/activate"
 fi
 
 set +e
