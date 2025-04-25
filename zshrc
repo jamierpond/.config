@@ -18,10 +18,14 @@ fi
 #     alias pbpaste='xclip -selection clipboard -o'
 # fi
 
+
 export XDG_CONFIG_HOME="$HOME/.config"
 
 alias qb="/Applications/qutebrowser.app/Contents/MacOS/qutebrowser"
 alias cf="git --no-pager diff --name-only"
+alias mk="make"
+alias ma="make"
+alias m="make"
 
 alias ll="ls -alF"
 alias la="ls -A"
@@ -492,4 +496,14 @@ eval "$(pyenv init -)"
 
 # ensure /home/jamie/.local/bin is in the PATH
 export PATH=$PATH:$HOME/.local/bin
+
+function mf() {
+  if [ -f "./Makefile" ]; then
+    foo=$(grep "^.*:$" Makefile | sed "s/://g" | fzf)
+    execute_command "make $foo"
+  else
+    echo no Makefile
+  fi
+}
+
 
