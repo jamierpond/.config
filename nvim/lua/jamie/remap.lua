@@ -434,4 +434,8 @@ end
 -- Set the keymap for running the current TypeScript test
 vim.api.nvim_set_keymap('n', '<leader>ff', [[<Cmd>lua run_ts_tests()<CR>]], { noremap = true, silent = true })
 
+vim.keymap.set('n', 'j', 'gj', { noremap = true })
+vim.keymap.set('n', 'k', 'gk', { noremap = true })
+
+
 
