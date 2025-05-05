@@ -271,8 +271,7 @@ function npmf() {
 
   # Run the selected script
   if [ -n "$script_name" ]; then
-      echo "Running: npm run $script_name"
-      npm run "$script_name"
+      execute_command "npm run $script_name"
   else
       echo "No script selected. Exiting."
   fi
