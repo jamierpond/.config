@@ -171,7 +171,7 @@ lazy.setup({
   "theprimeagen/refactoring.nvim",
   "mbbill/undotree",
   "tpope/vim-fugitive",
-  "nvim-treesitter/nvim-treesitter-context",
+--   "nvim-treesitter/nvim-treesitter-context",
 
   -- null ls
   {
