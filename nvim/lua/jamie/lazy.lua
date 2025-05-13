@@ -100,7 +100,8 @@ lazy.setup({
 
   {"mg979/vim-visual-multi"},
 
-  {"hrsh7th/nvim-compe"},
+  -- Disabled nvim-compe as it's not compatible with Neovim 0.11.0
+  -- {"hrsh7th/nvim-compe"},
 
   {"sindrets/diffview.nvim"},
 
@@ -164,7 +165,12 @@ lazy.setup({
   -- Treesitter
   {
     'nvim-treesitter/nvim-treesitter',
-    config = "require('nvim-treesitter.install').update({ with_sync = true })"
+    build = ':TSUpdate',
+    config = function()
+      require('nvim-treesitter.install').prefer_git = true
+      local ts_update = require('nvim-treesitter.install').update({ with_sync = true })
+      ts_update()
+    end
   },
   "nvim-treesitter/playground",
   "theprimeagen/harpoon",
@@ -173,17 +179,17 @@ lazy.setup({
   "tpope/vim-fugitive",
 --   "nvim-treesitter/nvim-treesitter-context",
 
-  -- null ls
-  {
-    'jose-elias-alvarez/null-ls.nvim',
-    config = "require('null-ls').config{}",
-    requires = {'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig'}
-  },
-
 
   {
     'williamboman/mason.nvim',
     config = "require('mason').setup({})",
+  },
+
+  -- none-ls (modern replacement for null-ls)
+  {
+    'nvimtools/none-ls.nvim',
+    dependencies = {'nvim-lua/plenary.nvim'},
+    -- Don't include config here - we'll use after/plugin/none-ls.lua
   },
 
   -- LSP Zero

@@ -38,19 +38,39 @@ lsp_zero.set_sign_icons({
 -- Setup Mason and LSPConfig
 require('mason').setup({})
 require('mason-lspconfig').setup({
-  ensure_installed = {
-    'tsserver',
-    'rust_analyzer',
-    'gopls',
-    'jsonls',
-    'yamlls',
-    'clangd',
-    'pyright',
-  },
   handlers = {
     lsp_zero.default_setup,
   },
 })
+
+-- Install language servers via Mason
+require('mason.settings').set({
+  ui = {
+    icons = {
+      package_installed = "✓",
+      package_pending = "➜",
+      package_uninstalled = "✗"
+    }
+  }
+})
+
+-- Manually install needed servers
+local mason_registry = require('mason-registry')
+local servers = {
+  'typescript-language-server', -- for tsserver
+  'rust-analyzer',
+  'gopls',
+  'json-lsp',
+  'yaml-language-server',
+  'clangd',
+  'pyright',
+}
+
+for _, server_name in ipairs(servers) do
+  if not mason_registry.is_installed(server_name) then
+    vim.cmd('MasonInstall ' .. server_name)
+  end
+end
 
 -- Set up nvim-cmp for autocompletion
 local cmp = require('cmp')

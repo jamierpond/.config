@@ -3,6 +3,8 @@ require("jamie.lazy")
 require("jamie.remap")
 require("jamie.set")
 
+-- No longer need patches for null-ls (replaced with none-ls)
+
 local augroup = vim.api.nvim_create_augroup
 local ThePrimeagenGroup = augroup('ThePrimeagen', {})
 
