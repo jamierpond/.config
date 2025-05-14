@@ -129,9 +129,8 @@ lazy.setup({
 
   -- Telescope
   {
-    'nvim-telescope/telescope.nvim',
-    branch = '0.1.x',
-    dependencies = {'nvim-lua/plenary.nvim'}
+    'nvim-telescope/telescope.nvim', tag = '0.1.8',
+    dependencies = { 'nvim-lua/plenary.nvim' }
   },
 
   {
@@ -151,10 +150,12 @@ lazy.setup({
 
   -- Rose-pine theme
   {
-    'rose-pine/neovim',
-    name = 'rose-pine',
-    config = "vim.cmd('colorscheme rose-pine')"
-  },
+  "rose-pine/neovim",
+	name = "rose-pine",
+	config = function()
+		vim.cmd("colorscheme rose-pine")
+	end,
+},
 
   -- Trouble plugin
   {
