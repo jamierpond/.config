@@ -1,3 +1,5 @@
+-- You need to uncomment and add the plugin to lazy.lua first
+-- To use treesitter-context with proper background handling:
 -- require'treesitter-context'.setup{
 --   enable = true,  -- Enable this plugin (Can be enabled/disabled later via commands)
 --   multiwindow = false, -- Enable multiwindow support.
@@ -12,4 +14,15 @@
 --   separator = nil,
 --   zindex = 20, -- The Z-index of the context window
 --   on_attach = nil, -- (fun(buf: integer): boolean) return false to disable attaching
+--   
+--   -- Fix for background color issue:
+--   -- This sets the background color to match your colorscheme background
+--   -- or to 'NONE' which will use your default background
+--   highlight = {
+--     context = 'CursorLine',  -- Highlight group for context lines
+--     -- Use the following to set a transparent background:
+--     ['treesitter-context-line'] = {
+--       bg = 'NONE',
+--     },
+--   }
 -- }

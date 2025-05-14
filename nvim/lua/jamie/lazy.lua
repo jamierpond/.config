@@ -178,7 +178,22 @@ lazy.setup({
   "theprimeagen/refactoring.nvim",
   "mbbill/undotree",
   "tpope/vim-fugitive",
---   "nvim-treesitter/nvim-treesitter-context",
+  -- Uncomment and use this config to enable treesitter-context with proper background handling
+  {
+    "nvim-treesitter/nvim-treesitter-context",
+    config = function()
+      require("treesitter-context").setup({
+        enable = true,
+        max_lines = 4,
+        -- Fix for background color issue:
+        highlight = {
+          -- Use your editor's background color or set to 'NONE' for transparency
+          ["treesitter-context-line"] = { link = "CursorLine" },
+          ["treesitter-context-background"] = { link = "Normal" },
+        },
+      })
+    end,
+  },
 
 
   {
