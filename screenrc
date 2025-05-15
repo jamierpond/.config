@@ -1,0 +1,30 @@
+# Use Ctrl+G as the escape sequence
+escape ^Gg
+
+startup_message off
+nethack off
+
+# Define 10 empty named windows
+screen -t tmux0 0
+screen -t tmux1 1
+screen -t tmux2 2
+screen -t tmux3 3
+screen -t tmux4 4
+screen -t tmux5 5
+screen -t tmux6 6
+screen -t tmux7 7
+screen -t tmux8 8
+screen -t tmux9 9
+
+# Bind F13–F22 (for fn+0 to fn+9) to select corresponding windows
+bindkey -k F1 select 0    # fn+0
+bindkey -k F2 select 1    # fn+1
+bindkey -k F3 select 2
+bindkey -k F4 select 3
+bindkey -k F5 select 4
+bindkey -k F6 select 5
+bindkey -k F7 select 6
+bindkey -k F8 select 7
+bindkey -k F9 select 8
+bindkey -k F10 select 9   # fn+9
+
