@@ -505,4 +505,5 @@ function mf() {
   fi
 }
 
+export SCREENRC="$HOME/.config/screenrc"
 
