@@ -39,6 +39,7 @@ alias t="tmux"
 alias f="ranger"
 alias fcp="~/.config/bin/scripts/ffplay-local.sh"
 alias fpl="~/.config/bin/scripts/ffplay-local.sh"
+alias img="~/.config/bin/scripts/img-preview.sh"
 alias untar="tar -xvf"
 
 alias tmux='tmux -f ~/.config/tmux/tmux.conf'
