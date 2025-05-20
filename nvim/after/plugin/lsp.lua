@@ -79,6 +79,7 @@ local cmp_action = lsp_zero.cmp_action()
 cmp.setup({
   mapping = cmp.mapping.preset.insert({
     ['<C-Space>'] = cmp.mapping.complete(),
+    ['<CR>'] = cmp.mapping.confirm({ select = true }),
     ['<C-y>'] = cmp.mapping.confirm({select = true}),
     ['<C-f>'] = cmp_action.luasnip_jump_forward(),
     ['<C-b>'] = cmp_action.luasnip_jump_backward(),
