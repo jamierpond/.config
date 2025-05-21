@@ -19,6 +19,15 @@ fi
 # fi
 
 
+# print the N most recently modifed files from ls -t
+function re() {
+  num_files="$1"
+  if [ -z "$num_files" ]; then
+    num_files=10
+  fi
+  ls -t | head -n "$num_files"
+}
+
 export XDG_CONFIG_HOME="$HOME/.config"
 
 alias qb="/Applications/qutebrowser.app/Contents/MacOS/qutebrowser"
@@ -26,6 +35,15 @@ alias cf="git --no-pager diff --name-only"
 alias mk="make"
 alias ma="make"
 alias m="make"
+
+function pport() {
+  port="$1"
+  if [ -z "$port" ]; then
+    echo "Usage: pport <port>"
+    return
+  fi
+  lsof -i tcp:"$port"
+}
 
 alias ll="ls -alF"
 alias la="ls -A"
