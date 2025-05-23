@@ -74,6 +74,9 @@ ZSH_CUSTOM=$HOME/.config/omz-custom
 
 source $ZSH/oh-my-zsh.sh
 
+# Disable shared history
+unsetopt share_history
+
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"
