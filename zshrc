@@ -36,6 +36,8 @@ alias mk="make"
 alias ma="make"
 alias m="make"
 
+alias claude="nvm use 18 && claude"
+
 function pport() {
   port="$1"
   if [ -z "$port" ]; then
