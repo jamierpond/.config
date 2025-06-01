@@ -71,13 +71,12 @@ ZSH_CUSTOM=$THIS_DIR/omz-custom
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-#<<<<<<< HEAD
-# plugins=(git zsh-vi-mode)
-#=======
 plugins=(git textmate vi-mode)
-#>>>>>>> bbb89d12e8a25dbdd0977dc85f3fc97c14490e5f
 
 source $ZSH/oh-my-zsh.sh
+
+# Disable shared history
+unsetopt share_history
 
 # User configuration
 
