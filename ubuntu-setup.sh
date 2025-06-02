@@ -47,7 +47,7 @@ PACKAGES=(
 echo "Installing required packages..."
 sudo apt update
 sudo DEBIAN_FRONTEND=noninteractive TZ=America/Los_Angeles apt-get -y install tzdata
-sudo apt install -y $(printf "%s " "${PACKAGES[@]%%:*}")  # Extract package names only
+sudo apt install -y $(printf "%s " "${PACKAGES[@]%%:*}") --fix-missing # Extract package names only
 
 # Uncomment if snap installations are needed
 # sudo snap install docker go tmux nvim
