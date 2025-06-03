@@ -37,7 +37,10 @@ alias mk="make"
 alias ma="make"
 alias m="make"
 
-alias claude="nvm use 18 && claude"
+# claude
+alias claude="(nvm use 18 &> /dev/null) && claude"
+
+
 
 function pport() {
   port="$1"

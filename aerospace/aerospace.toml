@@ -219,9 +219,9 @@ automatically-unhide-macos-hidden-apps = false
 
 
 
-[[on-window-detected]]
-if.app-id = 'company.thebrowser.Browser'
-run = "move-node-to-workspace I"
+# [[on-window-detected]]
+# if.app-id = 'company.thebrowser.Browser'
+# run = "move-node-to-workspace I"
 
 [[on-window-detected]]
 if.app-id = 'com.googlecode.iterm2'
