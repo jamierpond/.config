@@ -2,8 +2,8 @@
 
 is_zsh=$(ps -p $$ -o comm= | grep zsh)
 
+this_dir=$(dirname "$0")
 if [ -n "$is_zsh" ]; then
-  this_dir=$(dirname "$0")
   source "$this_dir/ohmyzsh_config.sh"
 fi
 
@@ -513,6 +513,11 @@ if [ -d "$git_root/.venv" ]; then
   source "$git_root/.venv/bin/activate"
 fi
 
+if [ -d "$this_dir/.venv" ]; then
+  echo "Found venv at $git_root/.venv"
+  source "$git_root/.venv/bin/activate"
+fi
+
 set +e
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
@@ -532,3 +537,9 @@ function mf() {
 
 export SCREENRC="$HOME/.config/screenrc"
 
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/jamiepond/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/jamiepond/Downloads/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/jamiepond/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/jamiepond/Downloads/google-cloud-sdk/completion.zsh.inc'; fi

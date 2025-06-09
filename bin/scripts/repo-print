@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Usage: ./script.sh py ts js
+
+# Find git root
+git_root=$(git rev-parse --show-toplevel)
+
+# Print tree of repo
+echo "### Repo tree:"
+git ls-files | tree --fromfile
+echo
+
+files=$(git ls-files)
+matches=()
+for file in $files; do
+    # Check if the file matches any of the provided extensions
+    for ext in "$@"; do
+        if [[ $file == *.$ext ]]; then
+            matches+=("$file")
+            break
+        fi
+    done
+done
+
+# Print matching files
+for file in "${matches[@]}"; do
+    echo "\n### $file"
+    cat "$git_root/$file"
+done
+
+
+
