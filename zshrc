@@ -37,6 +37,8 @@ alias mk="make"
 alias ma="make"
 alias m="make"
 
+alias rp="~/.config/bin/scripts/repo-print"
+
 # claude
 alias claude="(nvm use 18 &> /dev/null) && claude"
 
