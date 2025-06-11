@@ -29,6 +29,8 @@ function re() {
 }
 
 export XDG_CONFIG_HOME="$HOME/.config"
+export VIRTUAL_ENV="venv"
+export UV_PROJECT_ENVIRONMENT="venv"
 
 alias qb="/Applications/qutebrowser.app/Contents/MacOS/qutebrowser"
 alias cf="git --no-pager diff --name-only"
@@ -168,6 +170,7 @@ alias "nv"="python3 -m venv venv"
 alias "ta"="tmux attach"
 alias "va"="source venv/bin/activate"
 alias "nva"="nv && va"
+alias "uva"="uv venv venv && va"
 alias "gpu"="watch -n 0.5 nvidia-smi"
 alias "pgpu"="nvidia-smi --query-compute-apps=pid --format=csv,noheader"
 alias "fgpu"="sudo fuser -v /dev/nvidia*"
@@ -501,6 +504,7 @@ export PATH=$PATH:/snap/bin
 
 # source nvm
 source $HOME/.config/nvm/nvm.sh
+nvm use 20
 
 
 # goto git root and try the same
