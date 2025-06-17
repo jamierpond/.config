@@ -16,6 +16,13 @@ local lazy = require("lazy")
 lazy.setup({
   {"nvim-lua/plenary.nvim"},
   {"lervag/vimtex"},
+  {
+    "stevearc/quicker.nvim",
+    ft = "qf",
+    config = function()
+      require("quicker").setup()
+    end,
+  },
 
 --   {
 --   "epwalsh/obsidian.nvim",
