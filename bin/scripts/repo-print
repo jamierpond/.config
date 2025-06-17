@@ -5,31 +5,36 @@ set -euo pipefail
 
 # Find git root
 git_root=$(git rev-parse --show-toplevel)
-current_dir=$(pwd)
+cd "$git_root"
 
 # Print tree of repo
 echo "### Repo tree:"
 git ls-files | tree --fromfile
 echo
 
-files=$(git ls-files)
+# Check for args
 if [ $# -eq 0 ]; then
     echo "No file searches provided."
     exit 1
 fi
 
-matches=$(echo "$files" | grep -E "$*")
+# Build regex from args
+pattern=$(printf "|%s" "$@")
+pattern=${pattern:1}  # remove leading pipe
 
-if [ -z "${matches[*]}" ]; then
+# Find matching files
+matches=$(git ls-files | grep -E "$pattern" || true)
+
+if [ -z "$matches" ]; then
     echo "No files found with the specified search string: $*"
     exit 0
 fi
 
 # Print matching files
-for file in "${matches[@]}"; do
-    echo "\n### $file"
-    cat "$current_dir/$file"
-done
-
-
+while IFS= read -r file; do
+    echo -e "\n"
+    echo -e "\n#########################"
+    echo -e "### $file"
+    cat "$file"
+done <<< "$matches"
 
