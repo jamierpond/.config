@@ -38,3 +38,10 @@ while IFS= read -r file; do
     cat "$file"
 done <<< "$matches"
 
+# Print recap of files at the bottom
+echo -e "\n\n#########################"
+echo -e "### Files listed above:"
+echo "$matches" | while IFS= read -r file; do
+    echo "- $file"
+done
+
