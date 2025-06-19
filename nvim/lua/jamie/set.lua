@@ -28,5 +28,10 @@ vim.opt.updatetime = 50
 
 vim.opt.colorcolumn = "80"
 
+-- Disable whitespace modifications
+vim.opt.fixendofline = false
+vim.opt.endofline = false
+vim.g.editorconfig = false
+
 vim.opt.rtp:append(vim.fn.stdpath "config" .. "/after/plugin")
 
