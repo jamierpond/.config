@@ -28,6 +28,17 @@ vim.opt.updatetime = 50
 
 vim.opt.colorcolumn = "80"
 
+-- Auto-refresh files when they change externally (like JetBrains)
+vim.opt.autoread = true
+vim.api.nvim_create_autocmd({"FocusGained", "BufEnter", "CursorHold", "CursorHoldI"}, {
+  pattern = "*",
+  callback = function()
+    if vim.fn.mode() ~= 'c' then
+      vim.cmd('silent! checktime')
+    end
+  end,
+})
+
 -- Disable whitespace modifications
 vim.opt.fixendofline = false
 vim.opt.endofline = false

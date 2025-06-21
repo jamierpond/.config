@@ -40,6 +40,8 @@ alias ma="make"
 alias m="make"
 
 alias rp="~/.config/bin/scripts/repo-print"
+alias gde="~/.config/bin/scripts/git-diff-exclude"
+alias gd="~/.config/bin/scripts/git-diff-exclude"
 
 # claude
 alias claude="(nvm use 18 &> /dev/null) && claude"

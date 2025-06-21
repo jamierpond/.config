@@ -1,0 +1,44 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# Defaults
+branch="HEAD"
+args=()
+
+# Parse args
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --branch|-b)
+      branch="$2"
+      shift 2
+      ;;
+    *)
+      args+=("$1")
+      shift
+      ;;
+  esac
+done
+
+if [ ${#args[@]} -eq 0 ]; then
+  echo "Usage: gde pattern1 pattern2 ... [-b|--branch <branch>]"
+  return 1
+fi
+
+git_root=$(git rev-parse --show-toplevel)
+cd "$git_root"
+
+# Build grep pattern
+pattern=$(printf "|%s" "${args[@]}")
+pattern=${pattern:1}
+
+# Filter files
+matching_files=$(git ls-files | grep -Ev "$pattern" || true)
+
+if [ -z "$matching_files" ]; then
+  echo "No files left after exclusions: ${args[*]}"
+  return 0
+fi
+
+git diff "$branch" -- $matching_files
+
