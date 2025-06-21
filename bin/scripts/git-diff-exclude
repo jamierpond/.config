@@ -20,9 +20,10 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [ ${#args[@]} -eq 0 ]; then
-  echo "Usage: gde pattern1 pattern2 ... [-b|--branch <branch>]"
-  return 1
+# No args at all: just run plain git diff
+if [ ${#args[@]} -eq 0 ] && [ "$branch" == "HEAD" ]; then
+  git diff
+  exit 0
 fi
 
 git_root=$(git rev-parse --show-toplevel)
@@ -37,7 +38,7 @@ matching_files=$(git ls-files | grep -Ev "$pattern" || true)
 
 if [ -z "$matching_files" ]; then
   echo "No files left after exclusions: ${args[*]}"
-  return 0
+  exit 0
 fi
 
 git diff "$branch" -- $matching_files
