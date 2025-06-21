@@ -20,14 +20,20 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# No args at all: just run plain git diff
-if [ ${#args[@]} -eq 0 ] && [ "$branch" == "HEAD" ]; then
+# No args at all and default branch: plain git diff
+if [ ${#args[@]} -eq 0 ] && [ "$branch" = "HEAD" ]; then
   git diff
   exit 0
 fi
 
 git_root=$(git rev-parse --show-toplevel)
 cd "$git_root"
+
+# If no excludes but branch was specified, diff whole tree
+if [ ${#args[@]} -eq 0 ]; then
+  git diff "$branch"
+  exit 0
+fi
 
 # Build grep pattern
 pattern=$(printf "|%s" "${args[@]}")
