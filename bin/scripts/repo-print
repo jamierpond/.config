@@ -3,26 +3,21 @@ set -euo pipefail
 
 # Usage: ./script.sh py ts js
 
-# Find git root
 git_root=$(git rev-parse --show-toplevel)
 cd "$git_root"
 
-# Print tree of repo
 echo "### Repo tree:"
 git ls-files | tree --fromfile
 echo
 
-# Check for args
 if [ $# -eq 0 ]; then
     echo "No file searches provided."
     exit 1
 fi
 
-# Build regex from args
 pattern=$(printf "|%s" "$@")
-pattern=${pattern:1}  # remove leading pipe
+pattern=${pattern:1}
 
-# Find matching files
 matches=$(git ls-files | grep -E "$pattern" || true)
 
 if [ -z "$matches" ]; then
@@ -30,15 +25,19 @@ if [ -z "$matches" ]; then
     exit 0
 fi
 
-# Print matching files
 while IFS= read -r file; do
-    echo -e "\n"
-    echo -e "\n#########################"
-    echo -e "### $file"
-    cat "$file"
+    # Check MIME type, only include text/* files
+    mime=$(file --mime-type -b "$file")
+    if [[ "$mime" == text/* ]]; then
+        echo -e "\n"
+        echo -e "\n#########################"
+        echo -e "### $file"
+        cat "$file"
+    else
+        echo -e "\n### Skipping binary: $file"
+    fi
 done <<< "$matches"
 
-# Print recap of files at the bottom
 echo -e "\n\n#########################"
 echo -e "### Files listed above:"
 echo "$matches" | while IFS= read -r file; do
