@@ -28,13 +28,13 @@ fi
 while IFS= read -r file; do
     # Check MIME type, only include text/* files
     mime=$(file --mime-type -b "$file")
-    if [[ "$mime" == text/* ]]; then
+    if [[ "$mime" == text/* || "$mime" == application/json ]]; then
         echo -e "\n"
         echo -e "\n#########################"
         echo -e "### $file"
         cat "$file"
     else
-        echo -e "\n### Skipping binary: $file"
+        echo -e "\n### Skipping binary: $file (mime: $mime)"
     fi
 done <<< "$matches"
 
