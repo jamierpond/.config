@@ -3,8 +3,8 @@ set -euo pipefail
 
 # Usage: ./script.sh py ts js
 
-git_root=$(git rev-parse --show-toplevel)
-cd "$git_root"
+#git_root=$(git rev-parse --show-toplevel)
+#cd "$git_root"
 
 echo "### Repo tree:"
 git ls-files | tree --fromfile

@@ -38,6 +38,7 @@ alias mkae="make"
 alias mk="make"
 alias ma="make"
 alias m="make"
+alias g="gemini"
 
 alias rp="~/.config/bin/scripts/repo-print"
 alias gde="~/.config/bin/scripts/git-diff-exclude"
@@ -475,10 +476,10 @@ function da() {
     return
   fi
 
-  img=$(echo "$imgs" | fzf --reverse --prompt "Select container: " --header-lines 1)
+  img=$(echo "$imgs" | fzf --reverse --prompt "Select container: ")
 
   container_id=$(echo "$img" | awk '{print $1}')
-  execute_command "docker exec -it $container_id /bin/bash"
+  execute_command "docker exec -it $container_id /bin/sh"
 }
 
 function dcp() {
@@ -550,5 +551,10 @@ if [ -f '/Users/jamiepond/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/U
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/jamiepond/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/jamiepond/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
+
+
+
+
+alias gtree="git ls-files | tree --fromfile"
 
 
