@@ -19,6 +19,7 @@ fi
 # fi
 
 
+
 # print the N most recently modifed files from ls -t
 function re() {
   num_files="$1"
@@ -552,6 +553,18 @@ if [ -f '/Users/jamiepond/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/U
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/jamiepond/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/jamiepond/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
 
+function run_describe_test() {
+  local test_name
+  test_name=$(rg -o 'describe\("([^"]+)"' -r '$1' --no-filename | fzf)
+  if [ -z "$test_name" ]; then
+    echo "No test selected"
+    return
+  fi
+  command="npm run test -- -t \"$test_name\""
+  execute_command "$command"
+}
+
+alias dt="run_describe_test"
 
 
 
