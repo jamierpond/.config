@@ -1,0 +1,13 @@
+mayk-it/tracktion_engine
+mayk-it/juce
+mayk-it/audioengine
+mayk-it/covers.ai
+mayk-it/stable-audio-tools
+mayk-it/mayk
+mayk-it/popstar
+jamierpond/.config
+jamierpond/pond.audio
+mayk-it/YuE-exllamav2
+mayk-it/yue-client
+mayk-it/lyric-swap
+mayk-it/genre-swap

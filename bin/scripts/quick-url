@@ -1,184 +1,135 @@
 #!/usr/bin/env bash
 set -e
 
-gcloud_projects=(
- "renny-ai"
- "covers-ai-staging"
- "covers-ai"
- "mayk-studio-staging"
- "hit-machine-4bf64"
- "audio-ml-375919"
- "beastdrop"
- "instasong-c647a"
- "onejourney-test"
- "drayk-it-f3e35"
+# --- Configuration ---
+
+# Script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Load configuration from files
+GCLOUD_PROJECTS=($(cat "${SCRIPT_DIR}/quick-url-gcloud-projects.txt"))
+GITHUB_REPOS=($(cat "${SCRIPT_DIR}/quick-url-github-repos.txt"))
+
+# Firebase services
+FIREBASE_SERVICES=(
+    "firestore"
+    "functions"
+    "storage"
+    "hosting"
+    "authentication/users"
 )
 
-get_gcloud_console_urls() {
-  urls=()
-  for project in "${gcloud_projects[@]}"; do
-    project_id=$(echo "$project" | cut -d';' -f1)
-    project_name=$(echo "$project" | cut -d';' -f2)
-    services=(
-       "https://console.cloud.google.com/storage?project=$project_id | $project_name Storage"
-       "https://console.cloud.google.com/run?project=$project_id | $project_name Cloud Run"
-       "https://console.cloud.google.com/compute?project=$project_id | $project_name Compute Engine"
-       "https://console.cloud.google.com/cloudtasks?project=$project_id | $project_name Cloud Tasks"
-    )
-    for service in "${services[@]}"; do
-      urls+=( "$service" )
+# --- Functions ---
+
+# Generate Google Cloud Console URLs for various services
+generate_gcloud_urls() {
+    for project_id in "${GCLOUD_PROJECTS[@]}"; do
+        echo "https://console.cloud.google.com/storage?project=${project_id} | ${project_id} Storage"
+        echo "https://console.cloud.google.com/run?project=${project_id} | ${project_id} Cloud Run"
+        echo "https://console.cloud.google.com/compute?project=${project_id} | ${project_id} Compute Engine"
+        echo "https://console.cloud.google.com/cloudtasks?project=${project_id} | ${project_id} Cloud Tasks"
     done
-  done
-
-  printf "%s\n" "${urls[@]}"
 }
 
-gcloud_console_urls=$(get_gcloud_console_urls)
-
-firebase_services=(
-  "firestore"
-  "functions"
-  "storage"
-  "hosting"
-  "authentication/users"
-)
-
-function get_gh_urls() {
-  owner="$1"
-  repo="$2"
-  base_url="https://github.com/$owner/$repo"
-  urls=(
-    "$base_url"
-    "$base_url/pulls"
-    "$base_url/tree/main"
-    "$base_url/tree/develop"
-  )
-
-  printf "%s\n" "${urls[@]}"
-}
-
-tracktion_gh_urls=$(get_gh_urls "mayk-it" "tracktion_engine")
-juce_gh_urls=$(get_gh_urls "mayk-it" "juce")
-
-audioengine_gh_urls=$(get_gh_urls "mayk-it" "audioengine")
-covers_gh_urls=$(get_gh_urls "mayk-it" "covers.ai")
-covers_gh_urls=$(get_gh_urls "mayk-it" "stable-audio-tools")
-mayk_it_gh_urls=$(get_gh_urls "mayk-it" "mayk")
-popstar_gh_urls=$(get_gh_urls "mayk-it" "covers.ai")
-mayk_it_gh_urls=$(get_gh_urls "jamierpond" ".config")
-mayk_it_gh_urls=$(get_gh_urls "jamierpond" "pond.audio")
-yueexllama=$(get_gh_urls "mayk-it" "YuE-exllamav2")
-yueclient=$(get_gh_urls "mayk-it" "yue-client")
-lyric_swap=$(get_gh_urls "mayk-it" "lyric-swap")
-lyric_swap=$(get_gh_urls "mayk-it" "genre-swap")
-
-function get_firebase_urls() {
-  urls=()
-  for project in "${gcloud_projects[@]}"; do
-    urls+=("https://console.cloud.google.com/welcome?project=$project")
-    for service in "${firebase_services[@]}"; do
-      urls+=("https://console.firebase.google.com/u/0/project/$project/$service")
+# Generate Firebase Console URLs
+generate_firebase_urls() {
+    for project_id in "${GCLOUD_PROJECTS[@]}"; do
+        echo "https://console.cloud.google.com/welcome?project=${project_id} | ${project_id} Firebase Welcome"
+        for service in "${FIREBASE_SERVICES[@]}"; do
+            echo "https://console.firebase.google.com/u/0/project/${project_id}/${service} | ${project_id} ${service}"
+        done
     done
-  done
-
-  printf "%s\n" "${urls[@]}"
 }
 
-firebase_urls=$(get_firebase_urls)
-
-function get_emulator_urls() {
-  base="http://127.0.0.1:4000"
-
-  urls=()
-  for service in "${firebase_services[@]}"; do
-    urls+=("$base/$service | _Local $service emulator")
-  done
-
-  echo "$base"
-
-  printf "%s\n" "${urls[@]}"
+# Generate GitHub URLs for a given repository
+generate_github_urls() {
+    for repo_full_name in "${GITHUB_REPOS[@]}"; do
+        local base_url="https://github.com/${repo_full_name}"
+        echo "${base_url} | ${repo_full_name}"
+        echo "${base_url}/pulls | ${repo_full_name} Pulls"
+        echo "${base_url}/tree/main | ${repo_full_name} main"
+        echo "${base_url}/tree/develop | ${repo_full_name} develop"
+    done
 }
 
-emulator_urls=$(get_emulator_urls)
+# Generate URLs for the local Firebase emulator suite
+generate_emulator_urls() {
+    local base_url="http://127.0.0.1:4000"
+    echo "${base_url} | _Local Emulator Suite"
+    for service in "${FIREBASE_SERVICES[@]}"; do
+        echo "${base_url}/${service} | _Local ${service} emulator"
+    done
+}
 
+# --- Main Logic ---
 
-quick_urls=(
-    "https://github.com | GitHub"
-    "https://console.firebase.google.com/u/0/ | Firebase Home"
-    "https://covers.ai/"
-    "https://covers.ai/ai-song-generator"
-    "https://covers.ai/about"
-    "http://localhost:3000/ | localhost"
-    "http://localhost:3000/ai-song-generator"
-    "http://localhost:3000/record"
-    "http://localhost:3000/about"
-    "https://chat.openai.com/?model=gpt-4"
-    "https://web.whatsapp.com"
-    "https://beta.popstarz.ai/ai-image | Popstarz AI Image"
-    "https://pond.audio"
-    "https://pond.audio/github"
-    "https://pond.audio/li"
-    "https://pond.audio/linkedin | LinkedIn"
-    "https://pond.audio/gh | GitHub"
-    "https://vercel.com | Vercel"
-    "https://calendar.google.com/calendar/u/0/r | Personal Calendar"
-    "https://calendar.google.com/calendar/u/1/r | Work Calendar"
-    "https://mail.google.com/mail/u/0/#inbox | Gmail Personal"
-    "https://mail.google.com/mail/u/1/#inbox | Gmail Mayk Work"
-    "https://console.cloud.google.com/run/detail/us-central1/songgpt/logs?project=mayk-studio-staging | SongGPT Staging _Logs"
-    "https://console.cloud.google.com/run/detail/us-central1/fayk-it/logs?project=drayk-it-f3e35 | fayk logs cloud"
-    "https://app.circleci.com/pipelines/github/mayk-it | CircleCI Dashboard cci"
-    "https://mar.band"
-    "https://song-gpt.com | SongGPT full _website"
-    "https://staging.song-gpt.com | Staging SongGPT Staging full _website"
-    "https://vercel.com/mayk-it/mayk-studio | SongGPT Vercel"
-    "https://vercel.com/mayk-it/covers-ai | Covers Vercel "
-    "https://vercel.com/mayk-it/popstar | Popstarz Vercel "
-    "https://docs.google.com/document/d/1LuOCWHJ8C2GzEjts2ZkuUXggkC4_BkkHIGSiVCd6Km4/edit | SongGPT _Roadmap"
-    "https://github.com/pulls | My _Pull Requests"
-    "https://mayk.atlassian.net/jira/software/c/projects/MAYK/boards/2?assignee=5f94739dddb0df006e98c181 | Jira"
-    "https://docs.google.com/document/d/1X9jZAIaNLJNGMzag-rdrN0FLRp10xkHkZzbr54QFQLk/edit | Empire State of Audio, Audio Engine _Roadmap"
-    "https://app.slack.com/client/T018TFZ34EL/D033C1DPV7V | Stefan Slack"
-    "https://app.slack.com/client/T018TFZ34EL/D033QK7LBAM | Akiva Slack"
-    "https://app.slack.com/client/T018TFZ34EL/C063MK5HN78 | SongGPT Slack"
-    "https://app.slack.com/client/T018TFZ34EL/D04AMVA3KAP | Kelly Slack"
-    "https://app.slack.com/client/T018TFZ34EL/D03LCE84GNT | Matthew Rice Slack"
-    "https://app.slack.com/client/T018TFZ34EL/D04PZT0J6PK | Marianne Slack"
-    "https://app.slack.com/client/T018TFZ34EL/C060XSTPT7G | Popstarz _Channel Slack"
-    "https://github.com/pulls/review-requested | Pull _Review Requests"
-    "https://onejourney.vercel.app/ | OneJourney"
-    "https://dash.cloudflare.com/ | Cloudflare"
-    "https://console.firebase.google.com/u/0/project/drayk-it-f3e35/firestore/data/~2Frender-tasks~2F0008393ffe924e1f8faa1ba84c27584d | Fayk render data songs info "
-    "https://wandb.com/home | Weights and Biases"
+# Combine all URL sources into a single list
+all_urls=$(cat <<EOF
+https://github.com | GitHub
+https://console.firebase.google.com/u/0/ | Firebase Home
+https://covers.ai/
+https://covers.ai/ai-song-generator
+https://covers.ai/about
+http://localhost:3000/ | localhost
+http://localhost:3000/ai-song-generator
+http://localhost:3000/record
+http://localhost:3000/about
+https://chat.openai.com/?model=gpt-4
+https://web.whatsapp.com
+https://beta.popstarz.ai/ai-image | Popstarz AI Image
+https://pond.audio
+https://pond.audio/github
+https://pond.audio/li
+https://pond.audio/linkedin | LinkedIn
+https://pond.audio/gh | GitHub
+https://vercel.com | Vercel
+https://calendar.google.com/calendar/u/0/r | Personal Calendar
+https://calendar.google.com/calendar/u/1/r | Work Calendar
+https://mail.google.com/mail/u/0/#inbox | Gmail Personal
+https://mail.google.com/mail/u/1/#inbox | Gmail Mayk Work
+https://console.cloud.google.com/run/detail/us-central1/songgpt/logs?project=mayk-studio-staging | SongGPT Staging _Logs
+https://console.cloud.google.com/run/detail/us-central1/fayk-it/logs?project=drayk-it-f3e35 | fayk logs cloud
+https://app.circleci.com/pipelines/github/mayk-it | CircleCI Dashboard cci
+https://mar.band
+https://song-gpt.com | SongGPT full _website
+https://staging.song-gpt.com | Staging SongGPT Staging full _website
+https://vercel.com/mayk-it/mayk-studio | SongGPT Vercel
+https://vercel.com/mayk-it/covers-ai | Covers Vercel
+https://vercel.com/mayk-it/popstar | Popstarz Vercel
+https://docs.google.com/document/d/1LuOCWHJ8C2GzEjts2ZkuUXggkC4_BkkHIGSiVCd6Km4/edit | SongGPT _Roadmap
+https://github.com/pulls | My _Pull Requests
+https://mayk.atlassian.net/jira/software/c/projects/MAYK/boards/2?assignee=5f94739dddb0df006e98c181 | Jira
+https://docs.google.com/document/d/1X9jZAIaNLJNGMzag-rdrN0FLRp10xkHkZzbr54QFQLk/edit | Empire State of Audio, Audio Engine _Roadmap
+https://app.slack.com/client/T018TFZ34EL/D033C1DPV7V | Stefan Slack
+https://app.slack.com/client/T018TFZ34EL/D033QK7LBAM | Akiva Slack
+https://app.slack.com/client/T018TFZ34EL/C063MK5HN78 | SongGPT Slack
+https://app.slack.com/client/T018TFZ34EL/D04AMVA3KAP | Kelly Slack
+https://app.slack.com/client/T018TFZ34EL/D03LCE84GNT | Matthew Rice Slack
+https://app.slack.com/client/T018TFZ34EL/D04PZT0J6PK | Marianne Slack
+https://app.slack.com/client/T018TFZ34EL/C060XSTPT7G | Popstarz _Channel Slack
+https://github.com/pulls/review-requested | Pull _Review Requests
+https://onejourney.vercel.app/ | OneJourney
+https://dash.cloudflare.com/ | Cloudflare
+https://console.firebase.google.com/u/0/project/drayk-it-f3e35/firestore/data/~2Frender-tasks~2F0008393ffe924e1f8faa1ba84c27584d | Fayk render data songs info
+https://wandb.com/home | Weights and Biases
+$(generate_gcloud_urls)
+$(generate_firebase_urls)
+$(generate_github_urls)
+$(generate_emulator_urls)
+EOF
 )
 
-quick_urls+=("$audioengine_gh_urls")
-quick_urls+=("$gcloud_console_urls")
-quick_urls+=("$covers_gh_urls")
-quick_urls+=("$mayk_it_gh_urls")
-quick_urls+=("$popstar_gh_urls")
-quick_urls+=("$songgpt_gh_urls")
-quick_urls+=("$firebase_urls")
-quick_urls+=("$emulator_urls")
-quick_urls+=("$juce_gh_urls")
-quick_urls+=("$tracktion_gh_urls")
-quick_urls+=("$yueexllama")
-quick_urls+=("$yueclient")
-quick_urls+=("$lyric_swap")
+# Use fzf to interactively select a URL
+# The `sed` command cleans up the selected line for the `open` command
+selected_url=$(echo "${all_urls}" | fzf | sed -e 's/ |.*//' -e 's/ //g')
 
-# fuzzy find the URLs with fzf
-url=$(printf "%s\n" "${quick_urls[@]}" | fzf)
-
-# strip everything after the first pipe (and spaces)
-url=$(echo "$url" | cut -d'|' -f1 | tr -d '[:space:]')
-
-if [ $(uname) == "Darwin" ]; then
-  echo "Running open $url"
-  open $url
-else
-  echo "Running open $url"
-  bash -c "~/.config/bin/scripts/do-on-mac \"open $url\""
+# Open the selected URL
+if [[ -n "${selected_url}" ]]; then
+    echo "🚀 Opening: ${selected_url}"
+    if [[ "$(uname)" == "Darwin" ]]; then
+        open "${selected_url}"
+    else
+        # If not on macOS, use a custom script for remote execution
+        ~/.config/bin/scripts/do-on-mac "open ${selected_url}"
+    fi
 fi
-
-
-
