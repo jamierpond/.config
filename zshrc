@@ -1,5 +1,3 @@
-# if zsh not bash, source oh-my-zs
-
 is_zsh=$(ps -p $$ -o comm= | grep zsh)
 
 this_dir=$(dirname "$0")
@@ -20,43 +18,41 @@ fi
 
 
 
-# print the N most recently modifed files from ls -t
-function re() {
-  num_files="$1"
-  if [ -z "$num_files" ]; then
-    num_files=10
-  fi
-  ls -t | head -n "$num_files"
-}
+alias so="source ~/.zshrc"
+alias bso="source ~/.bashrc"
+alias "pipi"="pip install -r requirements.txt"
+alias "tarls"="tar -tvf"
+alias "tls"="tar -tvf"
 
-export XDG_CONFIG_HOME="$HOME/.config"
-export VIRTUAL_ENV="venv"
-export UV_PROJECT_ENVIRONMENT="venv"
+alias ddd="rm -rf ~/Library/Developer/Xcode/DerivedData"
+alias smu="git submodule update --init"
+alias smur="git submodule update --init --recursive"
 
-alias qb="/Applications/qutebrowser.app/Contents/MacOS/qutebrowser"
-alias cf="git --no-pager diff --name-only"
-alias mkae="make"
-alias mk="make"
-alias ma="make"
-alias m="make"
-alias g="gemini"
+alias "new-venv"="python3 -m venv venv"
+alias "nv"="python3 -m venv venv"
+alias "cv"="python3 -m venv venv"
+alias "act-venv"="source venv/bin/activate"
+alias "nv"="python3 -m venv venv"
 
-alias rp="~/.config/bin/scripts/repo-print"
-alias gde="~/.config/bin/scripts/git-diff-exclude"
+alias "ta"="tmux attach"
+alias "va"="source venv/bin/activate"
+alias "nva"="nv && va"
+alias "uva"="uv venv venv && va"
+alias "gpu"="watch -n 0.5 nvidia-smi"
+alias "pgpu"="nvidia-smi --query-compute-apps=pid --format=csv,noheader"
+alias "fgpu"="sudo fuser -v /dev/nvidia*"
+alias "kgpu"="fgpu | grep . | tr ' ' '\n' | xargs kill -9"
+#
+# mercilessly kill all gpu/ai processes
+alias "rgpu"="pkill wandb && pgpu | xargs -I {} kill -9 {} && kgpu"
 
-# claude
-alias claude="(nvm use 18 &> /dev/null) && claude"
-
-
-
-function pport() {
-  port="$1"
-  if [ -z "$port" ]; then
-    echo "Usage: pport <port>"
-    return
-  fi
-  lsof -i tcp:"$port"
-}
+alias "lm"="sh ~/projects/lambda-machine/remote.sh"
+alias "mm"="ssh jamie@mm.pond.audio"
+alias "vie"="sh ~/projects/lambda-machine/vienna-remote.sh"
+alias "gls"="git ls-files"
+alias "ka"="killall"
+alias "kaf"="killall -9"
+alias "pos"="poetry shell"
 
 alias ll="ls -alF"
 alias la="ls -A"
@@ -81,6 +77,61 @@ alias bwoff="shortcuts run \"bw-off\""
 
 alias cpp-compile="~/.config/bin/scripts/cpp-compile"
 alias cppc="~/.config/bin/scripts/cpp-compile"
+alias dt="run_describe_test"
+alias gtree="git ls-files | tree --fromfile"
+alias oc="opencode"
+alias o="opencode"
+alias tks="tmux kill-server"
+alias qb="/Applications/qutebrowser.app/Contents/MacOS/qutebrowser"
+alias cf="git --no-pager diff --name-only"
+alias mkae="make"
+alias mk="make"
+alias ma="make"
+alias m="make"
+alias g="gemini"
+alias rp="~/.config/bin/scripts/repo-print"
+alias gde="~/.config/bin/scripts/git-diff-exclude"
+alias claude="(nvm use 18 &> /dev/null) && claude"
+
+function mf() {
+  if [ -f "./Makefile" ]; then
+    foo=$(grep "^.*:$" Makefile | sed "s/://g" | fzf)
+    execute_command "make $foo"
+  else
+    echo no Makefile
+  fi
+}
+
+
+function run_describe_test() {
+  local test_name
+  test_name=$(rg -o 'describe\("([^"]+)"' -r '$1' --no-filename | fzf)
+  if [ -z "$test_name" ]; then
+    echo "No test selected"
+    return
+  fi
+  command="npm run test -- -t \"$test_name\""
+  execute_command "$command"
+}
+
+# print the N most recently modifed files from ls -t
+function re() {
+  num_files="$1"
+  if [ -z "$num_files" ]; then
+    num_files=10
+  fi
+  ls -t | head -n "$num_files"
+}
+
+function pport() {
+  port="$1"
+  if [ -z "$port" ]; then
+    echo "Usage: pport <port>"
+    return
+  fi
+  lsof -i tcp:"$port"
+}
+
 
 function sz() {
   if [ -z "$1" ]; then
@@ -91,20 +142,23 @@ function sz() {
   du -csh "$1"
 }
 
-png() {
+function png() {
     pngcrush -brute "$1"{,.} && du -b "$1"{,.}
 }
-gif() {
+
+function gif() {
     gifsicle -O "$1" -o "$1." && du -b "$1"{,.}
 }
-jpeg() {
+
+function jpeg() {
     jpegtran "$1" > "$1." && du -b "$1"{,.}
 }
-# Just for easy access in history
-mpng() {
+
+function mpng() {
     mv "$1"{.,}
 }
-mgif() {
+
+function mgif() {
     newsize=$(wc -c <"$1.")
     oldsize=$(wc -c <"$1")
     if [ $oldsize -gt $newsize ] ; then
@@ -113,7 +167,8 @@ mgif() {
         rm "$1."
     fi
 }
-mjpeg() {
+
+function mjpeg() {
     mv "$1"{.,}
 }
 
@@ -154,41 +209,6 @@ function tsh() {
   python -i -c "import torch; t = torch.load('$1'); print('Shape:', t.shape)"
 }
 
-alias so="source ~/.zshrc"
-alias bso="source ~/.bashrc"
-alias "pipi"="pip install -r requirements.txt"
-alias "tarls"="tar -tvf"
-alias "tls"="tar -tvf"
-
-alias ddd="rm -rf ~/Library/Developer/Xcode/DerivedData"
-alias smu="git submodule update --init"
-alias smur="git submodule update --init --recursive"
-
-alias "new-venv"="python3 -m venv venv"
-alias "nv"="python3 -m venv venv"
-alias "cv"="python3 -m venv venv"
-alias "act-venv"="source venv/bin/activate"
-alias "nv"="python3 -m venv venv"
-
-alias "ta"="tmux attach"
-alias "va"="source venv/bin/activate"
-alias "nva"="nv && va"
-alias "uva"="uv venv venv && va"
-alias "gpu"="watch -n 0.5 nvidia-smi"
-alias "pgpu"="nvidia-smi --query-compute-apps=pid --format=csv,noheader"
-alias "fgpu"="sudo fuser -v /dev/nvidia*"
-alias "kgpu"="fgpu | grep . | tr ' ' '\n' | xargs kill -9"
-#
-# mercilessly kill all gpu/ai processes
-alias "rgpu"="pkill wandb && pgpu | xargs -I {} kill -9 {} && kgpu"
-
-alias "lm"="sh ~/projects/lambda-machine/remote.sh"
-alias "mm"="ssh jamie@mm.pond.audio"
-alias "vie"="sh ~/projects/lambda-machine/vienna-remote.sh"
-alias "gls"="git ls-files"
-alias "ka"="killall"
-alias "kaf"="killall -9"
-alias "pos"="poetry shell"
 
 # docker run -it --entrypoint /bin/bash cog-yue-exllamav2
 function select_docker_img() {
@@ -390,14 +410,6 @@ function gls() {
     git ls-files | fzf
 }
 
-# function go() {
-#   files=$(git ls-files)
-#   file=$(echo "$files" | fzf --reverse --prompt "Select file: ")
-#   nvim "$file"
-# }
-
-
-# functM2 3.5.10n ahpython test
 function pt() {
   tests=$(rg -N "^\s*def test_" ./tests/ --no-filename | sed 's/^\s*//' | awk -F'[( ]' '{print $2}')
   to_run=$(echo "$tests" | fzf)
@@ -410,7 +422,7 @@ function pt() {
   execute_command "$command"
 }
 
-yt() {
+function yt() {
   local video=false
 
   if [[ "$1" == "-v" ]]; then
@@ -442,9 +454,6 @@ yt() {
     yt-dlp -x "$url" --audio-format mp3 -o "$output"
   fi
 }
-
-export PATH=$PATH:/usr/local/go/bin
-export PATH=$PATH:$(go env GOPATH)/bin
 
 function ytv() {
   link="$1"
@@ -503,11 +512,6 @@ function dcp() {
   execute_command "docker cp $container_id:$file_name ."
 }
 
-export PATH=$PATH:/snap/bin
-
-# source nvm
-source $HOME/.config/nvm/nvm.sh
-nvm use 20
 
 
 # goto git root and try the same
@@ -527,24 +531,21 @@ if [ -d "$this_dir/.venv" ]; then
   source "$git_root/.venv/bin/activate"
 fi
 
+export SCREENRC="$HOME/.config/screenrc"
+export HOMEBREW_NO_AUTO_UPDATE=1
+export XDG_CONFIG_HOME="$HOME/.config"
+export VIRTUAL_ENV="venv"
+export UV_PROJECT_ENVIRONMENT="venv"
+export PATH=$PATH:/usr/local/go/bin
+export PATH=$PATH:$(go env GOPATH)/bin
+export PATH=$PATH:$HOME/.local/bin
+export PATH=$PATH:/snap/bin
+source $HOME/.config/nvm/nvm.sh
+
 set +e
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
-
-# ensure /home/jamie/.local/bin is in the PATH
-export PATH=$PATH:$HOME/.local/bin
-
-function mf() {
-  if [ -f "./Makefile" ]; then
-    foo=$(grep "^.*:$" Makefile | sed "s/://g" | fzf)
-    execute_command "make $foo"
-  else
-    echo no Makefile
-  fi
-}
-
-export SCREENRC="$HOME/.config/screenrc"
 
 
 # The next line updates PATH for the Google Cloud SDK.
@@ -552,22 +553,5 @@ if [ -f '/Users/jamiepond/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/U
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/jamiepond/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/jamiepond/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
-
-function run_describe_test() {
-  local test_name
-  test_name=$(rg -o 'describe\("([^"]+)"' -r '$1' --no-filename | fzf)
-  if [ -z "$test_name" ]; then
-    echo "No test selected"
-    return
-  fi
-  command="npm run test -- -t \"$test_name\""
-  execute_command "$command"
-}
-
-alias dt="run_describe_test"
-
-
-
-alias gtree="git ls-files | tree --fromfile"
 
 
