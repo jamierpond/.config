@@ -99,9 +99,10 @@ alias rp="~/.config/bin/scripts/repo-print"
 alias gde="~/.config/bin/scripts/git-diff-exclude"
 # alias claude="(nvm use 18 &> /dev/null) && claude"
 #
+
 function tmp_run() {
   local tmpfile
-  tmpfile=$(mktemp /tmp/tmpscript.XXXXXX.sh)
+  tmpfile=$(mktemp)
   chmod +x "$tmpfile"
 
   nvim "$tmpfile"
