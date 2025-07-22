@@ -77,6 +77,8 @@ vim.cmd([[command! Repo !gh repo view --web]])
 
 vim.cmd([[command! Dogtown !say "dogtown?"]])
 
+vim.api.nvim_set_keymap("n", "<leader>d", "<cmd>Copilot toggle<CR>", { noremap = true })
+
 -- we want to run the script in ~/.config/bin/scripts/localhost-qr
 vim.cmd([[command! -nargs=1 LocalhostQR <Cmd>lua GetLocalHostQr()<CR>]])
 -- now also the same for <leader>qr, but we should pop up a question for the port

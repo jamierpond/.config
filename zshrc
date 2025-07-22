@@ -18,6 +18,12 @@ fi
 
 
 
+alias "r"="tmp_run"
+
+
+alias dockernuke='docker kill $(docker ps -1)'
+alias dn='dockernuke'
+
 alias so="source ~/.zshrc"
 alias bso="source ~/.bashrc"
 alias "pipi"="pip install -r requirements.txt"
@@ -91,7 +97,19 @@ alias m="make"
 alias g="gemini"
 alias rp="~/.config/bin/scripts/repo-print"
 alias gde="~/.config/bin/scripts/git-diff-exclude"
-alias claude="(nvm use 18 &> /dev/null) && claude"
+# alias claude="(nvm use 18 &> /dev/null) && claude"
+#
+function tmp_run() {
+  local tmpfile
+  tmpfile=$(mktemp /tmp/tmpscript.XXXXXX.sh)
+  chmod +x "$tmpfile"
+
+  nvim "$tmpfile"
+
+  cmd=$(cat "$tmpfile")
+
+  execute_command "$cmd"
+}
 
 function mf() {
   if [ -f "./Makefile" ]; then
@@ -317,7 +335,7 @@ function npmf() {
   scripts=$(cat package.json | jq -r '.scripts | to_entries[] | .key + "- " + .value')
 
   # Use fzf to select a script
-  selected=$(echo "$scripts" | fzf --height 40% --border --prompt="Select a script to run: ")
+  selected=$(echo "$scripts" | fzf --border --prompt="Select a script to run: ")
 
   # Extract the script name (everything before the first dash)
   script_name=$(echo "$selected" | cut -d'-' -f1)
@@ -541,6 +559,8 @@ export PATH=$PATH:$(go env GOPATH)/bin
 export PATH=$PATH:$HOME/.local/bin
 export PATH=$PATH:/snap/bin
 source $HOME/.config/nvm/nvm.sh
+
+
 
 set +e
 export PYENV_ROOT="$HOME/.pyenv"

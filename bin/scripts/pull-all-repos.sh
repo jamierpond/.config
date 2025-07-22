@@ -10,6 +10,7 @@ echo "Fetching GitHub repositories..."
 # Get all repositories for authenticated user and organizations
 {
     gh repo list --limit 1000 --json nameWithOwner --jq '.[].nameWithOwner'
+    gh repo list tamber-inc --limit 1000 --json nameWithOwner --jq '.[].nameWithOwner'
     gh repo list mayk-it --limit 1000 --json nameWithOwner --jq '.[].nameWithOwner'
 } | sort -u > "${OUTPUT_FILE}"
 
