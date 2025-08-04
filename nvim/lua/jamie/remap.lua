@@ -30,6 +30,12 @@ vim.api.nvim_set_keymap("n", "<C-j>", ":wincmd j<CR>", { noremap = true })
 vim.api.nvim_set_keymap("n", "<C-h>", ":wincmd h<CR>", { noremap = true })
 vim.api.nvim_set_keymap("n", "<C-l>", ":wincmd l<CR>", { noremap = true })
 
+-- make <leader>wq to save and quit
+vim.api.nvim_set_keymap("n", "<leader>wq", "<cmd>wq<CR>", { noremap = true })
+vim.api.nvim_set_keymap("n", "<leader>q", "<cmd>q<CR>", { noremap = true })
+-- vim.api.nvim_set_keymap("n", "<leader>Q", "<cmd>qa<CR>", { noremap = true })
+vim.api.nvim_set_keymap("n", "<leader>Q", "<cmd>qa!<CR>", { noremap = true })
+
 
 vim.api.nvim_set_keymap("x", "<leader>p", [["_dP"]], {})
 vim.api.nvim_set_keymap("n", "<leader>y", [["+y]], {})
