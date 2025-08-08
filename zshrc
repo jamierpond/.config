@@ -562,6 +562,8 @@ export PATH=$PATH:$(go env GOPATH)/bin
 export PATH=$PATH:$HOME/.local/bin
 export PATH=$PATH:/snap/bin
 source $HOME/.config/nvm/nvm.sh
+export DO_NOT_TRACK=1
+
 
 
 
