@@ -137,11 +137,24 @@ function run_describe_test() {
 
 # print the N most recently modifed files from ls -t
 function re() {
-  num_files="$1"
-  if [ -z "$num_files" ]; then
-    num_files=10
-  fi
-  ls -t | head -n "$num_files"
+  local dir="."
+  local num_files=10
+
+  # Parse arguments
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      -n)
+        num_files="$2"
+        shift 2
+        ;;
+      *)
+        dir="$1"
+        shift
+        ;;
+    esac
+  done
+
+  ls -t "$dir" | head -n "$num_files"
 }
 
 function pport() {
