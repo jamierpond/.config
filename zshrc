@@ -99,6 +99,7 @@ alias m="make"
 alias g="gemini"
 alias rp="~/.config/bin/scripts/repo-print"
 alias gde="~/.config/bin/scripts/git-diff-exclude"
+alias mrd="re ~/Downloads -n 1"
 # alias claude="(nvm use 18 &> /dev/null) && claude"
 #
 
@@ -154,7 +155,13 @@ function re() {
     esac
   done
 
-  ls -t "$dir" | head -n "$num_files"
+  # Get absolute path of directory
+  local abs_dir=$(cd "$dir" && pwd)
+
+  # List files with full paths, filtering out . and ..
+  ls -t "$dir" | grep -v '^\.\.$' | grep -v '^\.$' | head -n "$num_files" | while read -r file; do
+    echo "$abs_dir/$file"
+  done
 }
 
 function pport() {
