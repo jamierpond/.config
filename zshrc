@@ -24,6 +24,8 @@ alias "r"="tmp_run"
 alias dockernuke='docker kill $(docker ps -q)'
 alias dn='dockernuke'
 
+alias "a"="~/.config/yapi/yapi.sh"
+
 alias "imgp"="bash ~/.config/bin/scripts/clipimage.sh"
 
 alias so="source ~/.zshrc"

@@ -40,6 +40,25 @@ require('mason').setup({})
 require('mason-lspconfig').setup({
   handlers = {
     lsp_zero.default_setup,
+    -- Custom handler for yamlls to enable schema support
+    yamlls = function()
+      require('lspconfig').yamlls.setup({
+        settings = {
+          yaml = {
+            schemaStore = {
+              enable = true,
+              url = "https://www.schemastore.org/api/json/catalog.json",
+            },
+            schemas = {
+              -- This allows $schema in YAML files to work
+            },
+            validate = true,
+            completion = true,
+            hover = true,
+          },
+        },
+      })
+    end,
   },
 })
 
