@@ -79,8 +79,6 @@ lazy.setup({
       { "antosha417/nvim-lsp-file-operations", config = true },
     },
     config = function()
-      local lspconfig = require("lspconfig")
-      local util = require("lspconfig.util")
       local cmp_nvim_lsp = require("cmp_nvim_lsp")
       local capabilities = cmp_nvim_lsp.default_capabilities()
       local opts = { noremap = true, silent = true }
@@ -94,10 +92,14 @@ lazy.setup({
         vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
       end
 
-      lspconfig["sourcekit"].setup({
+      vim.lsp.config.sourcekit = {
+        cmd = { "sourcekit-lsp" },
+        filetypes = { "swift" },
+        root_markers = { "Package.swift", ".git" },
         capabilities = capabilities,
         on_attach = on_attach,
-      })
+      }
+      vim.lsp.enable("sourcekit")
     end,
   },
 
@@ -267,7 +269,7 @@ lazy.setup({
           sourcekit = {
             cmd = { "sourcekit-lsp", "--log-level", "error" },
             filetypes = { "swift" },
-            root_dir = require('lspconfig').util.root_pattern("Package.swift", ".git", "project.yml", "Project.swift", ".xcodeproj"),
+            root_markers = { "Package.swift", ".git", "project.yml", "Project.swift", ".xcodeproj" },
           },
 
           -- Statusline provider configurations
