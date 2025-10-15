@@ -7,6 +7,10 @@
 	url = "https://github.com/nvm-sh/nvm.git"
   commit = "179d450"
 
+[submodule "yapi"]
+	path = "yapi"
+	url = "https://github.com/jamierpond/yapi.git"
+
 [submodule "omz-custom/plugins/zsh-vi-mode"]
 	path = "omz-custom/plugins/zsh-vi-mode"
 	url = "https://github.com/jeffreytse/zsh-vi-mode.git"
