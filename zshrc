@@ -24,6 +24,7 @@ alias "r"="tmp_run"
 alias dockernuke='docker kill $(docker ps -q)'
 alias dn='dockernuke'
 
+export HISTFILE="$HOME/.zsh_history"
 alias "a"="~/.config/yapi/yapi.sh"
 
 alias "imgp"="bash ~/.config/bin/scripts/clipimage.sh"
@@ -586,7 +587,10 @@ export PATH=$PATH:/snap/bin
 source $HOME/.config/nvm/nvm.sh
 export DO_NOT_TRACK=1
 
-
+# This is cruvial for zsh history management
+setopt INC_APPEND_HISTORY  # Append commands to history file as they are executed
+setopt SHARE_HISTORY       # Share history across sessions (alternative to INC_APPEND_HISTORY)
+setopt EXTENDED_HISTORY    # Save timestamp and duration
 
 
 set +e

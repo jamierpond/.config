@@ -118,7 +118,11 @@ MODE_CURSOR_SEARCH="#ff00ff steady underline"
 MODE_CURSOR_VISUAL="$MODE_CURSOR_VICMD steady block"
 MODE_CURSOR_VLINE="$MODE_CURSOR_VISUAL #00ffff"
 
-# Enable searching with / in normal mode
-bindkey -M vicmd '/' history-incremental-search-backward
-bindkey -M vicmd '?' history-incremental-search-forward
+# # Enable searching with / in normal mode
+# bindkey -M vicmd '/' history-incremental-search-backward
+# bindkey -M vicmd '?' history-incremental-search-forward
+
+setopt INC_APPEND_HISTORY  # Append commands to history file as they are executed
+setopt SHARE_HISTORY       # Share history across sessions (alternative to INC_APPEND_HISTORY)
+setopt EXTENDED_HISTORY    # Save timestamp and duration
 
