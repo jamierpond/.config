@@ -5,27 +5,20 @@ if [ -n "$is_zsh" ]; then
   source "$this_dir/ohmyzsh_config.sh"
 fi
 
+YAPI_ZSH="$HOME/.config/yapi/bin/yapi.zsh"
+[ -f "$YAPI_ZSH" ] && source "$YAPI_ZSH"
+alias "a"="yapi"
+
+
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-
-# if is linux
-# if [[ "$(uname)" == "Linux" ]]; then
-#     # source /usr/share/doc/fzf/examples/key-bindings.zsh
-#     alias pbcopy='xclip -selection clipboard'
-#     alias pbpaste='xclip -selection clipboard -o'
-# fi
-
-
-
 alias "r"="tmp_run"
-
 
 alias dockernuke='docker kill $(docker ps -q)'
 alias dn='dockernuke'
 
 export HISTFILE="$HOME/.zsh_history"
-alias "a"="~/.config/yapi/yapi.sh"
 
 alias "imgp"="bash ~/.config/bin/scripts/clipimage.sh"
 
@@ -589,8 +582,9 @@ export DO_NOT_TRACK=1
 
 # This is cruvial for zsh history management
 setopt INC_APPEND_HISTORY  # Append commands to history file as they are executed
-setopt SHARE_HISTORY       # Share history across sessions (alternative to INC_APPEND_HISTORY)
+# setopt SHARE_HISTORY       # Share history across sessions (alternative to INC_APPEND_HISTORY)
 setopt EXTENDED_HISTORY    # Save timestamp and duration
+setopt APPEND_HISTORY
 
 
 set +e
