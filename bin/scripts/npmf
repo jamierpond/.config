@@ -4,7 +4,7 @@ set -eou pipefail
 function npmf() {
   scripts=$(git ls-files |                                                        \
     grep "package.json" |                                                      \
-    xargs jq -r '.scripts | to_entries[] | input_filename + "|" + .key + "|" + .value' \
+    xargs jq -r '.scripts // {} | to_entries[] | input_filename + "|" + .key + "|" + .value' 2>/dev/null \
   )
 
   # Use fzf to select a script
