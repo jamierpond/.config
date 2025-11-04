@@ -1,0 +1,37 @@
+#!/bin/bash
+set -eou pipefail
+
+function npmf() {
+  scripts=$(git ls-files |                                                        \
+    grep "package.json" |                                                      \
+    xargs jq -r '.scripts | to_entries[] | input_filename + "|" + .key + "|" + .value' \
+  )
+
+  # Use fzf to select a script
+  selected=$(echo "$scripts" | fzf --border --prompt="Select a script to run: ")
+
+  # Exit if no selection was made
+  if [ -z "$selected" ]; then
+    echo "No script selected"
+    exit 0
+  fi
+
+  # Parse the selected line: file|script_name|command
+  file=$(echo "$selected" | cut -d'|' -f1)
+  script_name=$(echo "$selected" | cut -d'|' -f2)
+  command=$(echo "$selected" | cut -d'|' -f3-)
+
+  # Extract the directory from the package.json path
+  dir=$(dirname "$file")
+
+  # Show what we're running
+  echo "Running '$script_name' from $file"
+  echo "Command: $command"
+  echo ""
+
+  # Change to the directory and run the npm script
+  cd "$dir" && npm run "$script_name"
+}
+
+
+npmf

@@ -22,6 +22,8 @@ export HISTFILE="$HOME/.zsh_history"
 
 alias "imgp"="bash ~/.config/bin/scripts/clipimage.sh"
 
+alias "npf"="bash ~/.config/bin/scripts/npmf"
+
 alias so="source ~/.zshrc"
 alias bso="source ~/.bashrc"
 alias "pipi"="pip install -r requirements.txt"
@@ -349,23 +351,6 @@ function port() {
   lsof -i tcp:"$port"
 }
 
-function npmf() {
-  # Extract scripts from package.json
-  scripts=$(cat package.json | jq -r '.scripts | to_entries[] | .key + "- " + .value')
-
-  # Use fzf to select a script
-  selected=$(echo "$scripts" | fzf --border --prompt="Select a script to run: ")
-
-  # Extract the script name (everything before the first dash)
-  script_name=$(echo "$selected" | cut -d'-' -f1)
-
-  # Run the selected script
-  if [ -n "$script_name" ]; then
-      execute_command "npm run $script_name"
-  else
-      echo "No script selected. Exiting."
-  fi
-}
 
 # clone from github
 function cl() {
@@ -380,10 +365,6 @@ function cl() {
   repo=$(echo $repo | tr -d '"')
   echo "Cloning $repo"
   gh repo clone "$repo"
-}
-
-function npf() {
-  npmf
 }
 
 
