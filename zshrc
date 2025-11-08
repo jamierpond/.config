@@ -354,9 +354,9 @@ function port() {
 
 # clone from github
 function cl() {
-  mayk_repos=$(gh repo list mayk-it --json nameWithOwner | jq ".[].nameWithOwner")
-  jamie_repos=$(gh repo list jamierpond --json nameWithOwner | jq ".[].nameWithOwner")
-  repo=$(echo "$mayk_repos\n$jamie_repos" | fzf --reverse --prompt "Select repo: " --header-lines 0)
+  cd "$this_dir"
+  repo_list="$this_dir/bin/scripts/quick-url-github-repos.txt"
+  repo=$(cat "$repo_list" | fzf --reverse --prompt "Select repo: " --header-lines 1)
   if [ -z "$repo" ]; then
     echo "No repo selected"
     return
