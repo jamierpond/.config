@@ -356,7 +356,7 @@ function port() {
 function cl() {
   cd "$this_dir"
   repo_list="$this_dir/bin/scripts/quick-url-github-repos.txt"
-  repo=$(cat "$repo_list" | fzf --reverse --prompt "Select repo: " --header-lines 1)
+  repo=$(cat "$repo_list" | fzf --reverse --prompt "Select repo: ")
   if [ -z "$repo" ]; then
     echo "No repo selected"
     return
