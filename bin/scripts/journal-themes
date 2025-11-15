@@ -1,0 +1,51 @@
+#!/bin/bash
+set -eou pipefail
+
+# themes are markdown journal entries.
+# ~/projects/journal/themes/[theme_name].md
+# we support making new themes on the fly
+
+THEME_TEMPLATE="# {theme_name}"
+
+cd "$(dirname "$0")" || exit 1
+
+themes=$(find "$HOME/projects/journal/themes" -type f)
+
+CREATE_NEW_THEME="create_new_theme"
+
+# append new theme
+themes="$themes
+$CREATE_NEW_THEME"
+
+filenames_first=$(echo "$themes" | xargs -n1 basename)
+
+themes=$(paste <(echo "$filenames_first") <(echo "$themes") | column -t)
+
+selected_theme=$(echo "$themes" | fzf --header="Select a theme to apply:" | awk '{print $2}' || true)
+
+# Exit gracefully if no theme was selected (user cancelled)
+if [[ -z "$selected_theme" ]]; then
+    exit 0
+fi
+
+if [[ "$selected_theme" == "$CREATE_NEW_THEME" ]]; then
+    read -rp "Enter new theme name: " new_theme_name
+    sanitized_theme_name=$(echo "$new_theme_name" | tr ' ' '_' | tr '[:upper:]' '[:lower:]')
+    new_theme_path="$HOME/projects/journal/themes/${sanitized_theme_name}.md"
+    if [[ -f "$new_theme_path" ]]; then
+        echo "Theme '$sanitized_theme_name' already exists."
+        exit 1
+    fi
+
+    echo "${THEME_TEMPLATE//\{theme_name\}/$new_theme_name}" > "$new_theme_path"
+    selected_theme="$new_theme_path"
+    echo "Created new theme at '$new_theme_path'."
+fi
+
+
+selected_theme_sanitized=$(basename "$selected_theme" | tr . _)
+
+tmux new-session -s $selected_theme_sanitized -c ~/projects/journal -d "nvim $selected_theme"
+tmux switch-client -t $selected_theme_sanitized
+
+

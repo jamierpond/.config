@@ -339,6 +339,7 @@ Tamber-Inc/clap-service
 Tamber-Inc/hey-buddy
 Tamber-Inc/sound-pack-uploader
 Tamber-Inc/sound-packs
+Tamber-Inc/synth-preset-retrieval-demo
 Tamber-Inc/tamber-audio
 Tamber-Inc/tamber-daw-controll
 Tamber-Inc/tamber-embeddings
