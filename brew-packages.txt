@@ -1,390 +1,388 @@
-abseil
-act
-aom
-aribb24
-asio
-assimp
-assimp@5
-at-spi2-core
-autoconf
-automake
-awscli
-bash
-bat
-bazel
-bazelisk
-bdw-gc
-berkeley-db
-blake3
-boost
-brotli
-btop
-buf
-c-ares
-ca-certificates
-cairo
-cargo-instruments
-cdk
-ceres-solver
-certifi
-cffi
-cgns
-chrome-cli
-circleci
-cjson
-clang-format
-clang-format@11
-clang-tidy
-cloudflared
-cmake
-cmdg
-cog
-coreutils
-crc32c
-crow
-crush
-cryptography
-curl
-dav1d
-dbus
-deno
-docker
-docker-completion
-double-conversion
-doxygen
-edencommon
-eigen
-emacs
-expect
-fb303
-fbthrift
-fd
-ffmpeg
-firebase-cli
-fish
-fizz
-flac
-fluid-synth
-fmt
-folly
-fontconfig
-freetype
-frei0r
-fribidi
-fzf
-gawk
-gcc
-gcovr
-gd
-gdb
-gdbm
-gdk-pixbuf
-gettext
-gflags
-gh
-ghostscript
-giflib
-git-filter-repo
-git-lfs
-git-secret
-glew
-glib
-glog
-gmp
-gnu-cobol
-gnucobol
-gnupg
-gnuplot
-gnutls
-go
-gobject-introspection
-googletest
-gpgme
-gradle
-graphite
-graphite2
-graphviz
-grpc
-gsettings-desktop-schemas
-gtk+
-gtk+3
-gts
-guile
-gzip
-harfbuzz
-hdf5
-hexedit
-hicolor-icon-theme
-highway
-htmlq
-htop
-hunspell
-hwloc
-icu4c@77
-imagemagick
-imath
-isl
-jasper
-jbig2dec
-jc
-jira-cli
-jpeg-turbo
-jpeg-xl
-jpegoptim
-jq
-jsmin
-json-c
-jsoncpp
-jsonlint
-k9s
-krb5
-kubernetes-cli
-lame
-lazygit
-lcov
-leptonica
-libaec
-libao
-libarchive
-libass
-libassuan
-libavif
-libb2
-libbluray
-libcerf
-libde265
-libdeflate
-libepoxy
-libevent
-libgcrypt
-libgit2
-libgpg-error
-libharu
-libheif
-libidn
-libidn2
-libksba
-liblinear
-liblqr
-libmicrohttpd
-libmng
-libmpc
-libnghttp2
-libogg
-libomp
-libpng
-libpsl
-libraw
-librist
-librsvg
-libsamplerate
-libsndfile
-libsodium
-libsoxr
-libssh
-libssh2
-libtasn1
-libtiff
-libtommath
-libtool
-libudfread
-libunibreak
-libunistring
-libusb
-libuv
-libvidstab
-libvmaf
-libvorbis
-libvpx
-libx11
-libxau
-libxcb
-libxdmcp
-libxext
-libxfixes
-libxi
-libxml2
-libxrender
-libxslt
-libxtst
-libyaml
-lighttpd
-little-cms2
-llvm
-llvm@19
-lpeg
-lua
-luajit
-luv
-lz4
-lzo
-m4
-mad
-make
-mbedtls
-md4c
-metis
-minikube
-mise
-modular
-mold
-mongodb-atlas-cli
-mongodb-database-tools
-mongosh
-mpdecimal
-mpfr
-mpg123
-mutt
-mvfst
-nasm
-ncurses
-neovim
-netcdf
-netpbm
-nettle
-nginx
-ninja
-nlohmann-json
-nmap
-node
-node@16
-node@18
-npth
-nsync
-numpy
-oniguruma
-onnx
-onnxruntime
-openblas
-opencore-amr
-opencv
-openexr
-openjdk
-openjdk@17
-openjdk@21
-openjpeg
-openjph
-openldap
-openssl@1.1
-openssl@3
-openvino
-optipng
-opus
-opusfile
-p11-kit
-pango
-parallel
-pcre
-pcre2
-pinentry
-pipenv
-pipx
-pixlet
-pixman
-pkgconf
-pngcrush
-pnpm
-portaudio
-postgresql@14
-postgresql@15
-powershell
-proj
-protobuf
-protobuf@3
-protoc-gen-grpc-web
-pugixml
-pv
-pycparser
-pyenv
-pyqt
-python-packaging
-python-tk@3.13
-python@3.10
-python@3.11
-python@3.12
-python@3.13
-python@3.8
-python@3.9
-qrencode
-qt
-ranger
-rav1e
-rclone
-re2
-readline
-redis
-ripgrep
-rtmpdump
-rubberband
-rust
-rustup
-sdl2
-shared-mime-info
-six
-slackdump
-snappy
-sox
-speedtest
-speedtest-cli
-speex
-sqlite
-srt
-stow
-stripe
-suite-sparse
-svt-av1
-swift-protobuf
-swiftlint
-swiftly
-tbb
-tcl-tk
-tcl-tk@8
-telnet
-terraform
-terraformer
-tesseract
-the_silver_searcher
-thefuck
-theora
-tidy-html5
-timidity
-tmux
-tokyo-cabinet
-tree
-tree-sitter
-unbound
-unibilium
-usage
-utf8cpp
-utf8proc
-vapor
-vcpkg
-vercel-cli
-vite
-vtk
-wangle
-watch
-watchman
-webp
-wget
-x264
-x265
-x86_64-elf-binutils
-x86_64-elf-gcc
-x86_64-linux-gnu-binutils
-xcode-build-server
-xmlstarlet
-xorgproto
-xvid
-xxhash
-xz
-yabai
-yamllint
-youtube-dl
-yq
-z3
-zeromq
-zimg
-zlib
-zstd
-aerospace
+brew install abseil
+brew install act
+brew install aom
+brew install aribb24
+brew install asio
+brew install assimp
+brew install assimp
+brew install autoconf
+brew install automake
+brew install awscli
+brew install bash
+brew install bat
+brew install bazel
+brew install bazelisk
+brew install bdw
+brew install berkeley
+brew install blake3
+brew install boost
+brew install brotli
+brew install btop
+brew install buf
+brew install c-
+brew install ca
+brew install cairo
+brew install cargo
+brew install cdk
+brew install ceres
+brew install certifi
+brew install cffi
+brew install cgns
+brew install chrome
+brew install circleci
+brew install cjson
+brew install clang
+brew install clang
+brew install clang
+brew install cloudflared
+brew install cmake
+brew install cmdg
+brew install cog
+brew install coreutils
+brew install crc32c
+brew install crow
+brew install crush
+brew install cryptography
+brew install curl
+brew install dav1d
+brew install dbus
+brew install deno
+brew install docker
+brew install docker
+brew install double
+brew install doxygen
+brew install edencommon
+brew install eigen
+brew install emacs
+brew install expect
+brew install fb303
+brew install fbthrift
+brew install fd
+brew install ffmpeg
+brew install firebase
+brew install fish
+brew install fizz
+brew install flac
+brew install fluid
+brew install fmt
+brew install folly
+brew install fontconfig
+brew install freetype
+brew install frei0r
+brew install fribidi
+brew install fzf
+brew install gawk
+brew install gcc
+brew install gcovr
+brew install gd
+brew install gdb
+brew install gdbm
+brew install gdk
+brew install gettext
+brew install gflags
+brew install gh
+brew install ghostscript
+brew install giflib
+brew install git
+brew install git
+brew install git
+brew install glew
+brew install glib
+brew install glog
+brew install gmp
+brew install gnu
+brew install gnucobol
+brew install gnupg
+brew install gnuplot
+brew install gnutls
+brew install go
+brew install gobject
+brew install googletest
+brew install gpgme
+brew install gradle
+brew install graphite
+brew install graphite2
+brew install graphviz
+brew install grpc
+brew install gsettings
+brew install gtk
+brew install gtk
+brew install gts
+brew install guile
+brew install gzip
+brew install harfbuzz
+brew install hdf5
+brew install hexedit
+brew install hicolor
+brew install highway
+brew install htmlq
+brew install htop
+brew install hunspell
+brew install hwloc
+brew install icu4c
+brew install imagemagick
+brew install imath
+brew install isl
+brew install jasper
+brew install jbig2dec
+brew install jc
+brew install jira
+brew install jpeg
+brew install jpeg
+brew install jpegoptim
+brew install jq
+brew install jsmin
+brew install json
+brew install jsoncpp
+brew install jsonlint
+brew install k9s
+brew install krb5
+brew install kubernetes
+brew install lame
+brew install lazygit
+brew install lcov
+brew install leptonica
+brew install libaec
+brew install libao
+brew install libarchive
+brew install libass
+brew install libassuan
+brew install libavif
+brew install libb2
+brew install libbluray
+brew install libcerf
+brew install libde265
+brew install libdeflate
+brew install libepoxy
+brew install libevent
+brew install libgcrypt
+brew install libgit2
+brew install libgpg
+brew install libharu
+brew install libheif
+brew install libidn
+brew install libidn2
+brew install libksba
+brew install liblinear
+brew install liblqr
+brew install libmicrohttpd
+brew install libmng
+brew install libmpc
+brew install libnghttp2
+brew install libogg
+brew install libomp
+brew install libpng
+brew install libpsl
+brew install libraw
+brew install librist
+brew install librsvg
+brew install libsamplerate
+brew install libsndfile
+brew install libsodium
+brew install libsoxr
+brew install libssh
+brew install libssh2
+brew install libtasn1
+brew install libtiff
+brew install libtommath
+brew install libtool
+brew install libudfread
+brew install libunibreak
+brew install libunistring
+brew install libusb
+brew install libuv
+brew install libvidstab
+brew install libvmaf
+brew install libvorbis
+brew install libvpx
+brew install libx11
+brew install libxau
+brew install libxcb
+brew install libxdmcp
+brew install libxext
+brew install libxfixes
+brew install libxi
+brew install libxml2
+brew install libxrender
+brew install libxslt
+brew install libxtst
+brew install libyaml
+brew install lighttpd
+brew install little
+brew install llvm
+brew install llvm
+brew install lpeg
+brew install lua
+brew install luajit
+brew install luv
+brew install lz4
+brew install lzo
+brew install m4
+brew install mad
+brew install make
+brew install mbedtls
+brew install md4c
+brew install metis
+brew install minikube
+brew install mise
+brew install modular
+brew install mold
+brew install mongodb
+brew install mongodb
+brew install mongosh
+brew install mpdecimal
+brew install mpfr
+brew install mpg123
+brew install mutt
+brew install mvfst
+brew install nasm
+brew install ncurses
+brew install neovim
+brew install netcdf
+brew install netpbm
+brew install nettle
+brew install nginx
+brew install ninja
+brew install nlohmann
+brew install nmap
+brew install node
+brew install node
+brew install node
+brew install npth
+brew install nsync
+brew install numpy
+brew install oniguruma
+brew install onnx
+brew install onnxruntime
+brew install openblas
+brew install opencore
+brew install opencv
+brew install openexr
+brew install openjdk
+brew install openjdk
+brew install openjdk
+brew install openjpeg
+brew install openjph
+brew install openldap
+brew install openssl
+brew install openssl
+brew install openvino
+brew install optipng
+brew install opus
+brew install opusfile
+brew install p11
+brew install pango
+brew install parallel
+brew install pcre
+brew install pcre2
+brew install pinentry
+brew install pipenv
+brew install pipx
+brew install pixlet
+brew install pixman
+brew install pkgconf
+brew install pngcrush
+brew install pnpm
+brew install portaudio
+brew install postgresql
+brew install postgresql
+brew install powershell
+brew install proj
+brew install protobuf
+brew install protobuf
+brew install protoc
+brew install pugixml
+brew install pv
+brew install pycparser
+brew install pyenv
+brew install pyqt
+brew install python
+brew install python
+brew install python
+brew install python
+brew install python
+brew install python
+brew install python
+brew install python
+brew install qrencode
+brew install qt
+brew install ranger
+brew install rav1e
+brew install rclone
+brew install re2
+brew install readline
+brew install redis
+brew install ripgrep
+brew install rtmpdump
+brew install rubberband
+brew install rust
+brew install rustup
+brew install sdl2
+brew install shared
+brew install six
+brew install slackdump
+brew install snappy
+brew install sox
+brew install speedtest
+brew install speedtest
+brew install speex
+brew install sqlite
+brew install srt
+brew install stow
+brew install stripe
+brew install suite
+brew install svt
+brew install swift
+brew install swiftlint
+brew install swiftly
+brew install tbb
+brew install tcl
+brew install tcl
+brew install telnet
+brew install terraform
+brew install terraformer
+brew install tesseract
+brew install the_silver_searcher
+brew install thefuck
+brew install theora
+brew install tidy
+brew install timidity
+brew install tmux
+brew install tokyo
+brew install tree
+brew install tree
+brew install unbound
+brew install unibilium
+brew install usage
+brew install utf8cpp
+brew install utf8proc
+brew install vapor
+brew install vcpkg
+brew install vercel
+brew install vite
+brew install vtk
+brew install wangle
+brew install watch
+brew install watchman
+brew install webp
+brew install wget
+brew install x264
+brew install x265
+brew install x86_64
+brew install x86_64
+brew install x86_64
+brew install xcode
+brew install xmlstarlet
+brew install xorgproto
+brew install xvid
+brew install xxhash
+brew install xz
+brew install yabai
+brew install yamllint
+brew install youtube
+brew install yq
+brew install z3
+brew install zeromq
+brew install zimg
+brew install zlib
+brew install zstd
