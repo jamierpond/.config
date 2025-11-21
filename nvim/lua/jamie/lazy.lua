@@ -333,6 +333,15 @@ lazy.setup({
     'numToStr/Comment.nvim',
     config = "require('Comment').setup()"
   },
+
+  -- yapi (local plugin)
+  {
+    dir = "~/.config/yapi",
+    name = "yapi-nvim",
+    config = function()
+      require("yapi_nvim").setup()
+    end,
+  },
 }, {})
 
 
