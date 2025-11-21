@@ -5,7 +5,7 @@ if [ -n "$is_zsh" ]; then
   source "$this_dir/ohmyzsh_config.sh"
 fi
 
-YAPI_ZSH="$HOME/.config/yapi/bin/yapi"
+YAPI_ZSH="$HOME/.config/yapi/bin/yapi.zsh"
 [ -f "$YAPI_ZSH" ] && source "$YAPI_ZSH"
 alias "a"="yapi"
 
