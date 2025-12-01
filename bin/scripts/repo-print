@@ -18,7 +18,10 @@ fi
 pattern=$(printf "|%s" "$@")
 pattern=${pattern:1}
 
-matches=$(git ls-files | grep -E "$pattern" || true)
+# Files to exclude (lock files, generated files, etc.)
+exclude_pattern="pnpm-lock\.yaml|package-lock\.json|yarn\.lock|go\.mod|go\.sum|Cargo\.lock|poetry\.lock|Gemfile\.lock|composer\.lock|\.min\.js|\.min\.css|dist/|build/|node_modules/|vendor/"
+
+matches=$(git ls-files | grep -E "$pattern" | grep -Ev "$exclude_pattern" || true)
 
 if [ -z "$matches" ]; then
     echo "No files found with the specified search string: $*"
