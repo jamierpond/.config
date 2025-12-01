@@ -5,12 +5,12 @@ if [ -n "$is_zsh" ]; then
   source "$this_dir/ohmyzsh_config.sh"
 fi
 
-YAPI_ZSH="$HOME/.config/yapi/bin/yapi.zsh"
-if [ ! -f "$YAPI_ZSH" ]; then
-  echo "YAPI_ZSH not found at $YAPI_ZSH"
-fi
-[ -f "$YAPI_ZSH" ] && source "$YAPI_ZSH"
-alias "a"="yapi"
+# YAPI_ZSH="$HOME/.config/yapi/bin/yapi.zsh"
+# if [ ! -f "$YAPI_ZSH" ]; then
+#   echo "YAPI_ZSH not found at $YAPI_ZSH"
+# fi
+# [ -f "$YAPI_ZSH" ] && source "$YAPI_ZSH"
+# alias "a"="yapi"
 
 export VCPKG_ROOT="$HOME/vcpkg"
 
