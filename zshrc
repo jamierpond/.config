@@ -6,6 +6,9 @@ if [ -n "$is_zsh" ]; then
 fi
 
 YAPI_ZSH="$HOME/.config/yapi/bin/yapi.zsh"
+if [ ! -f "$YAPI_ZSH" ]; then
+  echo "YAPI_ZSH not found at $YAPI_ZSH"
+fi
 [ -f "$YAPI_ZSH" ] && source "$YAPI_ZSH"
 alias "a"="yapi"
 
