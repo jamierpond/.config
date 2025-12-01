@@ -27,6 +27,10 @@ while [ $# -gt 0 ]; do
     esac
 done
 
+# Debug: show parsed args
+# echo "Extensions: ${extensions[*]}"
+# echo "Excludes: ${extra_excludes[*]+"${extra_excludes[*]}"}"
+
 echo "### Repo tree:"
 git ls-files | tree --fromfile
 echo
