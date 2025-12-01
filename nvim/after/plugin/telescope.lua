@@ -2,7 +2,9 @@ local builtin = require('telescope.builtin')
 local actions = require('telescope.actions')
 
 -- vim.keymap.set('n', '<leader>pf', "<cmd>Telescope frecency workspace=CWD<CR>", { desc = "Search" })
-vim.keymap.set('n', '<leader>pf', builtin.find_files, {}) -- this is the og one
+vim.keymap.set('n', '<leader>pf', function()
+  builtin.find_files({ hidden = true })
+end, {})
 
 vim.keymap.set('n', '<C-g>', builtin.git_files, {})
 -- Original live grep behavior
