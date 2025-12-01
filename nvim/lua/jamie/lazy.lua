@@ -146,6 +146,9 @@ lazy.setup({
   "nvim-telescope/telescope-frecency.nvim",
   config = function()
     require("telescope").setup({
+      defaults = {
+        file_ignore_patterns = { "^%.git/" },
+      },
       extensions = {
         frecency = {
           auto_validate = false,
