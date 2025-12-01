@@ -1,25 +1,46 @@
 #!/bin/bash
 set -euo pipefail
 
-# Usage: ./script.sh py ts js
+# Usage: ./script.sh py ts js [--exclude pattern] [--exclude pattern2]
 
 #git_root=$(git rev-parse --show-toplevel)
 #cd "$git_root"
+
+# Parse arguments
+extensions=()
+extra_excludes=()
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --exclude|-e)
+            extra_excludes+=("$2")
+            shift 2
+            ;;
+        *)
+            extensions+=("$1")
+            shift
+            ;;
+    esac
+done
 
 echo "### Repo tree:"
 git ls-files | tree --fromfile
 echo
 
-if [ $# -eq 0 ]; then
+if [ ${#extensions[@]} -eq 0 ]; then
     echo "No file searches provided."
     exit 1
 fi
 
-pattern=$(printf "|%s" "$@")
+pattern=$(printf "|%s" "${extensions[@]}")
 pattern=${pattern:1}
 
 # Files to exclude (lock files, generated files, etc.)
 exclude_pattern="pnpm-lock\.yaml|package-lock\.json|yarn\.lock|go\.mod|go\.sum|Cargo\.lock|poetry\.lock|Gemfile\.lock|composer\.lock|\.min\.js|\.min\.css|dist/|build/|node_modules/|vendor/"
+
+# Add extra excludes from command line
+for ex in "${extra_excludes[@]+"${extra_excludes[@]}"}"; do
+    exclude_pattern="$exclude_pattern|$ex"
+done
 
 matches=$(git ls-files | grep -E "$pattern" | grep -Ev "$exclude_pattern" || true)
 
