@@ -37,14 +37,16 @@ total_chars=0
 echo "### Repo tree:"
 tree_output=$(git ls-files | tree --fromfile)
 echo "$tree_output"
-tree_lines=$(echo "$tree_output" | wc -l)
+tree_lines=$(echo "$tree_output" | wc -l | tr -d ' ')
 total_lines=$((total_lines + tree_lines + 2))
 total_chars=$((total_chars + ${#tree_output} + 20))
 echo
 
 if [ ${#extensions[@]} -eq 0 ]; then
     echo "No file searches provided."
-    exit 1
+    size=$(echo "scale=2; $total_chars / 1024" | bc)
+    echo "Total: $total_lines lines ($tree_lines tree), $total_chars chars ($size KB)" >&2
+    exit 0
 fi
 
 pattern=$(printf "|%s" "${extensions[@]}")
