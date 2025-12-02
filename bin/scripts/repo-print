@@ -31,8 +31,12 @@ done
 # echo "Extensions: ${extensions[*]}"
 # echo "Excludes: ${extra_excludes[*]+"${extra_excludes[*]}"}"
 
+total_lines=0
+
 echo "### Repo tree:"
-git ls-files | tree --fromfile
+tree_output=$(git ls-files | tree --fromfile)
+echo "$tree_output"
+total_lines=$((total_lines + $(echo "$tree_output" | wc -l) + 2))
 echo
 
 if [ ${#extensions[@]} -eq 0 ]; then
@@ -66,14 +70,22 @@ while IFS= read -r file; do
         echo -e "\n#########################"
         echo -e "### $file"
         cat "$file"
+        file_lines=$(wc -l < "$file")
+        total_lines=$((total_lines + file_lines + 4))
     else
         echo -e "\n### Skipping binary: $file (mime: $mime)"
+        total_lines=$((total_lines + 2))
     fi
 done <<< "$matches"
 
 echo -e "\n\n#########################"
 echo -e "### Files listed above:"
-echo "$matches" | while IFS= read -r file; do
+file_count=0
+while IFS= read -r file; do
     echo "- $file"
-done
+    file_count=$((file_count + 1))
+done <<< "$matches"
+total_lines=$((total_lines + file_count + 4))
+
+echo "Total lines: $total_lines" >&2
 
