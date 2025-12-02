@@ -62,7 +62,8 @@ matches=$(git ls-files | grep -E "$pattern" | grep -Ev "$exclude_pattern" || tru
 
 if [ -z "$matches" ]; then
     echo "No files found with the specified search string: $*"
-    echo "Total: $total_lines lines, $total_chars chars" >&2
+    size=$(echo "scale=2; $total_chars / 1024" | bc)
+    echo "Total: $total_lines lines ($tree_lines tree), $total_chars chars ($size KB)" >&2
     exit 0
 fi
 
