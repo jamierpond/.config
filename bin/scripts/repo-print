@@ -37,7 +37,8 @@ total_chars=0
 echo "### Repo tree:"
 tree_output=$(git ls-files | tree --fromfile)
 echo "$tree_output"
-total_lines=$((total_lines + $(echo "$tree_output" | wc -l) + 2))
+tree_lines=$(echo "$tree_output" | wc -l)
+total_lines=$((total_lines + tree_lines + 2))
 total_chars=$((total_chars + ${#tree_output} + 20))
 echo
 
@@ -61,6 +62,7 @@ matches=$(git ls-files | grep -E "$pattern" | grep -Ev "$exclude_pattern" || tru
 
 if [ -z "$matches" ]; then
     echo "No files found with the specified search string: $*"
+    echo "Total: $total_lines lines, $total_chars chars" >&2
     exit 0
 fi
 
@@ -95,8 +97,13 @@ done <<< "$matches"
 total_lines=$((total_lines + file_count + 4))
 total_chars=$((total_chars + footer_chars + 50))
 
-kb=$(echo "scale=2; $total_chars / 1024" | bc)
-mb=$(echo "scale=2; $total_chars / 1048576" | bc)
+if [ "$total_chars" -ge 1048576 ]; then
+    size=$(echo "scale=2; $total_chars / 1048576" | bc)
+    unit="MB"
+else
+    size=$(echo "scale=2; $total_chars / 1024" | bc)
+    unit="KB"
+fi
 
-echo "Total: $total_lines lines, $total_chars chars ($kb KB / $mb MB)" >&2
+echo "Total: $total_lines lines ($tree_lines tree), $total_chars chars ($size $unit)" >&2
 
