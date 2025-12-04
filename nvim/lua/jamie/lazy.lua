@@ -343,7 +343,7 @@ lazy.setup({
     name = "yapi-nvim",
     config = function()
       require("yapi_nvim").setup({
-        pretty = true,  -- use pretty TUI watch mode
+        pretty = false,  -- use pretty TUI watch mode
         lsp = true,     -- enable LSP for completions/diagnostics
       })
     end,
