@@ -24,6 +24,7 @@ export HISTFILE="$HOME/.zsh_history"
 alias "imgp"="bash ~/.config/bin/scripts/clipimage.sh"
 
 alias "npf"="bash ~/.config/bin/scripts/npmf"
+alias "prf"="~/.config/bin/scripts/get-all-pr-feedback"
 
 alias so="source ~/.zshrc"
 alias bso="source ~/.bashrc"
