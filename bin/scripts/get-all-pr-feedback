@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Minimal GH PR feedback dumper for "current repo, current branch" PR
+# Usage: get-all-pr-feedback [outdir]
+#   If outdir is provided, writes separate files there
+#   Otherwise, outputs combined JSON to stdout
+
+# Detect repo as <owner>/<repo>
+repo=$(gh repo view --json nameWithOwner -q '.nameWithOwner')
+
+# Detect PR number for current branch (open or closed)
+pr_number=$(gh pr list --head "$(git rev-parse --abbrev-ref HEAD)" --state all \
+  --json number -q '.[0].number')
+
+# Bail if no PR found
+if [[ -z "${pr_number:-}" || "${pr_number}" == "null" ]]; then
+  echo "No PR found for this branch in $repo" >&2
+  exit 1
+fi
+
+if [[ -n "${1:-}" ]]; then
+  # Write to files
+  outdir="$1"
+  mkdir -p "$outdir"
+
+  gh api "repos/${repo}/issues/${pr_number}/comments" \
+    --paginate > "${outdir}/issue_comments.json"
+
+  gh api "repos/${repo}/pulls/${pr_number}/reviews" \
+    --paginate > "${outdir}/reviews.json"
+
+  gh api "repos/${repo}/pulls/${pr_number}/comments" \
+    --paginate > "${outdir}/review_comments.json"
+
+  if command -v jq >/dev/null 2>&1; then
+    jq -s 'add' \
+      "${outdir}/issue_comments.json" \
+      "${outdir}/reviews.json" \
+      "${outdir}/review_comments.json" \
+      > "${outdir}/all_feedback.json"
+  fi
+
+  echo "Wrote feedback files to: $outdir" >&2
+else
+  # Pipe to stdout (requires jq)
+  if ! command -v jq >/dev/null 2>&1; then
+    echo "jq is required for stdout mode" >&2
+    exit 1
+  fi
+
+  jq -s 'add' \
+    <(gh api "repos/${repo}/issues/${pr_number}/comments" --paginate) \
+    <(gh api "repos/${repo}/pulls/${pr_number}/reviews" --paginate) \
+    <(gh api "repos/${repo}/pulls/${pr_number}/comments" --paginate)
+fi
+
