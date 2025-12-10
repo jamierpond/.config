@@ -5,3 +5,4 @@ tell application "System Events"
 end tell
 delay 2
 tell application "iTerm" to activate
+return "SUCCESS: Ableton MIDI Remote Scripts reloaded"
