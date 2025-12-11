@@ -1,3 +1,4 @@
 {
-  "observability_enabled": true
+  "file_logging_enabled": true,
+  "posthog_enabled": true
 }
