@@ -1,4 +1,3 @@
 {
-  "file_logging_enabled": true,
-  "posthog_enabled": true
+  "telemetry_enabled": true
 }
