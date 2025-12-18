@@ -90,35 +90,26 @@ while IFS= read -r file; do
     fi
 done <<< "$matches"
 
-echo -e "\n\n#########################"
-echo -e "### Files listed above:"
-file_count=0
-footer_chars=0
-while IFS= read -r file; do
-    echo "- $file"
-    file_count=$((file_count + 1))
-    footer_chars=$((footer_chars + ${#file} + 3))
-done <<< "$matches"
-total_lines=$((total_lines + file_count + 4))
-total_chars=$((total_chars + footer_chars + 50))
-
 # Print LOC summary
 if [ -n "$file_locs" ]; then
-    echo -e "\n#########################"
+    echo -e "\n\n#########################"
     echo -e "### Lines of Code:"
     total_loc=0
     loc_count=0
+    footer_chars=0
     while IFS=':' read -r loc file; do
         if [ -n "$loc" ]; then
             printf "%6d  %s\n" "$loc" "$file"
             total_loc=$((total_loc + loc))
             loc_count=$((loc_count + 1))
+            footer_chars=$((footer_chars + ${#file} + 10))
         fi
     done <<< "$(echo "$file_locs" | sort -t: -k2)"
     echo "-----------------------------------"
     printf "Total Lines of Code: %d\n" "$total_loc"
     loc_section_lines=$((loc_count + 4))
     total_lines=$((total_lines + loc_section_lines))
+    total_chars=$((total_chars + footer_chars + 50))
 fi
 
 if [ "$total_chars" -ge 1048576 ]; then
