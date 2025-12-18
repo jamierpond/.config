@@ -583,4 +583,11 @@ if [ -f '/Users/jamiepond/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/U
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/jamiepond/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/jamiepond/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
 
+# yapi completion
+if command -v yapi &> /dev/null; then
+  source <(yapi completion zsh)
+fi
+
+# Add local man pages to MANPATH
+export MANPATH="$HOME/.local/share/man:$MANPATH"
 
