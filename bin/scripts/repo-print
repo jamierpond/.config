@@ -104,7 +104,7 @@ if [ -n "$file_locs" ]; then
             loc_count=$((loc_count + 1))
             footer_chars=$((footer_chars + ${#file} + 10))
         fi
-    done <<< "$(echo "$file_locs" | sort -t: -k2)"
+    done <<< "$(echo "$file_locs" | sort -t: -k1 -n)"
     echo "-----------------------------------"
     printf "Total Lines of Code: %d\n" "$total_loc"
     loc_section_lines=$((loc_count + 4))
