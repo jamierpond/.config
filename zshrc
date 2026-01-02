@@ -18,6 +18,7 @@ alias "r"="tmp_run"
 
 alias dockernuke='docker kill $(docker ps -q)'
 alias dn='dockernuke'
+alias archbtw='~/.config/bin/scripts/arch.sh'
 
 export HISTFILE="$HOME/.zsh_history"
 
