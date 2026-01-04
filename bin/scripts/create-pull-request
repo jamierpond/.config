@@ -21,8 +21,20 @@ if [ -n "$existing_pr" ]; then
   exit 0
 fi
 
+git_root=$(git rev-parse --show-toplevel)
+pond_yml="$git_root/.pond.yml"
+base_branch=""
+
+if [ -f "$pond_yml" ]; then
+  base_branch=$(yq -r '.pr_base_branch // ""' "$pond_yml")
+fi
+
 export EDITOR="nvim"
-gh pr create
+if [ -n "$base_branch" ]; then
+  gh pr create --base "$base_branch"
+else
+  gh pr create
+fi
 openweb
 
 
