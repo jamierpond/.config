@@ -339,7 +339,7 @@ lazy.setup({
 
   -- yapi (local plugin)
   {
-    dir = "~/projects/yapi",
+    dir = "~/projects/yapi/integrations/nvim",
     name = "yapi-nvim",
     config = function()
       require("yapi_nvim").setup({
