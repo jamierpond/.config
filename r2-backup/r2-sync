@@ -1,217 +1,181 @@
-#!/bin/bash
-# r2-sync - Sync local directories to Cloudflare R2
+#!/usr/bin/env python3
+"""Sync local directories to Cloudflare R2 bucket."""
 
-set -e
+import subprocess
+import sys
+from pathlib import Path
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_FILE="$SCRIPT_DIR/r2.conf"
-BUCKET="jamie-personal"
-REMOTE="r2-backup"
+SCRIPT_DIR = Path(__file__).parent
+CONFIG_FILE = SCRIPT_DIR / "r2.conf"
+REMOTE = "r2-backup"
 
-# Default directories to sync
-DEFAULT_DIRS=(
-    "$HOME/Downloads"
-    "$HOME/Documents"
-    "$HOME/Photos"
-)
+DEFAULT_DIRS = [
+    Path.home() / "Downloads",
+    Path.home() / "Documents",
+    Path.home() / "Photos",
+    Path.home() / "Movies",
+    Path.home() / "Music",
+    Path.home() / "Desktop",
+]
 
-usage() {
-    cat <<EOF
-Usage: $(basename "$0") [OPTIONS] [DIRECTORIES...]
+def human_size(bytes_val):
+    for unit in ['B', 'K', 'M', 'G', 'T']:
+        if bytes_val < 1024:
+            return f"{bytes_val:.1f}{unit}"
+        bytes_val /= 1024
+    return f"{bytes_val:.1f}P"
 
-Sync local directories to Cloudflare R2 bucket.
+def get_dir_size(path):
+    if not path.exists():
+        return 0
+    try:
+        result = subprocess.run(["du", "-sk", str(path)], capture_output=True, text=True)
+        return int(result.stdout.split()[0]) * 1024
+    except:
+        return 0
 
-Options:
-    -b, --bucket NAME    R2 bucket name (default: $BUCKET)
-    -n, --dry-run        Show what would be transferred (uses defaults if no dirs specified)
-    -d, --delete         Delete files in R2 that don't exist locally
-    -l, --list           List configured default directories
-    -a, --all            Sync all default directories
-    -h, --help           Show this help message
+def sync_directory(dir_path, bucket, dry_run=False, delete=False):
+    if not dir_path.exists():
+        print(f"  Skipping (not found): {dir_path}")
+        return False
 
-If no directories specified, will prompt for selection (or use defaults with -n).
+    dir_name = dir_path.name
+    remote_path = f"{REMOTE}:{bucket}/{dir_name}"
 
-Examples:
-    $(basename "$0") ~/Downloads              # Sync Downloads folder
-    $(basename "$0") -a                       # Sync all default directories
-    $(basename "$0") -n                       # Dry run for all defaults
-    $(basename "$0") -n ~/Documents           # Dry run for Documents
-    $(basename "$0") -d ~/Photos              # Sync and delete removed files
-EOF
-}
+    print()
+    print("=" * 50)
+    print(f"Syncing: {dir_path}")
+    print(f"     To: {remote_path}")
+    if dry_run:
+        print("[DRY RUN]")
+    print("=" * 50)
 
-list_defaults() {
-    echo "Default directories configured for sync:"
-    for dir in "${DEFAULT_DIRS[@]}"; do
-        if [[ -d "$dir" ]]; then
-            echo "  [exists] $dir"
-        else
-            echo "  [missing] $dir"
-        fi
-    done
-}
+    cmd = [
+        "rclone", "sync",
+        str(dir_path), remote_path,
+        "--config", str(CONFIG_FILE),
+        "--progress",
+        "--stats-one-line",
+        "--stats=5s",
+        "--stats-file-name-length=40",
+        "--log-level", "INFO",
+    ]
 
-sync_directory() {
-    local dir="$1"
-    local dry_run="$2"
-    local delete="$3"
+    if dry_run:
+        cmd.append("--dry-run")
+    if delete:
+        cmd.append("--delete-during")
 
-    if [[ ! -d "$dir" ]]; then
-        echo "Error: Directory does not exist: $dir"
-        return 1
-    fi
+    subprocess.run(cmd)
+    print(f"Done: {dir_name}")
+    return True
 
-    # Get the base name for the remote path (e.g., Downloads, Documents)
-    local dir_name=$(basename "$dir")
-    local remote_path="$REMOTE:$BUCKET/$dir_name"
+def select_with_fzf(options):
+    try:
+        proc = subprocess.run(
+            ["fzf", "--multi", "--prompt=Select dirs > "],
+            input="\n".join(str(o) for o in options),
+            capture_output=True, text=True
+        )
+        if proc.returncode == 0 and proc.stdout.strip():
+            return [Path(p) for p in proc.stdout.strip().split("\n")]
+    except FileNotFoundError:
+        pass
+    return None
 
-    echo ""
-    echo "============================================="
-    echo "Syncing: $dir"
-    echo "     To: $remote_path"
-    echo "============================================="
+def main():
+    import argparse
 
-    local rclone_args=(
-        sync
-        "$dir"
-        "$remote_path"
-        --config "$CONFIG_FILE"
-        --progress
-        --stats-one-line
-        --stats=5s
-        --stats-file-name-length=40
-        --log-level INFO
-    )
+    default_bucket = "jamie-personal"
 
-    if [[ "$dry_run" == "true" ]]; then
-        rclone_args+=(--dry-run)
-        echo "[DRY RUN MODE]"
-    fi
+    parser = argparse.ArgumentParser(description="Sync directories to Cloudflare R2")
+    parser.add_argument("dirs", nargs="*", help="Directories to sync")
+    parser.add_argument("-n", "--dry-run", action="store_true",
+                        help="Show what would be transferred (defaults to all dirs if none specified)")
+    parser.add_argument("-d", "--delete", action="store_true",
+                        help="Delete files in R2 that don't exist locally")
+    parser.add_argument("-a", "--all", action="store_true",
+                        help="Sync all default directories")
+    parser.add_argument("-l", "--list", action="store_true",
+                        help="List default directories")
+    parser.add_argument("-b", "--bucket", default=default_bucket,
+                        help=f"R2 bucket name (default: {default_bucket})")
+    args = parser.parse_args()
 
-    if [[ "$delete" == "true" ]]; then
-        echo "[DELETE MODE: Files removed locally will be removed from R2]"
-    fi
+    bucket = args.bucket
 
-    rclone "${rclone_args[@]}"
+    # Check rclone
+    if subprocess.run(["which", "rclone"], capture_output=True).returncode != 0:
+        print("Error: rclone not installed. Run: brew install rclone")
+        sys.exit(1)
 
-    echo "Sync complete: $dir_name"
-}
+    if not CONFIG_FILE.exists():
+        print(f"Error: Config not found: {CONFIG_FILE}")
+        sys.exit(1)
 
-# Parse arguments
-DRY_RUN="false"
-DELETE="false"
-SYNC_ALL="false"
-DIRS=()
+    # List mode
+    if args.list:
+        print("Default directories:")
+        for d in DEFAULT_DIRS:
+            status = "exists" if d.exists() else "missing"
+            print(f"  [{status}] {d}")
+        sys.exit(0)
 
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        -b|--bucket)
-            BUCKET="$2"
-            shift 2
-            ;;
-        -n|--dry-run)
-            DRY_RUN="true"
-            shift
-            ;;
-        -d|--delete)
-            DELETE="true"
-            shift
-            ;;
-        -l|--list)
-            list_defaults
-            exit 0
-            ;;
-        -a|--all)
-            SYNC_ALL="true"
-            shift
-            ;;
-        -h|--help)
-            usage
-            exit 0
-            ;;
-        -*)
-            echo "Unknown option: $1"
-            usage
-            exit 1
-            ;;
-        *)
-            # Expand path
-            DIRS+=("$(cd "$1" 2>/dev/null && pwd || echo "$1")")
-            shift
-            ;;
-    esac
-done
+    # Determine directories
+    if args.dirs:
+        dirs = [Path(d).expanduser().resolve() for d in args.dirs]
+    elif args.all or args.dry_run:
+        dirs = DEFAULT_DIRS
+    else:
+        dirs = select_with_fzf(DEFAULT_DIRS)
+        if not dirs:
+            print("No directories specified. Use -a for all, or specify paths.")
+            print()
+            for d in DEFAULT_DIRS:
+                status = "exists" if d.exists() else "missing"
+                print(f"  [{status}] {d}")
+            sys.exit(1)
 
-# Check rclone is installed
-if ! command -v rclone &> /dev/null; then
-    echo "Error: rclone is not installed"
-    echo "Install with: brew install rclone"
-    exit 1
-fi
+    # Calculate sizes and show summary
+    print()
+    print("=" * 50)
+    print("R2 Backup Sync")
+    print("=" * 50)
+    print()
+    print("Directories:")
 
-# Check config exists
-if [[ ! -f "$CONFIG_FILE" ]]; then
-    echo "Error: Config file not found: $CONFIG_FILE"
-    exit 1
-fi
+    total_bytes = 0
+    for d in dirs:
+        size = get_dir_size(d)
+        total_bytes += size
+        status = human_size(size) if d.exists() else "[not found]"
+        print(f"  {str(d):<40} {status:>10}")
 
-# Determine which directories to sync
-if [[ "$SYNC_ALL" == "true" ]]; then
-    DIRS=("${DEFAULT_DIRS[@]}")
-elif [[ ${#DIRS[@]} -eq 0 ]]; then
-    # If dry-run with no dirs specified, use defaults
-    if [[ "$DRY_RUN" == "true" ]]; then
-        DIRS=("${DEFAULT_DIRS[@]}")
-    # Interactive selection with fzf if available
-    elif command -v fzf &> /dev/null; then
-        echo "Select directories to sync (TAB to multi-select, ENTER to confirm):"
-        selected=$(printf '%s\n' "${DEFAULT_DIRS[@]}" | fzf --multi --prompt="Select dirs > ")
-        if [[ -z "$selected" ]]; then
-            echo "No directories selected. Exiting."
-            exit 0
-        fi
-        while IFS= read -r dir; do
-            DIRS+=("$dir")
-        done <<< "$selected"
-    else
-        echo "No directories specified. Use -a for all defaults or specify paths."
-        echo ""
-        list_defaults
-        exit 1
-    fi
-fi
+    print()
+    print("-" * 50)
+    print(f"  {'Bucket:':<12} {bucket}")
+    print(f"  {'Total:':<12} {human_size(total_bytes)}")
+    if args.dry_run:
+        print(f"  {'Mode:':<12} DRY RUN (no changes)")
+    if args.delete:
+        print(f"  {'Delete:':<12} YES (removed files deleted from R2)")
+    print("=" * 50)
+    print()
 
-# Confirmation
-echo ""
-echo "============================================="
-echo "R2 Backup Sync"
-echo "============================================="
-echo "Bucket: $BUCKET"
-echo "Directories to sync:"
-for dir in "${DIRS[@]}"; do
-    echo "  - $dir"
-done
-if [[ "$DRY_RUN" == "true" ]]; then
-    echo "Mode: DRY RUN (no changes will be made)"
-fi
-if [[ "$DELETE" == "true" ]]; then
-    echo "Delete: YES (removed local files will be deleted from R2)"
-fi
-echo "============================================="
-echo ""
+    # Confirm
+    answer = input("Continue? (y/n): ").strip().lower()
+    if answer != 'y':
+        print("Aborted.")
+        sys.exit(0)
 
-read -p "Continue? (y/n): " answer
-if [[ ! $answer =~ ^[yY]$ ]]; then
-    echo "Aborted."
-    exit 0
-fi
+    # Sync
+    for d in dirs:
+        sync_directory(d, bucket, dry_run=args.dry_run, delete=args.delete)
 
-# Sync each directory
-for dir in "${DIRS[@]}"; do
-    sync_directory "$dir" "$DRY_RUN" "$DELETE"
-done
+    print()
+    print("=" * 50)
+    print("All syncs complete!")
+    print("=" * 50)
 
-echo ""
-echo "============================================="
-echo "All syncs complete!"
-echo "============================================="
+if __name__ == "__main__":
+    main()

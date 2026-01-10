@@ -1,232 +1,148 @@
-#!/bin/bash
-# r2-browse - Browse and restore files from Cloudflare R2 using fzf
+#!/usr/bin/env python3
+"""Browse and restore files from Cloudflare R2 using fzf."""
 
-set -e
+import subprocess
+import sys
+import os
+from pathlib import Path
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_FILE="$SCRIPT_DIR/r2.conf"
-BUCKET="jamie-personal"
-REMOTE="r2-backup"
+SCRIPT_DIR = Path(__file__).parent
+CONFIG_FILE = SCRIPT_DIR / "r2.conf"
+BUCKET = "jamie-personal"
+REMOTE = "r2-backup"
 
-usage() {
-    cat <<EOF
-Usage: $(basename "$0") [OPTIONS] [PATH]
+def rclone(*args):
+    """Run rclone command and return output."""
+    cmd = ["rclone", "--config", str(CONFIG_FILE)] + list(args)
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    return result.stdout, result.returncode
 
-Browse and restore files from Cloudflare R2 bucket using fzf.
+def list_files(path):
+    """List all files at path."""
+    out, _ = rclone("ls", path)
+    files = []
+    for line in out.strip().split("\n"):
+        if line.strip():
+            parts = line.split(maxsplit=1)
+            if len(parts) == 2:
+                files.append(parts[1])
+    return files
 
-Options:
-    -b, --bucket NAME     R2 bucket name (default: $BUCKET)
-    -o, --output DIR      Restore destination (default: original location)
-    -l, --list            Just list files without interactive mode
-    -s, --size            Include file sizes in listing
-    -h, --help            Show this help message
+def human_size(bytes_val):
+    for unit in ['B', 'K', 'M', 'G', 'T']:
+        if bytes_val < 1024:
+            return f"{bytes_val:.1f}{unit}"
+        bytes_val /= 1024
+    return f"{bytes_val:.1f}P"
 
-Examples:
-    $(basename "$0")                          # Browse entire bucket
-    $(basename "$0") Downloads                # Browse Downloads folder
-    $(basename "$0") Documents/work           # Browse specific path
-    $(basename "$0") -o ~/restored Downloads  # Restore to specific location
-EOF
-}
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Browse and restore files from R2")
+    parser.add_argument("path", nargs="?", default="", help="Path to browse in bucket")
+    parser.add_argument("-o", "--output", help="Restore destination")
+    parser.add_argument("-l", "--list", action="store_true", help="List files without fzf")
+    parser.add_argument("-b", "--bucket", default=BUCKET, help=f"Bucket name (default: {BUCKET})")
+    args = parser.parse_args()
 
-# Parse arguments
-OUTPUT_DIR=""
-LIST_ONLY="false"
-SHOW_SIZE="false"
-BROWSE_PATH=""
+    bucket = args.bucket
+    browse_path = args.path.strip("/") if args.path else ""
+    remote_base = f"{REMOTE}:{bucket}"
+    remote_path = f"{remote_base}/{browse_path}" if browse_path else remote_base
 
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        -b|--bucket)
-            BUCKET="$2"
-            shift 2
-            ;;
-        -o|--output)
-            OUTPUT_DIR="$2"
-            shift 2
-            ;;
-        -l|--list)
-            LIST_ONLY="true"
-            shift
-            ;;
-        -s|--size)
-            SHOW_SIZE="true"
-            shift
-            ;;
-        -h|--help)
-            usage
-            exit 0
-            ;;
-        -*)
-            echo "Unknown option: $1"
-            usage
-            exit 1
-            ;;
-        *)
-            BROWSE_PATH="$1"
-            shift
-            ;;
-    esac
-done
+    if not CONFIG_FILE.exists():
+        print(f"Error: Config not found: {CONFIG_FILE}")
+        sys.exit(1)
 
-# Check dependencies
-if ! command -v rclone &> /dev/null; then
-    echo "Error: rclone is not installed"
-    echo "Install with: brew install rclone"
-    exit 1
-fi
+    # Check fzf for interactive mode
+    if not args.list:
+        if subprocess.run(["which", "fzf"], capture_output=True).returncode != 0:
+            print("Error: fzf not installed. Run: brew install fzf")
+            print("Or use -l for list mode")
+            sys.exit(1)
 
-if [[ "$LIST_ONLY" == "false" ]] && ! command -v fzf &> /dev/null; then
-    echo "Error: fzf is not installed"
-    echo "Install with: brew install fzf"
-    exit 1
-fi
+    print(f"Loading files from: {remote_path}")
+    files = list_files(remote_path)
 
-if [[ ! -f "$CONFIG_FILE" ]]; then
-    echo "Error: Config file not found: $CONFIG_FILE"
-    exit 1
-fi
+    if not files:
+        print("No files found.")
+        sys.exit(0)
 
-REMOTE_PATH="$REMOTE:$BUCKET"
-if [[ -n "$BROWSE_PATH" ]]; then
-    REMOTE_PATH="$REMOTE_PATH/$BROWSE_PATH"
-fi
+    print(f"Found {len(files)} files")
 
-# List files
-list_files() {
-    local path="$1"
-    if [[ "$SHOW_SIZE" == "true" ]]; then
-        rclone ls "$path" --config "$CONFIG_FILE" 2>/dev/null | \
-            awk '{size=$1; $1=""; path=substr($0,2); printf "%10s  %s\n", size, path}'
-    else
-        rclone ls "$path" --config "$CONFIG_FILE" 2>/dev/null | \
-            awk '{$1=""; print substr($0,2)}'
-    fi
-}
+    # List mode
+    if args.list:
+        for f in files:
+            print(f"  {f}")
+        sys.exit(0)
 
-# List directories
-list_dirs() {
-    local path="$1"
-    rclone lsd "$path" --config "$CONFIG_FILE" 2>/dev/null | \
-        awk '{print $NF "/"}'
-}
+    # fzf selection
+    proc = subprocess.run(
+        ["fzf", "--multi",
+         "--prompt=Select files (TAB=multi) > ",
+         f"--header=Browsing: {remote_path}",
+         "--bind=ctrl-a:select-all"],
+        input="\n".join(files),
+        capture_output=True, text=True
+    )
 
-# Get all items (dirs and files)
-list_all() {
-    local path="$1"
-    {
-        list_dirs "$path" 2>/dev/null
-        list_files "$path" 2>/dev/null
-    } | sort
-}
+    if proc.returncode != 0 or not proc.stdout.strip():
+        print("No files selected.")
+        sys.exit(0)
 
-if [[ "$LIST_ONLY" == "true" ]]; then
-    echo "Listing: $REMOTE_PATH"
-    echo "============================================="
-    list_all "$REMOTE_PATH"
-    exit 0
-fi
+    selected = proc.stdout.strip().split("\n")
+    print()
+    print("=" * 50)
+    print(f"Selected {len(selected)} file(s):")
+    print("=" * 50)
+    for f in selected[:10]:
+        print(f"  {f}")
+    if len(selected) > 10:
+        print(f"  ... and {len(selected) - 10} more")
 
-# Interactive browsing with fzf
-echo "Loading files from R2..."
+    # Determine restore location
+    if args.output:
+        restore_base = Path(args.output).expanduser()
+    else:
+        # Try to restore to original location based on first path component
+        first_file = selected[0]
+        first_dir = first_file.split("/")[0] if "/" in first_file else ""
+        if first_dir in ["Downloads", "Documents", "Photos", "Movies", "Music", "Desktop"]:
+            restore_base = Path.home()
+        else:
+            restore_base = Path.home() / "restored-from-r2"
 
-# Create temp file for caching the file list
-CACHE_FILE=$(mktemp)
-trap "rm -f $CACHE_FILE" EXIT
+    print()
+    print(f"Restore to: {restore_base}")
+    if browse_path:
+        print(f"Path prefix: {browse_path}")
 
-# Recursive listing for fzf
-rclone ls "$REMOTE_PATH" --config "$CONFIG_FILE" 2>/dev/null | \
-    awk '{size=$1; $1=""; path=substr($0,2); printf "%s\n", path}' > "$CACHE_FILE"
+    answer = input("\nContinue? (y/n): ").strip().lower()
+    if answer != 'y':
+        print("Aborted.")
+        sys.exit(0)
 
-if [[ ! -s "$CACHE_FILE" ]]; then
-    echo "No files found in $REMOTE_PATH"
-    exit 0
-fi
+    # Restore files
+    print()
+    for f in selected:
+        if browse_path:
+            src = f"{remote_base}/{browse_path}/{f}"
+            dst = restore_base / browse_path / f
+        else:
+            src = f"{remote_base}/{f}"
+            dst = restore_base / f
 
-file_count=$(wc -l < "$CACHE_FILE" | tr -d ' ')
-echo "Found $file_count files"
-echo ""
+        print(f"Restoring: {f}")
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run([
+            "rclone", "copyto", src, str(dst),
+            "--config", str(CONFIG_FILE),
+            "--progress"
+        ])
 
-# fzf with preview
-PREVIEW_CMD="rclone cat '$REMOTE_PATH/{1}' --config '$CONFIG_FILE' 2>/dev/null | head -50 || echo '[Binary or large file - preview not available]'"
+    print()
+    print("=" * 50)
+    print(f"Restore complete! Files in: {restore_base}")
+    print("=" * 50)
 
-selected=$(cat "$CACHE_FILE" | fzf \
-    --multi \
-    --prompt="Select files to restore (TAB=multi, ENTER=confirm) > " \
-    --header="Browsing: $REMOTE_PATH" \
-    --preview="echo 'File: {}' && echo '---' && rclone size '$REMOTE_PATH/{}' --config '$CONFIG_FILE' 2>/dev/null | grep 'Total size'" \
-    --preview-window=right:40%:wrap \
-    --bind="ctrl-a:select-all" \
-    --bind="ctrl-d:deselect-all")
-
-if [[ -z "$selected" ]]; then
-    echo "No files selected. Exiting."
-    exit 0
-fi
-
-# Count selected files
-selected_count=$(echo "$selected" | wc -l | tr -d ' ')
-echo ""
-echo "============================================="
-echo "Selected $selected_count file(s) to restore:"
-echo "============================================="
-echo "$selected" | head -10
-if [[ $selected_count -gt 10 ]]; then
-    echo "... and $((selected_count - 10)) more"
-fi
-echo ""
-
-# Determine restore location
-if [[ -n "$OUTPUT_DIR" ]]; then
-    RESTORE_BASE="$OUTPUT_DIR"
-else
-    # Determine original location based on path
-    first_dir=$(echo "$selected" | head -1 | cut -d'/' -f1)
-    case "$first_dir" in
-        Downloads|Documents|Photos|Desktop|Movies|Music)
-            RESTORE_BASE="$HOME"
-            ;;
-        *)
-            RESTORE_BASE="$HOME/restored-from-r2"
-            ;;
-    esac
-fi
-
-echo "Restore destination: $RESTORE_BASE"
-if [[ -n "$BROWSE_PATH" ]]; then
-    echo "Remote path prefix: $BROWSE_PATH"
-fi
-echo ""
-
-read -p "Continue with restore? (y/n): " answer
-if [[ ! $answer =~ ^[yY]$ ]]; then
-    echo "Aborted."
-    exit 0
-fi
-
-# Restore each file
-echo ""
-echo "Restoring files..."
-
-while IFS= read -r file; do
-    # Build source and destination paths
-    if [[ -n "$BROWSE_PATH" ]]; then
-        src="$REMOTE:$BUCKET/$BROWSE_PATH/$file"
-        dst="$RESTORE_BASE/$BROWSE_PATH/$file"
-    else
-        src="$REMOTE:$BUCKET/$file"
-        dst="$RESTORE_BASE/$file"
-    fi
-
-    dst_dir=$(dirname "$dst")
-
-    echo "Restoring: $file"
-    mkdir -p "$dst_dir"
-    rclone copyto "$src" "$dst" --config "$CONFIG_FILE" --progress
-done <<< "$selected"
-
-echo ""
-echo "============================================="
-echo "Restore complete!"
-echo "Files restored to: $RESTORE_BASE"
-echo "============================================="
+if __name__ == "__main__":
+    main()
