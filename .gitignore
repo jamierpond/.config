@@ -35,3 +35,5 @@
 !opencode
 .crush
 !yapi
+!r2-backup
+*.conf

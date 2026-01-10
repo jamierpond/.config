@@ -1,0 +1,213 @@
+#!/bin/bash
+# r2-sync - Sync local directories to Cloudflare R2
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_FILE="$SCRIPT_DIR/r2.conf"
+BUCKET="backup"
+REMOTE="r2-backup"
+
+# Default directories to sync
+DEFAULT_DIRS=(
+    "$HOME/Downloads"
+    "$HOME/Documents"
+    "$HOME/Photos"
+)
+
+usage() {
+    cat <<EOF
+Usage: $(basename "$0") [OPTIONS] [DIRECTORIES...]
+
+Sync local directories to Cloudflare R2 bucket.
+
+Options:
+    -b, --bucket NAME    R2 bucket name (default: $BUCKET)
+    -n, --dry-run        Show what would be transferred without actually doing it
+    -d, --delete         Delete files in R2 that don't exist locally
+    -l, --list           List configured default directories
+    -a, --all            Sync all default directories
+    -h, --help           Show this help message
+
+If no directories specified, will prompt for selection.
+
+Examples:
+    $(basename "$0") ~/Downloads              # Sync Downloads folder
+    $(basename "$0") -a                       # Sync all default directories
+    $(basename "$0") -n ~/Documents           # Dry run for Documents
+    $(basename "$0") -d ~/Photos              # Sync and delete removed files
+EOF
+}
+
+list_defaults() {
+    echo "Default directories configured for sync:"
+    for dir in "${DEFAULT_DIRS[@]}"; do
+        if [[ -d "$dir" ]]; then
+            echo "  [exists] $dir"
+        else
+            echo "  [missing] $dir"
+        fi
+    done
+}
+
+sync_directory() {
+    local dir="$1"
+    local dry_run="$2"
+    local delete="$3"
+
+    if [[ ! -d "$dir" ]]; then
+        echo "Error: Directory does not exist: $dir"
+        return 1
+    fi
+
+    # Get the base name for the remote path (e.g., Downloads, Documents)
+    local dir_name=$(basename "$dir")
+    local remote_path="$REMOTE:$BUCKET/$dir_name"
+
+    echo ""
+    echo "============================================="
+    echo "Syncing: $dir"
+    echo "     To: $remote_path"
+    echo "============================================="
+
+    local rclone_args=(
+        sync
+        "$dir"
+        "$remote_path"
+        --config "$CONFIG_FILE"
+        --progress
+        --stats-one-line
+        --stats=5s
+        --stats-file-name-length=40
+        --log-level INFO
+    )
+
+    if [[ "$dry_run" == "true" ]]; then
+        rclone_args+=(--dry-run)
+        echo "[DRY RUN MODE]"
+    fi
+
+    if [[ "$delete" == "true" ]]; then
+        echo "[DELETE MODE: Files removed locally will be removed from R2]"
+    fi
+
+    rclone "${rclone_args[@]}"
+
+    echo "Sync complete: $dir_name"
+}
+
+# Parse arguments
+DRY_RUN="false"
+DELETE="false"
+SYNC_ALL="false"
+DIRS=()
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -b|--bucket)
+            BUCKET="$2"
+            shift 2
+            ;;
+        -n|--dry-run)
+            DRY_RUN="true"
+            shift
+            ;;
+        -d|--delete)
+            DELETE="true"
+            shift
+            ;;
+        -l|--list)
+            list_defaults
+            exit 0
+            ;;
+        -a|--all)
+            SYNC_ALL="true"
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -*)
+            echo "Unknown option: $1"
+            usage
+            exit 1
+            ;;
+        *)
+            # Expand path
+            DIRS+=("$(cd "$1" 2>/dev/null && pwd || echo "$1")")
+            shift
+            ;;
+    esac
+done
+
+# Check rclone is installed
+if ! command -v rclone &> /dev/null; then
+    echo "Error: rclone is not installed"
+    echo "Install with: brew install rclone"
+    exit 1
+fi
+
+# Check config exists
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "Error: Config file not found: $CONFIG_FILE"
+    exit 1
+fi
+
+# Determine which directories to sync
+if [[ "$SYNC_ALL" == "true" ]]; then
+    DIRS=("${DEFAULT_DIRS[@]}")
+elif [[ ${#DIRS[@]} -eq 0 ]]; then
+    # Interactive selection with fzf if available
+    if command -v fzf &> /dev/null; then
+        echo "Select directories to sync (TAB to multi-select, ENTER to confirm):"
+        selected=$(printf '%s\n' "${DEFAULT_DIRS[@]}" | fzf --multi --prompt="Select dirs > ")
+        if [[ -z "$selected" ]]; then
+            echo "No directories selected. Exiting."
+            exit 0
+        fi
+        while IFS= read -r dir; do
+            DIRS+=("$dir")
+        done <<< "$selected"
+    else
+        echo "No directories specified. Use -a for all defaults or specify paths."
+        echo ""
+        list_defaults
+        exit 1
+    fi
+fi
+
+# Confirmation
+echo ""
+echo "============================================="
+echo "R2 Backup Sync"
+echo "============================================="
+echo "Bucket: $BUCKET"
+echo "Directories to sync:"
+for dir in "${DIRS[@]}"; do
+    echo "  - $dir"
+done
+if [[ "$DRY_RUN" == "true" ]]; then
+    echo "Mode: DRY RUN (no changes will be made)"
+fi
+if [[ "$DELETE" == "true" ]]; then
+    echo "Delete: YES (removed local files will be deleted from R2)"
+fi
+echo "============================================="
+echo ""
+
+read -p "Continue? (y/n): " answer
+if [[ ! $answer =~ ^[yY]$ ]]; then
+    echo "Aborted."
+    exit 0
+fi
+
+# Sync each directory
+for dir in "${DIRS[@]}"; do
+    sync_directory "$dir" "$DRY_RUN" "$DELETE"
+done
+
+echo ""
+echo "============================================="
+echo "All syncs complete!"
+echo "============================================="
