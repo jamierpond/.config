@@ -23,17 +23,18 @@ Sync local directories to Cloudflare R2 bucket.
 
 Options:
     -b, --bucket NAME    R2 bucket name (default: $BUCKET)
-    -n, --dry-run        Show what would be transferred without actually doing it
+    -n, --dry-run        Show what would be transferred (uses defaults if no dirs specified)
     -d, --delete         Delete files in R2 that don't exist locally
     -l, --list           List configured default directories
     -a, --all            Sync all default directories
     -h, --help           Show this help message
 
-If no directories specified, will prompt for selection.
+If no directories specified, will prompt for selection (or use defaults with -n).
 
 Examples:
     $(basename "$0") ~/Downloads              # Sync Downloads folder
     $(basename "$0") -a                       # Sync all default directories
+    $(basename "$0") -n                       # Dry run for all defaults
     $(basename "$0") -n ~/Documents           # Dry run for Documents
     $(basename "$0") -d ~/Photos              # Sync and delete removed files
 EOF
@@ -158,8 +159,11 @@ fi
 if [[ "$SYNC_ALL" == "true" ]]; then
     DIRS=("${DEFAULT_DIRS[@]}")
 elif [[ ${#DIRS[@]} -eq 0 ]]; then
+    # If dry-run with no dirs specified, use defaults
+    if [[ "$DRY_RUN" == "true" ]]; then
+        DIRS=("${DEFAULT_DIRS[@]}")
     # Interactive selection with fzf if available
-    if command -v fzf &> /dev/null; then
+    elif command -v fzf &> /dev/null; then
         echo "Select directories to sync (TAB to multi-select, ENTER to confirm):"
         selected=$(printf '%s\n' "${DEFAULT_DIRS[@]}" | fzf --multi --prompt="Select dirs > ")
         if [[ -z "$selected" ]]; then
