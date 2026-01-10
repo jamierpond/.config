@@ -1,0 +1,232 @@
+#!/bin/bash
+# r2-browse - Browse and restore files from Cloudflare R2 using fzf
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_FILE="$SCRIPT_DIR/r2.conf"
+BUCKET="jamie-personal"
+REMOTE="r2-backup"
+
+usage() {
+    cat <<EOF
+Usage: $(basename "$0") [OPTIONS] [PATH]
+
+Browse and restore files from Cloudflare R2 bucket using fzf.
+
+Options:
+    -b, --bucket NAME     R2 bucket name (default: $BUCKET)
+    -o, --output DIR      Restore destination (default: original location)
+    -l, --list            Just list files without interactive mode
+    -s, --size            Include file sizes in listing
+    -h, --help            Show this help message
+
+Examples:
+    $(basename "$0")                          # Browse entire bucket
+    $(basename "$0") Downloads                # Browse Downloads folder
+    $(basename "$0") Documents/work           # Browse specific path
+    $(basename "$0") -o ~/restored Downloads  # Restore to specific location
+EOF
+}
+
+# Parse arguments
+OUTPUT_DIR=""
+LIST_ONLY="false"
+SHOW_SIZE="false"
+BROWSE_PATH=""
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -b|--bucket)
+            BUCKET="$2"
+            shift 2
+            ;;
+        -o|--output)
+            OUTPUT_DIR="$2"
+            shift 2
+            ;;
+        -l|--list)
+            LIST_ONLY="true"
+            shift
+            ;;
+        -s|--size)
+            SHOW_SIZE="true"
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -*)
+            echo "Unknown option: $1"
+            usage
+            exit 1
+            ;;
+        *)
+            BROWSE_PATH="$1"
+            shift
+            ;;
+    esac
+done
+
+# Check dependencies
+if ! command -v rclone &> /dev/null; then
+    echo "Error: rclone is not installed"
+    echo "Install with: brew install rclone"
+    exit 1
+fi
+
+if [[ "$LIST_ONLY" == "false" ]] && ! command -v fzf &> /dev/null; then
+    echo "Error: fzf is not installed"
+    echo "Install with: brew install fzf"
+    exit 1
+fi
+
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "Error: Config file not found: $CONFIG_FILE"
+    exit 1
+fi
+
+REMOTE_PATH="$REMOTE:$BUCKET"
+if [[ -n "$BROWSE_PATH" ]]; then
+    REMOTE_PATH="$REMOTE_PATH/$BROWSE_PATH"
+fi
+
+# List files
+list_files() {
+    local path="$1"
+    if [[ "$SHOW_SIZE" == "true" ]]; then
+        rclone ls "$path" --config "$CONFIG_FILE" 2>/dev/null | \
+            awk '{size=$1; $1=""; path=substr($0,2); printf "%10s  %s\n", size, path}'
+    else
+        rclone ls "$path" --config "$CONFIG_FILE" 2>/dev/null | \
+            awk '{$1=""; print substr($0,2)}'
+    fi
+}
+
+# List directories
+list_dirs() {
+    local path="$1"
+    rclone lsd "$path" --config "$CONFIG_FILE" 2>/dev/null | \
+        awk '{print $NF "/"}'
+}
+
+# Get all items (dirs and files)
+list_all() {
+    local path="$1"
+    {
+        list_dirs "$path" 2>/dev/null
+        list_files "$path" 2>/dev/null
+    } | sort
+}
+
+if [[ "$LIST_ONLY" == "true" ]]; then
+    echo "Listing: $REMOTE_PATH"
+    echo "============================================="
+    list_all "$REMOTE_PATH"
+    exit 0
+fi
+
+# Interactive browsing with fzf
+echo "Loading files from R2..."
+
+# Create temp file for caching the file list
+CACHE_FILE=$(mktemp)
+trap "rm -f $CACHE_FILE" EXIT
+
+# Recursive listing for fzf
+rclone ls "$REMOTE_PATH" --config "$CONFIG_FILE" 2>/dev/null | \
+    awk '{size=$1; $1=""; path=substr($0,2); printf "%s\n", path}' > "$CACHE_FILE"
+
+if [[ ! -s "$CACHE_FILE" ]]; then
+    echo "No files found in $REMOTE_PATH"
+    exit 0
+fi
+
+file_count=$(wc -l < "$CACHE_FILE" | tr -d ' ')
+echo "Found $file_count files"
+echo ""
+
+# fzf with preview
+PREVIEW_CMD="rclone cat '$REMOTE_PATH/{1}' --config '$CONFIG_FILE' 2>/dev/null | head -50 || echo '[Binary or large file - preview not available]'"
+
+selected=$(cat "$CACHE_FILE" | fzf \
+    --multi \
+    --prompt="Select files to restore (TAB=multi, ENTER=confirm) > " \
+    --header="Browsing: $REMOTE_PATH" \
+    --preview="echo 'File: {}' && echo '---' && rclone size '$REMOTE_PATH/{}' --config '$CONFIG_FILE' 2>/dev/null | grep 'Total size'" \
+    --preview-window=right:40%:wrap \
+    --bind="ctrl-a:select-all" \
+    --bind="ctrl-d:deselect-all")
+
+if [[ -z "$selected" ]]; then
+    echo "No files selected. Exiting."
+    exit 0
+fi
+
+# Count selected files
+selected_count=$(echo "$selected" | wc -l | tr -d ' ')
+echo ""
+echo "============================================="
+echo "Selected $selected_count file(s) to restore:"
+echo "============================================="
+echo "$selected" | head -10
+if [[ $selected_count -gt 10 ]]; then
+    echo "... and $((selected_count - 10)) more"
+fi
+echo ""
+
+# Determine restore location
+if [[ -n "$OUTPUT_DIR" ]]; then
+    RESTORE_BASE="$OUTPUT_DIR"
+else
+    # Determine original location based on path
+    first_dir=$(echo "$selected" | head -1 | cut -d'/' -f1)
+    case "$first_dir" in
+        Downloads|Documents|Photos|Desktop|Movies|Music)
+            RESTORE_BASE="$HOME"
+            ;;
+        *)
+            RESTORE_BASE="$HOME/restored-from-r2"
+            ;;
+    esac
+fi
+
+echo "Restore destination: $RESTORE_BASE"
+if [[ -n "$BROWSE_PATH" ]]; then
+    echo "Remote path prefix: $BROWSE_PATH"
+fi
+echo ""
+
+read -p "Continue with restore? (y/n): " answer
+if [[ ! $answer =~ ^[yY]$ ]]; then
+    echo "Aborted."
+    exit 0
+fi
+
+# Restore each file
+echo ""
+echo "Restoring files..."
+
+while IFS= read -r file; do
+    # Build source and destination paths
+    if [[ -n "$BROWSE_PATH" ]]; then
+        src="$REMOTE:$BUCKET/$BROWSE_PATH/$file"
+        dst="$RESTORE_BASE/$BROWSE_PATH/$file"
+    else
+        src="$REMOTE:$BUCKET/$file"
+        dst="$RESTORE_BASE/$file"
+    fi
+
+    dst_dir=$(dirname "$dst")
+
+    echo "Restoring: $file"
+    mkdir -p "$dst_dir"
+    rclone copyto "$src" "$dst" --config "$CONFIG_FILE" --progress
+done <<< "$selected"
+
+echo ""
+echo "============================================="
+echo "Restore complete!"
+echo "Files restored to: $RESTORE_BASE"
+echo "============================================="
