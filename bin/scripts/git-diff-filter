@@ -49,6 +49,10 @@ while [ $# -gt 0 ]; do
             show_help
             ;;
         -s|--skip-above)
+            if [ $# -lt 2 ] || [[ "$2" == -* ]]; then
+                echo "Error: -s requires a number"
+                exit 1
+            fi
             skip_above="$2"
             shift 2
             ;;
@@ -61,6 +65,10 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         -e|--exclude)
+            if [ $# -lt 2 ] || [[ "$2" == -* ]]; then
+                echo "Error: -e requires a pattern"
+                exit 1
+            fi
             excludes+=("$2")
             shift 2
             ;;
@@ -129,7 +137,7 @@ done < <(git diff --numstat "$ref")
         else
             printf "%6d  (+%-4d -%4d)  %s\n" "$total" "$adds" "$dels" "$file"
         fi
-    done <<< "$(echo -n "$file_stats" | sort -t: -k1 -rn)"
+    done <<< "$(echo -n "$file_stats" | sort -t: -k1 -n)"
     echo "-----------------------------------"
     printf "Total: %d lines changed\n" "$total_lines"
     if [ ${#skip_files[@]} -gt 0 ]; then
