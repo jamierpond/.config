@@ -71,7 +71,7 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-# Build exclude pattern for grep
+# Build exclude pattern
 exclude_pattern=""
 for ex in "${excludes[@]+${excludes[@]}}"; do
     if [ -z "$exclude_pattern" ]; then
@@ -81,72 +81,88 @@ for ex in "${excludes[@]+${excludes[@]}}"; do
     fi
 done
 
-# Get the diff output
-diff_output=$(git diff "$ref")
+# Collect file stats
+skip_files=()
+included_files=()
+file_stats=""
+total_lines=0
+included_lines=0
+
+while IFS=$'\t' read -r adds dels file; do
+    [ -z "$file" ] && continue
+
+    # Handle binary files (shown as - -)
+    if [ "$adds" = "-" ]; then
+        adds=0
+        dels=0
+    fi
+
+    total=$((adds + dels))
+    total_lines=$((total_lines + total))
+
+    skip_reason=""
+
+    # Check exclude pattern
+    if [ -n "$exclude_pattern" ] && echo "$file" | grep -Eq "$exclude_pattern"; then
+        skip_reason="excluded"
+        skip_files+=("$file")
+    # Check line count
+    elif [ -n "$skip_above" ] && [ "$total" -gt "$skip_above" ]; then
+        skip_reason="too large"
+        skip_files+=("$file")
+    else
+        included_files+=("$file")
+        included_lines=$((included_lines + total))
+    fi
+
+    file_stats+="${total}:${adds}:${dels}:${skip_reason}:${file}"$'\n'
+done < <(git diff --numstat "$ref")
+
+# Print summary to stderr
+{
+    echo ""
+    echo "### Files changed:"
+    while IFS=':' read -r total adds dels reason file; do
+        [ -z "$file" ] && continue
+        if [ -n "$reason" ]; then
+            printf "%6d  (+%-4d -%4d)  [%s] %s\n" "$total" "$adds" "$dels" "$reason" "$file"
+        else
+            printf "%6d  (+%-4d -%4d)  %s\n" "$total" "$adds" "$dels" "$file"
+        fi
+    done <<< "$(echo -n "$file_stats" | sort -t: -k1 -rn)"
+    echo "-----------------------------------"
+    printf "Total: %d lines changed\n" "$total_lines"
+    if [ ${#skip_files[@]} -gt 0 ]; then
+        printf "Showing: %d lines (%d files), Skipped: %d lines (%d files)\n" \
+            "$included_lines" "${#included_files[@]}" \
+            "$((total_lines - included_lines))" "${#skip_files[@]}"
+    fi
+    echo ""
+} >&2
+
+# Build path exclusion args for git diff
+path_args=()
+for f in "${skip_files[@]+${skip_files[@]}}"; do
+    path_args+=(":(exclude)$f")
+done
+
+if [ ${#included_files[@]} -eq 0 ]; then
+    echo "No files to show (all filtered out)"
+    exit 0
+fi
+
+diff_output=$(git diff "$ref" -- . "${path_args[@]+${path_args[@]}}")
 
 if [ -z "$diff_output" ]; then
     echo "No changes"
     exit 0
 fi
 
-# Process the diff
-current_file=""
-current_block=""
-file_line_count=0
-
-process_block() {
-    if [ -z "$current_block" ]; then
-        return
-    fi
-
-    # Check if file matches exclude pattern
-    if [ -n "$exclude_pattern" ] && echo "$current_file" | grep -Eq "$exclude_pattern"; then
-        return
-    fi
-
-    # Check if we should skip based on line count
-    if [ -n "$skip_above" ] && [ "$file_line_count" -gt "$skip_above" ]; then
-        echo "--- Skipping $current_file ($file_line_count lines) ---"
-        return
-    fi
-
-    # Filter based on additions/removals
-    if $only_additions || $only_removals; then
-        filtered_block=""
-        while IFS= read -r line; do
-            # Always keep headers and context
-            if [[ "$line" =~ ^(diff|index|---|[+]{3}|@@|Binary) ]] || [[ ! "$line" =~ ^[+-] ]]; then
-                filtered_block+="$line"$'\n'
-            elif $only_additions && [[ "$line" =~ ^[+] ]]; then
-                filtered_block+="$line"$'\n'
-            elif $only_removals && [[ "$line" =~ ^[-] ]]; then
-                filtered_block+="$line"$'\n'
-            fi
-        done <<< "$current_block"
-        echo -n "$filtered_block"
-    else
-        echo -n "$current_block"
-    fi
-}
-
-while IFS= read -r line; do
-    # Detect new file
-    if [[ "$line" =~ ^diff\ --git ]]; then
-        # Process previous block
-        process_block
-
-        # Reset for new file
-        current_file=$(echo "$line" | sed 's/diff --git a\/\(.*\) b\/.*/\1/')
-        current_block="$line"$'\n'
-        file_line_count=0
-    else
-        current_block+="$line"$'\n'
-        # Count actual change lines (+ or -)
-        if [[ "$line" =~ ^[+-] ]] && [[ ! "$line" =~ ^(---|[+]{3}) ]]; then
-            ((file_line_count++)) || true
-        fi
-    fi
-done <<< "$diff_output"
-
-# Process last block
-process_block
+# Filter additions/removals if requested
+if $only_additions; then
+    echo "$diff_output" | grep -E '^(diff|index|---|\+\+\+|@@|[+]|[^-])' | grep -v '^--$'
+elif $only_removals; then
+    echo "$diff_output" | grep -E '^(diff|index|---|\+\+\+|@@|[-]|[^+])' | grep -v '^++$'
+else
+    echo "$diff_output"
+fi
