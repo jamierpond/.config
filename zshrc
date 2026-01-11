@@ -104,6 +104,7 @@ alias rp="~/.config/bin/scripts/repo-print"
 alias r2-sync="~/.config/r2-backup/r2-sync"
 alias r2-browse="~/.config/r2-backup/r2-browse"
 alias gde="~/.config/bin/scripts/git-diff-exclude"
+alias gd="~/.config/bin/scripts/git-diff-filter"
 alias mrd="re ~/Downloads -n 1"
 # alias claude="(nvm use 18 &> /dev/null) && claude"
 #
