@@ -21,7 +21,7 @@ Options:
   -s, --skip-above N     Skip files with more than N lines changed
   -a, --only-additions   Only show added lines (+ lines)
   -r, --only-removals    Only show removed lines (- lines)
-  -e, --exclude PATTERN  Exclude files matching PATTERN (can be used multiple times)
+  -e, --exclude PATTERNS Exclude files matching PATTERNS (space-separated, must be last)
   -h, --help             Show this help message
 
 Examples:
@@ -29,7 +29,7 @@ Examples:
   gd main -s 2000         Skip files with >2000 lines changed
   gd HEAD~3 -a            Only show additions since 3 commits ago
   gd v1.0.0 -r            Only show removals since tag
-  gd main -e test -e mock Exclude files matching patterns
+  gd main -e test mock    Exclude files matching 'test' or 'mock'
 EOF
     exit 0
 }
@@ -65,12 +65,15 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         -e|--exclude)
-            if [ $# -lt 2 ] || [[ "$2" == -* ]]; then
-                echo "Error: -e requires a pattern"
+            shift
+            while [ $# -gt 0 ] && [[ "$1" != -* ]]; do
+                excludes+=("$1")
+                shift
+            done
+            if [ ${#excludes[@]} -eq 0 ]; then
+                echo "Error: -e requires at least one pattern"
                 exit 1
             fi
-            excludes+=("$2")
-            shift 2
             ;;
         *)
             echo "Unknown option: $1"
@@ -126,28 +129,6 @@ while IFS=$'\t' read -r adds dels file; do
     file_stats+="${total}:${adds}:${dels}:${skip_reason}:${file}"$'\n'
 done < <(git diff --numstat "$ref")
 
-# Print summary to stderr
-{
-    echo ""
-    echo "### Files changed:"
-    while IFS=':' read -r total adds dels reason file; do
-        [ -z "$file" ] && continue
-        if [ -n "$reason" ]; then
-            printf "%6d  (+%-4d -%4d)  [%s] %s\n" "$total" "$adds" "$dels" "$reason" "$file"
-        else
-            printf "%6d  (+%-4d -%4d)  %s\n" "$total" "$adds" "$dels" "$file"
-        fi
-    done <<< "$(echo -n "$file_stats" | sort -t: -k1 -n)"
-    echo "-----------------------------------"
-    printf "Total: %d lines changed\n" "$total_lines"
-    if [ ${#skip_files[@]} -gt 0 ]; then
-        printf "Showing: %d lines (%d files), Skipped: %d lines (%d files)\n" \
-            "$included_lines" "${#included_files[@]}" \
-            "$((total_lines - included_lines))" "${#skip_files[@]}"
-    fi
-    echo ""
-} >&2
-
 # Build path exclusion args for git diff
 path_args=()
 for f in "${skip_files[@]+${skip_files[@]}}"; do
@@ -174,3 +155,24 @@ elif $only_removals; then
 else
     echo "$diff_output"
 fi
+
+# Print summary to stderr at the end
+{
+    echo ""
+    echo "### Files changed:"
+    while IFS=':' read -r total adds dels reason file; do
+        [ -z "$file" ] && continue
+        if [ -n "$reason" ]; then
+            printf "%6d  (+%-4d -%4d)  [%s] %s\n" "$total" "$adds" "$dels" "$reason" "$file"
+        else
+            printf "%6d  (+%-4d -%4d)  %s\n" "$total" "$adds" "$dels" "$file"
+        fi
+    done <<< "$(echo -n "$file_stats" | sort -t: -k1 -n)"
+    echo "-----------------------------------"
+    printf "Total: %d lines changed\n" "$total_lines"
+    if [ ${#skip_files[@]} -gt 0 ]; then
+        printf "Showing: %d lines (%d files), Skipped: %d lines (%d files)\n" \
+            "$included_lines" "${#included_files[@]}" \
+            "$((total_lines - included_lines))" "${#skip_files[@]}"
+    fi
+} >&2
