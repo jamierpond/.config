@@ -447,6 +447,10 @@ function pt() {
   execute_command "$command"
 }
 
+function bell() {
+  afplay "$HOME/.config/bell.mp3" &
+}
+
 function yt() {
   local video=false
 
