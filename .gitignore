@@ -38,3 +38,4 @@
 !r2-backup
 *.conf
 !bell.mp3
+!GLOBAL_AGENTS.md
