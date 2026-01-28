@@ -24,10 +24,20 @@ function npmf() {
   # Extract the directory from the package.json path
   dir=$(dirname "$file")
 
+  # Build the command
+  cmd="cd \"$dir\" && npm run \"$script_name\""
+
   # Show what we're running
   echo "Running '$script_name' from $file"
   echo "Command: $command"
   echo ""
+
+  # Add to shell history (zsh or bash)
+  if ! print -s "$cmd" &>/dev/null; then
+    if ! history -s "$cmd" &>/dev/null; then
+      : # silently fail if neither works
+    fi
+  fi
 
   # Change to the directory and run the npm script
   cd "$dir" && npm run "$script_name"

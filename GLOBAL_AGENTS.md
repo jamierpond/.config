@@ -17,3 +17,5 @@ bell
 
 This is a shell alias, not a built-in Claude Code tool.
 
+### So-called 'fallbacks'
+If you find yourself reaching for to say 'let me implement a fallback', we don't do that here. We like to write code that works, or FAILS hard. In between-ness in this dimension creates poor brittle outcomes.
