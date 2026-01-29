@@ -16,6 +16,49 @@ local lazy = require("lazy")
 lazy.setup({
   {"nvim-lua/plenary.nvim"},
   {"lervag/vimtex"},
+
+  -- KNAP: Kevin's Neovim Auto-Previewer for LaTeX/Markdown/HTML
+  {
+    "frabjous/knap",
+    config = function()
+      local gknapsettings = {
+        -- LaTeX to PDF (using Skim on macOS)
+        texoutputext = "pdf",
+        textopdf = "pdflatex -interaction=batchmode -halt-on-error -synctex=1 %docroot%",
+        textopdfviewerlaunch = "open -a Skim %outputfile%",
+        textopdfviewerrefresh = "osascript -e 'tell application \"Skim\" to revert front document'",
+        textopdfforwardjump = "osascript -e 'tell application \"Skim\" to activate' -e 'tell application \"Skim\" to go document 1 to POSIX file \"%outputfile%\" line %line%'",
+
+        -- Markdown to HTML (using default browser)
+        mdoutputext = "html",
+        mdtohtml = "pandoc --standalone %docroot% -o %outputfile%",
+        mdtohtmlviewerlaunch = "open %outputfile%",
+        mdtohtmlviewerrefresh = "open %outputfile%",
+
+        -- Markdown to PDF
+        mdtopdf = "pandoc %docroot% -o %outputfile%",
+        mdtopdfviewerlaunch = "open -a Skim %outputfile%",
+        mdtopdfviewerrefresh = "osascript -e 'tell application \"Skim\" to revert front document'",
+
+        -- HTML direct viewing
+        htmloutputext = "html",
+        htmltohtml = "none",
+        htmltohtmlviewerlaunch = "open %outputfile%",
+        htmltohtmlviewerrefresh = "open %outputfile%",
+
+        delay = 250,
+      }
+      vim.g.knap_settings = gknapsettings
+
+      vim.api.nvim_create_user_command("TexStart", function()
+        require("knap").toggle_autopreviewing()
+      end, {})
+
+      vim.api.nvim_create_user_command("TexStop", function()
+        require("knap").close_viewer()
+      end, {})
+    end,
+  },
   {
     "stevearc/quicker.nvim",
     ft = "qf",

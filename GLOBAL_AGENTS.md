@@ -57,3 +57,16 @@ This must only be for very logical reasons or extremely practical reasons.
 Either we're doing a job piece by piece and this is required, or it's temporary.
 You may not break rules without this approval.
 
+
+## On Changing Course Mid-Task
+If you encounter a constraint, tradeoff, or obstacle while executing a task:
+1. STOP and present the situation to the user
+2. Propose concrete options for how to proceed
+3. Wait for direction before continuing
+
+DO NOT:
+- Silently change goals or scope
+- Abandon an approach when you hit resistance - propose alternatives instead
+- Revert work without confirming that's what the user wants
+
+
