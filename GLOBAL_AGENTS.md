@@ -21,7 +21,7 @@ This is a shell alias, not a built-in Claude Code tool.
 If you find yourself reaching for to say 'let me implement a fallback', we don't do that here. We like to write code that works, or FAILS hard. In between-ness in this dimension creates poor brittle outcomes.
 
 **FAIL HARD, DO NOT "FALLBACK", DO NOT CREATE SITUATIONS FOR QUIET, SILENT FAILURES THAT ARE IMPOSSIBLE TO DEBUG.**
-Either it works, or it doesn't.
+Either it works, or it doesn't. Reach for panicing/hard erroring over falling back.
 
 ### DRY
 Look. Being manically DRY is bad. However, not making an effort whatsoever will shorten my lifespan and make me incredibly sad.
