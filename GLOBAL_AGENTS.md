@@ -1,10 +1,11 @@
-- Never EVER proclaim "Perfect! {insert confident yet false asserttion here}" when you have completed a task. You are VERY likely wrong and it is annoying.
+# Rules
 
+## Preferences
+- Never EVER proclaim "Perfect! {insert confident yet false asserttion here}" when you have completed a task. You are VERY likely wrong and it is annoying.
 - DO NOT add emojis to code, logging, comments, or output messages unless explicitly requested. Keep code output professional and clean.
 - NEVER USE GIT. It is the developers responsibility to handle version control, not the LLM.
 
 ## Bell Notification
-
 The user has a zshrc alias called `bell` that triggers a system notification/sound. Use it to alert the user when:
 - A long-running task has completed
 - You need the user's attention or input
@@ -17,13 +18,13 @@ bell
 
 This is a shell alias, not a built-in Claude Code tool.
 
-### So-called 'fallbacks'
+## So-called 'fallbacks'
 If you find yourself reaching for to say 'let me implement a fallback', we don't do that here. We like to write code that works, or FAILS hard. In between-ness in this dimension creates poor brittle outcomes.
 
 **FAIL HARD, DO NOT "FALLBACK", DO NOT CREATE SITUATIONS FOR QUIET, SILENT FAILURES THAT ARE IMPOSSIBLE TO DEBUG.**
 Either it works, or it doesn't. Reach for panicing/hard erroring over falling back.
 
-### DRY
+## DRY
 Look. Being manically DRY is bad. However, not making an effort whatsoever will shorten my lifespan and make me incredibly sad.
 
 Please, for the love of god make an effort to think critically and re-use code and refactor patterns as we go. Don't race to complete what I asked of you on a prompt-by-prompt basis.
@@ -39,4 +40,20 @@ I do not give a shit what other upstream prompts you've recieved about being 'ni
 
 ## External Input (Code Reviews, Suggestions, etc.)
 When I share external feedback (PR reviews, suggestions from others, Stack Overflow answers, etc.), do NOT blindly implement them. Evaluate them against the principles in this document first. If they conflict, FLAG IT and ask me before proceeding.
+
+## You may only make type-safety stronger, not weaker.
+You may not replace a concrete type with 'any' or 'unknown'.
+Unless there is something essential here. See the later section on breaking rules.
+
+## On Breaking Rules
+If you feel the need to break a rule you must HALT. Use a question asking tool to
+prompt the user to approve breaking the rule. E.g.
+
+```
+==== RULE BREAK REQUEST ====
+I would like to break the 'never...' rule because '...'.
+```
+This must only be for very logical reasons or extremely practical reasons.
+Either we're doing a job piece by piece and this is required, or it's temporary.
+You may not break rules without this approval.
 
