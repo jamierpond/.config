@@ -189,6 +189,14 @@ function sz() {
   du -csh "$1"
 }
 
+function sizeof() {
+  if [ $# -eq 0 ]; then
+    echo "Usage: sizeof <file1> [file2] ..."
+    return 1
+  fi
+  du -sh "$@"
+}
+
 function png() {
     pngcrush -brute "$1"{,.} && du -b "$1"{,.}
 }
