@@ -1,4 +1,6 @@
 # Modernized zshrc - no oh-my-zsh
+zmodload zsh/zprof  # Profiling - remove after debugging
+
 this_dir=$(dirname "$0")
 
 # Modular configs
