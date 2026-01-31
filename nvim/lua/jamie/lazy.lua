@@ -220,8 +220,6 @@ lazy.setup({
     build = ':TSUpdate',
     config = function()
       require('nvim-treesitter.install').prefer_git = true
-      local ts_update = require('nvim-treesitter.install').update({ with_sync = true })
-      ts_update()
     end
   },
   "nvim-treesitter/playground",
