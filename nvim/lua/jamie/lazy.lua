@@ -122,27 +122,22 @@ lazy.setup({
       { "antosha417/nvim-lsp-file-operations", config = true },
     },
     config = function()
-      local lspconfig = require("lspconfig")
       local cmp_nvim_lsp = require("cmp_nvim_lsp")
       local capabilities = cmp_nvim_lsp.default_capabilities()
-      local opts = { noremap = true, silent = true }
-      local on_attach = function(_, bufnr)
-        opts.buffer = bufnr
 
-        opts.desc = "Show line diagnostics"
-        vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, opts)
-
-        opts.desc = "Show documentation for what is under cursor"
-        vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
-      end
-
-      lspconfig.sourcekit.setup({
+      -- Configure sourcekit using Neovim 0.11+ API
+      vim.lsp.config.sourcekit = {
         cmd = { "sourcekit-lsp" },
         filetypes = { "swift" },
-        root_dir = lspconfig.util.root_pattern("Package.swift", ".git"),
+        root_markers = { "Package.swift", ".git" },
         capabilities = capabilities,
-        on_attach = on_attach,
-      })
+        on_attach = function(_, bufnr)
+          local opts = { buffer = bufnr, noremap = true, silent = true }
+          vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, opts)
+          vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+        end,
+      }
+      vim.lsp.enable("sourcekit")
     end,
   },
 
