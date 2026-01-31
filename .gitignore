@@ -22,11 +22,8 @@
 !lazygit/
 **Application Support**
 **.DS_Store**
-!ohmyzsh/
-!ohmyzsh_config.sh
 !.gitmodules
 !ubuntu-setup.sh
-!omz-custom/
 !nvm/
 !test_setup.sh
 !Makefile
