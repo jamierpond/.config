@@ -1,0 +1,22 @@
+#!/bin/zsh
+# Clone from a list of GitHub repos using fzf
+
+this_dir=$(dirname "$0")
+repo_list="$this_dir/quick-url-github-repos.txt"
+
+if [ ! -f "$repo_list" ]; then
+  echo "Repo list not found: $repo_list"
+  exit 1
+fi
+
+repo=$(cat "$repo_list" | fzf --reverse --prompt "Select repo: ")
+
+if [ -z "$repo" ]; then
+  echo "No repo selected"
+  exit 0
+fi
+
+# Remove quotes
+repo=$(echo "$repo" | tr -d '"')
+echo "Cloning $repo"
+gh repo clone "$repo"

@@ -1,0 +1,30 @@
+#!/bin/zsh
+# Attach to a running Docker container (select with fzf)
+
+# Get running containers (skip header)
+imgs=$(docker ps | tail -n +2)
+
+if [ -z "$imgs" ]; then
+  echo "No running containers"
+  exit 0
+fi
+
+# If there is only one container, just exec into it
+if [ $(echo "$imgs" | wc -l) -eq 1 ]; then
+  container_id=$(echo "$imgs" | awk '{print $1}')
+  cmd="docker exec -it $container_id /bin/bash"
+  print -s "$cmd" 2>/dev/null
+  eval "$cmd"
+  exit 0
+fi
+
+img=$(echo "$imgs" | fzf --reverse --prompt "Select container: ")
+
+if [ -z "$img" ]; then
+  exit 0
+fi
+
+container_id=$(echo "$img" | awk '{print $1}')
+cmd="docker exec -it $container_id /bin/sh"
+print -s "$cmd" 2>/dev/null
+eval "$cmd"

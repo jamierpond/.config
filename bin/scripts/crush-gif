@@ -1,0 +1,9 @@
+#!/bin/zsh
+# Crush a GIF file using gifsicle
+
+if [ -z "$1" ]; then
+  echo "Usage: crush-gif <file.gif>"
+  exit 1
+fi
+
+gifsicle -O "$1" -o "$1." && du -b "$1"{,.}

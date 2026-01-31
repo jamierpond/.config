@@ -1,100 +1,167 @@
-is_zsh=$(ps -p $$ -o comm= | grep zsh)
-
+# Modernized zshrc - no oh-my-zsh
 this_dir=$(dirname "$0")
-if [ -n "$is_zsh" ]; then
-  source "$this_dir/ohmyzsh_config.sh"
-fi
 
+# Modular configs
+source "$this_dir/prompt.zsh"
+source "$this_dir/vi-mode.zsh"
+source "$this_dir/completion.zsh"
+
+# PATH setup - scripts directory first
+export PATH="$this_dir/bin/scripts:$PATH"
+export PATH="$PATH:/usr/local/go/bin"
+export PATH="$PATH:$(go env GOPATH)/bin"
+export PATH="$PATH:$HOME/.local/bin"
+export PATH="$PATH:/snap/bin"
+export PATH="$PATH:$HOME/.cargo/bin"
+
+# Environment variables
+export HISTFILE="$HOME/.zsh_history"
+export HISTSIZE=10000
+export SAVEHIST=10000
+export SCREENRC="$HOME/.config/screenrc"
+export HOMEBREW_NO_AUTO_UPDATE=1
+export XDG_CONFIG_HOME="$HOME/.config"
+export VIRTUAL_ENV="venv"
+export UV_PROJECT_ENVIRONMENT="venv"
+export VCPKG_ROOT="$HOME/vcpkg"
+export DO_NOT_TRACK=1
+export MANPATH="$HOME/.local/share/man:$MANPATH"
+
+# History options
+setopt INC_APPEND_HISTORY
+setopt EXTENDED_HISTORY
+setopt APPEND_HISTORY
+unsetopt SHARE_HISTORY
+
+# Helper function for command history
+function execute_command() {
+  local cmd="$1"
+  print -s "$cmd" 2>/dev/null || history -s "$cmd" 2>/dev/null
+  eval "$cmd"
+}
+
+# Yapi
 YAPI_ZSH="$HOME/projects/yapi/bin/yapi.zsh"
 [ -f "$YAPI_ZSH" ] && source "$YAPI_ZSH"
-alias "a"="yapi"
+alias a="yapi"
 
-export VCPKG_ROOT="$HOME/vcpkg"
-
-
+# fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-alias "r"="tmp_run"
+# Aliases - scripts (short names for long script names)
+alias r="temp-script-edit-run"
+alias mf="makefile-target-fzf"
+alias dt="jest-describe-test-fzf"
+alias re="list-recent-files"
+alias pport="port-show-process"
+alias sz="disk-usage-summary"
+alias jd="git-directory-jump-fzf"
+alias jv="json-validate-pretty"
+alias c="directory-navigate-fzf"
+alias tsh="pytorch-tensor-shape"
+alias dsh="docker-image-shell"
+alias gp="gcloud-project-switch"
+alias gssh="gcloud-instance-ssh"
+alias gstart="gcloud-instance-start"
+alias gstop="gcloud-instance-stop"
+alias gscp="gcloud-instance-scp"
+alias co="git-branch-checkout-fzf"
+alias e="git-shell-script-run-fzf"
+alias cl="github-repo-clone-fzf"
+alias tget="tar-extract-file-fzf"
+alias tcat="tar-cat-file-fzf"
+alias gls="git-files-fzf"
+alias pt="pytest-test-fzf"
+alias bell="bell-sound"
+alias yt="youtube-download"
+alias ytv="youtube-download -v"
+alias da="docker-container-attach-fzf"
+alias dcp="docker-container-cp-fzf"
+alias png="crush-png"
+alias gif="crush-gif"
+alias jpeg="crush-jpeg"
+alias mpng="crush-move-png"
+alias mgif="crush-move-gif"
+alias mjpeg="crush-move-jpeg"
 
+# Aliases - docker
 alias dockernuke='docker kill $(docker ps -q)'
 alias dn='dockernuke'
+
+# Aliases - system
 alias archbtw='~/.config/bin/scripts/arch.sh'
-
-export HISTFILE="$HOME/.zsh_history"
-
-alias "imgp"="bash ~/.config/bin/scripts/clipimage.sh"
-
-alias "npf"="bash ~/.config/bin/scripts/npmf"
-alias "prf"="~/.config/bin/scripts/get-all-pr-feedback"
-
+alias imgp="bash ~/.config/bin/scripts/clipimage.sh"
+alias npf="bash ~/.config/bin/scripts/npmf"
+alias prf="~/.config/bin/scripts/get-all-pr-feedback"
 alias so="source ~/.zshrc"
 alias bso="source ~/.bashrc"
-alias "pipi"="pip install -r requirements.txt"
-alias "tarls"="tar -tvf"
-alias "tls"="tar -tvf"
 
-alias ddd="rm -rf ~/Library/Developer/Xcode/DerivedData"
+# Aliases - python/venv
+alias pipi="pip install -r requirements.txt"
+alias new-venv="python3 -m venv venv"
+alias nv="python3 -m venv venv"
+alias cv="python3 -m venv venv"
+alias act-venv="source venv/bin/activate"
+alias va="source venv/bin/activate"
+alias nva="nv && va"
+alias uva="uv venv venv && va"
+alias pos="poetry shell"
+
+# Aliases - tar
+alias tarls="tar -tvf"
+alias tls="tar -tvf"
+alias untar="tar -xvf"
+
+# Aliases - git
 alias smu="git submodule update --init"
 alias smur="git submodule update --init --recursive"
+alias gtree="git ls-files | tree --fromfile"
+alias cf="git --no-pager diff --name-only"
+alias grape="git grep"
 
-alias "new-venv"="python3 -m venv venv"
-alias "nv"="python3 -m venv venv"
-alias "cv"="python3 -m venv venv"
-alias "act-venv"="source venv/bin/activate"
-alias "nv"="python3 -m venv venv"
+# Aliases - GPU
+alias gpu="watch -n 0.5 nvidia-smi"
+alias pgpu="nvidia-smi --query-compute-apps=pid --format=csv,noheader"
+alias fgpu="sudo fuser -v /dev/nvidia*"
+alias kgpu="fgpu | grep . | tr ' ' '\n' | xargs kill -9"
+alias rgpu="pkill wandb && pgpu | xargs -I {} kill -9 {} && kgpu"
 
-alias "ta"="tmux attach"
-alias "va"="source venv/bin/activate"
-alias "nva"="nv && va"
-alias "uva"="uv venv venv && va"
-alias "gpu"="watch -n 0.5 nvidia-smi"
-alias "pgpu"="nvidia-smi --query-compute-apps=pid --format=csv,noheader"
-alias "fgpu"="sudo fuser -v /dev/nvidia*"
-alias "kgpu"="fgpu | grep . | tr ' ' '\n' | xargs kill -9"
-#
-# mercilessly kill all gpu/ai processes
-alias "rgpu"="pkill wandb && pgpu | xargs -I {} kill -9 {} && kgpu"
+# Aliases - SSH/remote
+alias lm="sh ~/projects/lambda-machine/remote.sh"
+alias mm="ssh jamie@mm.pond.audio"
+alias vie="sh ~/projects/lambda-machine/vienna-remote.sh"
+alias ms="ssh administrator@208.52.154.141"
 
-alias "lm"="sh ~/projects/lambda-machine/remote.sh"
-alias "mm"="ssh jamie@mm.pond.audio"
-alias "vie"="sh ~/projects/lambda-machine/vienna-remote.sh"
-alias "gls"="git ls-files"
-alias "ka"="killall"
-alias "kaf"="killall -9"
-alias "pos"="poetry shell"
+# Aliases - tmux
+alias ta="tmux attach"
+alias t="tmux"
+alias tmux='tmux -f ~/.config/tmux/tmux.conf'
+alias tks="tmux kill-server"
 
+# Aliases - misc tools
+alias ka="killall"
+alias kaf="killall -9"
 alias ll="ls -alF"
 alias la="ls -A"
-alias ms="ssh administrator@208.52.154.141"
-alias ksmo='~/.config/bin/scripts/ksmo'
 alias ls='ls -a --color=auto'
 alias dec2hex="printf '%x\n'"
 alias d2h="printf '%x\n'"
-alias grape="git grep"
-alias t="tmux"
 alias f="ranger"
 alias fcp="~/.config/bin/scripts/ffplay-local.sh"
 alias fpl="~/.config/bin/scripts/ffplay-local.sh"
 alias img="~/.config/bin/scripts/img-preview.sh"
-alias untar="tar -xvf"
-
-alias tmux='tmux -f ~/.config/tmux/tmux.conf'
 alias dls="lsblk"
-
-alias bwon="shortcuts run \"bw-on\""
-alias bwoff="shortcuts run \"bw-off\""
-
+alias ddd="rm -rf ~/Library/Developer/Xcode/DerivedData"
+alias ksmo='~/.config/bin/scripts/ksmo'
 alias cpp-compile="~/.config/bin/scripts/cpp-compile"
 alias cppc="~/.config/bin/scripts/cpp-compile"
-alias dt="run_describe_test"
-alias gtree="git ls-files | tree --fromfile"
 alias oc="crush"
 alias o="oc"
-alias tks="tmux kill-server"
 alias qb="/Applications/qutebrowser.app/Contents/MacOS/qutebrowser"
 alias ra="osascript ~/.config/bin/scripts/refresh-ableton.scpt"
 alias refresh-ableton="osascript ~/.config/bin/scripts/refresh-ableton.scpt"
-alias cf="git --no-pager diff --name-only"
+alias bwon="shortcuts run \"bw-on\""
+alias bwoff="shortcuts run \"bw-off\""
 alias mkae="make"
 alias mk="make"
 alias ma="make"
@@ -105,507 +172,70 @@ alias r2-sync="~/.config/r2-backup/r2-sync"
 alias r2-browse="~/.config/r2-backup/r2-browse"
 alias gde="~/.config/bin/scripts/git-diff-exclude"
 alias gd="~/.config/bin/scripts/git-diff-filter"
-alias mrd="re ~/Downloads -n 1"
-# alias claude="(nvm use 18 &> /dev/null) && claude"
-#
+alias mrd="list-recent-files ~/Downloads -n 1"
 
-function tmp_run() {
-  local tmpfile
-  tmpfile=$(mktemp)
-  chmod +x "$tmpfile"
-
-  nvim "$tmpfile"
-
-  cmd=$(cat "$tmpfile")
-
-  execute_command "$cmd"
-}
-
-function mf() {
-  if [ -f "./Makefile" ]; then
-    foo=$(grep "^.*:$" Makefile | sed "s/://g" | fzf)
-    execute_command "make $foo"
-  else
-    echo no Makefile
-  fi
-}
-
-
-function run_describe_test() {
-  local test_name
-  test_name=$(rg -o 'describe\("([^"]+)"' -r '$1' --no-filename | fzf)
-  if [ -z "$test_name" ]; then
-    echo "No test selected"
-    return
-  fi
-  command="npm run test -- -t \"$test_name\""
-  execute_command "$command"
-}
-
-# print the N most recently modifed files from ls -t
-function re() {
-  local dir="."
-  local num_files=10
-
-  # Parse arguments
-  while [[ $# -gt 0 ]]; do
-    case $1 in
-      -n)
-        num_files="$2"
-        shift 2
-        ;;
-      *)
-        dir="$1"
-        shift
-        ;;
-    esac
-  done
-
-  # Get absolute path of directory
-  local abs_dir=$(cd "$dir" && pwd)
-
-  # List files with full paths, filtering out . and ..
-  ls -t "$dir" | grep -v '^\.\.$' | grep -v '^\.$' | head -n "$num_files" | while read -r file; do
-    echo "$abs_dir/$file"
-  done
-}
-
-function pport() {
-  port="$1"
-  if [ -z "$port" ]; then
-    echo "Usage: pport <port>"
-    return
-  fi
-  lsof -i tcp:"$port"
-}
-
-
-function sz() {
-  if [ -z "$1" ]; then
-    du -csh *
-    return
-  fi
-
-  du -csh "$1"
-}
-
-function sizeof() {
-  if [ $# -eq 0 ]; then
-    echo "Usage: sizeof <file1> [file2] ..."
-    return 1
-  fi
-  du -sh "$@"
-}
-
-function png() {
-    pngcrush -brute "$1"{,.} && du -b "$1"{,.}
-}
-
-function gif() {
-    gifsicle -O "$1" -o "$1." && du -b "$1"{,.}
-}
-
-function jpeg() {
-    jpegtran "$1" > "$1." && du -b "$1"{,.}
-}
-
-function mpng() {
-    mv "$1"{.,}
-}
-
-function mgif() {
-    newsize=$(wc -c <"$1.")
-    oldsize=$(wc -c <"$1")
-    if [ $oldsize -gt $newsize ] ; then
-        mv "$1"{.,}
-    else
-        rm "$1."
-    fi
-}
-
-function mjpeg() {
-    mv "$1"{.,}
-}
-
-
-# jump directory
-function jd() {
-  files=$(git ls-files)
-  echo "$files"
-  dirs=$(xargs -n 1 dirname <<< "$files" | sort -u)
-  echo "===================="
-  echo "$dirs"
-  dir=$(echo "$dirs" | fzf --reverse --prompt "Select dir: " --header-lines 1)
-  cd "$dir"
-}
-
-# validate json
-function jv() {
-  if [ -z "$1" ]; then
-    echo "Usage: jv <file> to validate a json file."
-    return
-  fi
-  cat "$1" | jq .
-}
-
-function c() {
-  while true; do
-    current_dir=$(pwd)
-    dirs=$(find . -maxdepth 1 -type d)
-    dir=$(echo "$dirs" | fzf --reverse --prompt "Select dir: " --header-lines 1)
-    if [ -z "$dir" ]; then
-      break
-    fi
-    cd "$dir"
-  done
-}
-
-function tsh() {
-  python -i -c "import torch; t = torch.load('$1'); print('Shape:', t.shape)"
-}
-
-
-# docker run -it --entrypoint /bin/bash cog-yue-exllamav2
-function select_docker_img() {
-  projects=$(docker image list)
-  project=$(echo "$projects" | fzf --height 40% --reverse --prompt "Select image: " --header-lines 1)
-  if [ -z "$project" ]; then
-    return 1
-  fi
-  echo "$project" | awk '{print $1}'
-}
-
-function select_project() {
-  projects=$(gcloud projects list)
-  project=$(echo "$projects" | fzf --height 40% --reverse --prompt "Select project: " --header-lines 1)
-  if [ -z "$project" ]; then
-    return 1
-  fi
-  echo "$project" | awk '{print $1}'
-}
-
-# Function to select an instance
-function select_instance() {
-  instances=$(gcloud compute instances list)
-  instance=$(echo "$instances" | fzf --height 40% --reverse --prompt "Select instance: " --header-lines 1)
-  if [ -z "$instance" ]; then
-    return 1
-  fi
-  echo "$instance" | awk '{print $1}'
-}
-
-# Function to execute and save a command
-function execute_command() {
-  local cmd="$1"
-
-  if ! print -s "$cmd" &>/dev/null; then
-    if ! history -s "$cmd" &>/dev/null; then
-      echo "Both print and history commands failed"
-    fi
-  fi
-
-  eval "$cmd"
-}
-
-function dsh() {
-  chosen_instance=$(select_docker_img) || return
-  execute_command "docker run -it --entrypoint /bin/bash $chosen_instance"
-}
-
-
-function e() {
-  git_files=$(git ls-files)
-  shell_scripts=$(echo "$git_files" | grep -E '\.sh$')
-  script=$(echo "$shell_scripts" | fzf --reverse --prompt "Select script: " --header-lines 1)
-  if [ -z "$script" ]; then
-    return
-  fi
-  shell="/bin/bash"
-  echo "$shell $script"
-  execute_command "$shell $script"
-}
-
-function gp() {
-  current_project=$(gcloud config get-value project)
-  echo "Current project: $current_project"
-  project=$(select_project) || return
-  execute_command "gcloud config set project $project"
-}
-
+# gcloud projects list
 function gpls() {
-  # list projects
   gcloud projects list
 }
 
-function gssh() {
-  chosen_instance=$(select_instance) || return
-  execute_command "gcloud compute ssh $chosen_instance"
-}
-
-function gstart() {
-  chosen_instance=$(select_instance) || return
-  execute_command "gcloud compute instances start $chosen_instance"
-}
-
-function gstop() {
-  chosen_instance=$(select_instance) || return
-  execute_command "gcloud compute instances stop $chosen_instance"
-}
-
-function gscp() {
-  chosen_instance=$(select_instance) || return
-  execute_command "gcloud compute scp $chosen_instance:$1 $2"
-}
-
-function co() {
-  git checkout $(git branch -r | fzf | sed "s|origin/||")
-  git status
-}
-
-function port() {
-  port="$1"
-  lsof -i tcp:"$port"
-}
-
-
-# clone from github
-function cl() {
-  repo_list="$this_dir/bin/scripts/quick-url-github-repos.txt"
-  repo=$(cat "$repo_list" | fzf --reverse --prompt "Select repo: ")
-  if [ -z "$repo" ]; then
-    echo "No repo selected"
-    return
-  fi
-  # replace double quotes
-  repo=$(echo $repo | tr -d '"')
-  echo "Cloning $repo"
-  gh repo clone "$repo"
-}
-
-
-# Helper function to handle common operations
-function tar_helper() {
-    local tar="$1"
-    local usage="$2"
-    local dest="${3:-$(pwd)}"
-
-    if [ -z "$tar" ]; then
-        echo "Usage: $usage"
-        return 1
-    fi
-
-    if [ ! -f "$tar" ]; then
-        echo "File '$tar' does not exist"
-        echo "Usage: $usage"
-        return 1
-    fi
-
-    local file=$(tls "$tar" | awk '{ print $6 }' | fzf)
-    echo "$file"
-}
-
-function tget() {
-    local tar="$1"
-    local dest="${2:-$(pwd)}"
-
-    local file="$3"
-    if [ -z "$file" ]; then
-        file=$(tar_helper "$tar" "tget <tarfile> [destination]" "$dest")
-    fi
-
-    # if file is empty, return
-    if [ -z "$file" ]; then
-        return
-    fi
-
-    if [ $? -eq 0 ]; then
-        local base=$(basename "$file")
-        local dest_file="$dest/$base"
-        echo "Extracting $base"
-        command="tar -xvf '$tar' '$file' -C '$dest'"
-        eval "$command"
-        print -s "$command"
-    fi
-}
-
-function tcat() {
-    local tar="$1"
-    local file=$(tar_helper "$tar" "tcat <tarfile>")
-
-    if [ $? -eq 0 ]; then
-        command="tar -xOf '$tar' '$file'"
-        eval "$command"
-        print -s "$command"
-    fi
-}
-
-function gls() {
-    git ls-files | fzf
-}
-
-function pt() {
-  tests=$(rg -N "^\s*def test_" ./tests/ --no-filename | sed 's/^\s*//' | awk -F'[( ]' '{print $2}')
-  to_run=$(echo "$tests" | fzf)
-  if [ -z "$to_run" ]; then
-    echo "No test selected"
-    return
-  fi
-  command="python -m pytest -s -k $to_run"
-  echo "$command"
-  execute_command "$command"
-}
-
-function bell() {
-  afplay "$HOME/.config/bell.mp3" &
-}
-
-function yt() {
-  local video=false
-
-  if [[ "$1" == "-v" ]]; then
-    video=true
-    shift
-  fi
-
-  local url="$1"
-  if [[ -z "$url" ]]; then
-    read -rp "Paste the YouTube link: " url
-  fi
-
-  local title
-  title=$(yt-dlp --get-title "$url" | tr -cd '[:alnum:] _-' | tr ' ' '_')
-
-  local output="$2"
-  if [[ -z "$output" ]]; then
-    if [[ "$video" == true ]]; then
-      output="${title}.mp4"
-    else
-      output="${title}.mp3"
-    fi
-  fi
-
-  if [[ "$video" == true ]]; then
-    yt-dlp "$url" -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4' \
-      --merge-output-format mp4 -o "$output"
-  else
-    yt-dlp -x "$url" --audio-format mp3 -o "$output"
-  fi
-}
-
-function ytv() {
-  link="$1"
-  if [ -z "$link" ]; then
-    echo "Paste the youtube link"
-    read -r link
-  fi
-
-  output="$2"
-  if [ -z "$output" ]; then
-    echo "Enter the output file"
-    read -r output
-  fi
-
-  yt-dlp "$link" --recode-video m4a -o "$output"
-}
-
-function da() {
-  # rm header which is the first line
-  imgs=$(docker ps | tail -n +2)
-  if [ -z "$imgs" ]; then
-    return
-  fi
-
-  # if there is only one container, just exec into it
-  # otherwise, select the container
-  if [ $(echo "$imgs" | wc -l) -eq 1 ]; then
-    container_id=$(echo "$imgs" | awk '{print $1}')
-    execute_command "docker exec -it $container_id /bin/bash"
-    return
-  fi
-
-  img=$(echo "$imgs" | fzf --reverse --prompt "Select container: ")
-
-  container_id=$(echo "$img" | awk '{print $1}')
-  execute_command "docker exec -it $container_id /bin/sh"
-}
-
-function dcp() {
-  # rm header which is the first line
-  file_name="$1"
-  imgs=$(docker ps | tail -n +2)
-  if [ -z "$imgs" ]; then
-    return
-  fi
-
-  if [ $(echo "$imgs" | wc -l) -eq 1 ]; then
-    container_id=$(echo "$imgs" | awk '{print $1}')
-    execute_command "docker cp $container_id:$file_name ."
-    return
-  fi
-
-  img=$(echo "$imgs" | fzf --reverse --prompt "Select container: " --header-lines 1)
-
-  container_id=$(echo "$img" | awk '{print $1}')
-  execute_command "docker cp $container_id:$file_name ."
-}
-
-
-
-# goto git root and try the same
-git_root=$(git rev-parse --show-toplevel)
-if [ -d "$git_root/venv" ]; then
-  echo "Found venv at $git_root/venv"
-  source "$git_root/venv/bin/activate"
-fi
-
-if [ -d "$git_root/.venv" ]; then
-  echo "Found venv at $git_root/.venv"
-  source "$git_root/.venv/bin/activate"
-fi
-
-if [ -d "$this_dir/.venv" ]; then
-  echo "Found venv at $git_root/.venv"
-  source "$git_root/.venv/bin/activate"
-fi
-
-export SCREENRC="$HOME/.config/screenrc"
-export HOMEBREW_NO_AUTO_UPDATE=1
-export XDG_CONFIG_HOME="$HOME/.config"
-export VIRTUAL_ENV="venv"
-export UV_PROJECT_ENVIRONMENT="venv"
-export PATH=$PATH:/usr/local/go/bin
-export PATH=$PATH:$(go env GOPATH)/bin
-export PATH=$PATH:$HOME/.local/bin
-export PATH=$PATH:/snap/bin
-export PATH=$PATH:$HOME/.cargo/bin
-source $HOME/.config/nvm/nvm.sh
-nvm use default --silent
-export DO_NOT_TRACK=1
-
-# This is cruvial for zsh history management
-setopt INC_APPEND_HISTORY  # Append commands to history file as they are executed
-# setopt SHARE_HISTORY       # Share history across sessions (alternative to INC_APPEND_HISTORY)
-setopt EXTENDED_HISTORY    # Save timestamp and duration
-setopt APPEND_HISTORY
-
-
+# Auto-activate venv if found
 set +e
+git_root=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -n "$git_root" ]; then
+  if [ -d "$git_root/venv" ]; then
+    echo "Found venv at $git_root/venv"
+    source "$git_root/venv/bin/activate"
+  elif [ -d "$git_root/.venv" ]; then
+    echo "Found venv at $git_root/.venv"
+    source "$git_root/.venv/bin/activate"
+  fi
+fi
+
+# Lazy load nvm (saves ~1s startup)
+export NVM_DIR="$HOME/.config/nvm"
+nvm() {
+  unfunction nvm node npm npx 2>/dev/null
+  source "$NVM_DIR/nvm.sh"
+  nvm "$@"
+}
+node() {
+  unfunction nvm node npm npx 2>/dev/null
+  source "$NVM_DIR/nvm.sh"
+  nvm use default --silent
+  node "$@"
+}
+npm() {
+  unfunction nvm node npm npx 2>/dev/null
+  source "$NVM_DIR/nvm.sh"
+  nvm use default --silent
+  npm "$@"
+}
+npx() {
+  unfunction nvm node npm npx 2>/dev/null
+  source "$NVM_DIR/nvm.sh"
+  nvm use default --silent
+  npx "$@"
+}
+
+# Pyenv - lazy load
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
+pyenv() {
+  unfunction pyenv
+  eval "$(command pyenv init -)"
+  pyenv "$@"
+}
 
+# Google Cloud SDK
+if [ -f '/Users/jamiepond/Downloads/google-cloud-sdk/path.zsh.inc' ]; then
+  source '/Users/jamiepond/Downloads/google-cloud-sdk/path.zsh.inc'
+fi
+if [ -f '/Users/jamiepond/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then
+  source '/Users/jamiepond/Downloads/google-cloud-sdk/completion.zsh.inc'
+fi
 
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/jamiepond/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/jamiepond/Downloads/google-cloud-sdk/path.zsh.inc'; fi
-
-# The next line enables shell command completion for gcloud.
-if [ -f '/Users/jamiepond/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/jamiepond/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
-
-# yapi completion
+# Yapi completion
 if command -v yapi &> /dev/null; then
   source <(yapi completion zsh)
 fi
-
-# Add local man pages to MANPATH
-export MANPATH="$HOME/.local/share/man:$MANPATH"
-

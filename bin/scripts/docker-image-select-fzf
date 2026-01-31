@@ -1,0 +1,11 @@
+#!/bin/zsh
+# Select a Docker image using fzf
+
+projects=$(docker image list)
+project=$(echo "$projects" | fzf --height 40% --reverse --prompt "Select image: " --header-lines 1)
+
+if [ -z "$project" ]; then
+  exit 1
+fi
+
+echo "$project" | awk '{print $1}'

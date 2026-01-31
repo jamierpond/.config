@@ -1,0 +1,37 @@
+#!/bin/zsh
+# Copy a file from a running Docker container (select with fzf)
+
+file_name="$1"
+
+if [ -z "$file_name" ]; then
+  echo "Usage: docker-container-cp-fzf <container_path>"
+  exit 1
+fi
+
+# Get running containers (skip header)
+imgs=$(docker ps | tail -n +2)
+
+if [ -z "$imgs" ]; then
+  echo "No running containers"
+  exit 0
+fi
+
+# If there is only one container, use it
+if [ $(echo "$imgs" | wc -l) -eq 1 ]; then
+  container_id=$(echo "$imgs" | awk '{print $1}')
+  cmd="docker cp $container_id:$file_name ."
+  print -s "$cmd" 2>/dev/null
+  eval "$cmd"
+  exit 0
+fi
+
+img=$(echo "$imgs" | fzf --reverse --prompt "Select container: ")
+
+if [ -z "$img" ]; then
+  exit 0
+fi
+
+container_id=$(echo "$img" | awk '{print $1}')
+cmd="docker cp $container_id:$file_name ."
+print -s "$cmd" 2>/dev/null
+eval "$cmd"

@@ -1,0 +1,13 @@
+#!/bin/zsh
+# SCP from a selected GCloud instance
+
+if [ -z "$1" ]; then
+  echo "Usage: gcloud-instance-scp <remote_path> [local_dest]"
+  exit 1
+fi
+
+chosen_instance=$(gcloud-instance-select-fzf) || exit 1
+dest="${2:-.}"
+cmd="gcloud compute scp $chosen_instance:$1 $dest"
+print -s "$cmd" 2>/dev/null
+eval "$cmd"

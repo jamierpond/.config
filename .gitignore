@@ -14,16 +14,16 @@
 !skhd/
 !yabai/
 !zshrc
+!prompt.zsh
+!vi-mode.zsh
+!completion.zsh
 !ranger/
 !bash_aliases.sh
 !lazygit/
 **Application Support**
 **.DS_Store**
-!ohmyzsh/
-!ohmyzsh_config.sh
 !.gitmodules
 !ubuntu-setup.sh
-!omz-custom/
 !nvm/
 !test_setup.sh
 !Makefile

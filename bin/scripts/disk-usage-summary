@@ -1,0 +1,8 @@
+#!/bin/zsh
+# Show disk usage for files/directories
+
+if [ $# -eq 0 ]; then
+  du -csh *
+else
+  du -sh "$@"
+fi

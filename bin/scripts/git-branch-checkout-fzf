@@ -1,0 +1,11 @@
+#!/bin/zsh
+# Fuzzy checkout a git branch
+
+branch=$(git branch -r | fzf | sed "s|origin/||" | xargs)
+
+if [ -z "$branch" ]; then
+  exit 0
+fi
+
+git checkout "$branch"
+git status

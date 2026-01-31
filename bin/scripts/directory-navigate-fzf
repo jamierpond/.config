@@ -1,0 +1,13 @@
+#!/bin/zsh
+# Interactive directory navigation with fzf
+
+while true; do
+  dirs=$(find . -maxdepth 1 -type d)
+  dir=$(echo "$dirs" | fzf --reverse --prompt "Select dir: " --header-lines 1)
+  if [ -z "$dir" ]; then
+    break
+  fi
+  cd "$dir"
+done
+
+exec $SHELL

@@ -1,0 +1,15 @@
+#!/bin/zsh
+# Create a temp file, edit it in nvim, then execute it
+
+tmpfile=$(mktemp)
+chmod +x "$tmpfile"
+
+nvim "$tmpfile"
+
+cmd=$(cat "$tmpfile")
+
+if [ -n "$cmd" ]; then
+  # Add to history
+  print -s "$cmd" 2>/dev/null || history -s "$cmd" 2>/dev/null
+  eval "$cmd"
+fi
