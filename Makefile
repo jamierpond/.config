@@ -134,7 +134,7 @@ docker-test: ## Run full test in Docker container
 
 docker-shell: ## Interactive shell in test container
 	DOCKER_BUILDKIT=1 docker build -t dotfiles-test .
-	docker run --rm -it dotfiles-test bash
+	docker run --rm -it dotfiles-test
 
 # ============================================================================
 # CI

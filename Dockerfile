@@ -67,5 +67,5 @@ RUN . /home/jamie/.nix-profile/etc/profile.d/nix.sh \
     && lazygit --version | head -1 \
     && echo "=== All programs verified! ==="
 
-# Default command: show what's installed
-CMD ["/bin/bash", "-c", "echo '🎉 Dotfiles environment ready!' && echo '' && echo 'Installed packages:' && ls -1 ~/.nix-profile/bin | head -30 && echo '...' && echo '' && echo 'Run: docker run --rm -it dotfiles-test bash'"]
+# Default: drop into zsh
+CMD ["/home/jamie/.nix-profile/bin/zsh", "-l"]
