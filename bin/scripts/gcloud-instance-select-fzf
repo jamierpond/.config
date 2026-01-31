@@ -1,0 +1,11 @@
+#!/bin/zsh
+# Select a GCloud compute instance using fzf
+
+instances=$(gcloud compute instances list)
+instance=$(echo "$instances" | fzf --height 40% --reverse --prompt "Select instance: " --header-lines 1)
+
+if [ -z "$instance" ]; then
+  exit 1
+fi
+
+echo "$instance" | awk '{print $1}'

@@ -1,0 +1,27 @@
+#!/bin/zsh
+# Extract a file from a tarball (select with fzf)
+
+tar_file="$1"
+dest="${2:-.}"
+
+if [ -z "$tar_file" ]; then
+  echo "Usage: tar-extract-file-fzf <tarfile> [destination]"
+  exit 1
+fi
+
+if [ ! -f "$tar_file" ]; then
+  echo "File '$tar_file' does not exist"
+  exit 1
+fi
+
+file=$(tar -tvf "$tar_file" | awk '{ print $6 }' | fzf)
+
+if [ -z "$file" ]; then
+  exit 0
+fi
+
+base=$(basename "$file")
+echo "Extracting $base"
+cmd="tar -xvf '$tar_file' '$file' -C '$dest'"
+print -s "$cmd" 2>/dev/null
+eval "$cmd"

@@ -1,0 +1,11 @@
+#!/bin/zsh
+# Jump to a directory in the git repo using fzf
+
+files=$(git ls-files)
+dirs=$(echo "$files" | xargs -n 1 dirname | sort -u)
+dir=$(echo "$dirs" | fzf --reverse --prompt "Select dir: ")
+
+if [ -n "$dir" ]; then
+  cd "$dir"
+  exec $SHELL
+fi

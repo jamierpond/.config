@@ -1,0 +1,9 @@
+#!/bin/zsh
+# Load a PyTorch tensor file and print its shape
+
+if [ -z "$1" ]; then
+  echo "Usage: pytorch-tensor-shape <tensor_file>"
+  exit 1
+fi
+
+python -i -c "import torch; t = torch.load('$1'); print('Shape:', t.shape)"

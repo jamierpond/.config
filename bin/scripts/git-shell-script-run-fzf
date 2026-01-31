@@ -1,0 +1,15 @@
+#!/bin/zsh
+# Fuzzy select and run a shell script from git files
+
+git_files=$(git ls-files)
+shell_scripts=$(echo "$git_files" | grep -E '\.sh$')
+script=$(echo "$shell_scripts" | fzf --reverse --prompt "Select script: ")
+
+if [ -z "$script" ]; then
+  exit 0
+fi
+
+shell="/bin/bash"
+cmd="$shell $script"
+print -s "$cmd" 2>/dev/null
+eval "$cmd"

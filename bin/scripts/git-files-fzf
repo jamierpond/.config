@@ -1,0 +1,4 @@
+#!/bin/zsh
+# Fuzzy select from git ls-files
+
+git ls-files | fzf

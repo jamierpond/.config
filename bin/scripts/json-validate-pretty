@@ -1,0 +1,9 @@
+#!/bin/zsh
+# Validate and pretty-print a JSON file
+
+if [ -z "$1" ]; then
+  echo "Usage: json-validate-pretty <file>"
+  exit 1
+fi
+
+cat "$1" | jq .

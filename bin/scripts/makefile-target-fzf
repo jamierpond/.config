@@ -1,0 +1,17 @@
+#!/bin/zsh
+# Fuzzy select and run a Makefile target
+
+if [ ! -f "./Makefile" ]; then
+  echo "No Makefile found"
+  exit 1
+fi
+
+target=$(grep "^[a-zA-Z_-]*:.*$" Makefile | sed "s/:.*//g" | fzf)
+
+if [ -z "$target" ]; then
+  exit 0
+fi
+
+cmd="make $target"
+print -s "$cmd" 2>/dev/null
+eval "$cmd"

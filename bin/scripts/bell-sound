@@ -1,0 +1,4 @@
+#!/bin/zsh
+# Play a bell sound
+
+afplay "$HOME/.config/bell.mp3" &

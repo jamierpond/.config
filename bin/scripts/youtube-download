@@ -1,0 +1,34 @@
+#!/bin/zsh
+# Download YouTube video or audio
+# Usage: youtube-download [-v] <url> [output]
+# -v: download video (default is audio only)
+
+video=false
+
+if [[ "$1" == "-v" ]]; then
+  video=true
+  shift
+fi
+
+url="$1"
+if [[ -z "$url" ]]; then
+  read -rp "Paste the YouTube link: " url
+fi
+
+title=$(yt-dlp --get-title "$url" | tr -cd '[:alnum:] _-' | tr ' ' '_')
+
+output="$2"
+if [[ -z "$output" ]]; then
+  if [[ "$video" == true ]]; then
+    output="${title}.mp4"
+  else
+    output="${title}.mp3"
+  fi
+fi
+
+if [[ "$video" == true ]]; then
+  yt-dlp "$url" -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4' \
+    --merge-output-format mp4 -o "$output"
+else
+  yt-dlp -x "$url" --audio-format mp3 -o "$output"
+fi

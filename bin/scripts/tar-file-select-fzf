@@ -1,0 +1,16 @@
+#!/bin/zsh
+# Select a file from a tarball using fzf
+
+tar="$1"
+
+if [ -z "$tar" ]; then
+  echo "Usage: tar-file-select-fzf <tarfile>"
+  exit 1
+fi
+
+if [ ! -f "$tar" ]; then
+  echo "File '$tar' does not exist"
+  exit 1
+fi
+
+tar -tvf "$tar" | awk '{ print $6 }' | fzf

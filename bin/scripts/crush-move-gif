@@ -1,0 +1,16 @@
+#!/bin/zsh
+# Move crushed GIF if smaller, otherwise remove crushed version
+
+if [ -z "$1" ]; then
+  echo "Usage: crush-move-gif <file.gif>"
+  exit 1
+fi
+
+newsize=$(wc -c <"$1.")
+oldsize=$(wc -c <"$1")
+
+if [ $oldsize -gt $newsize ]; then
+  mv "$1"{.,}
+else
+  rm "$1."
+fi

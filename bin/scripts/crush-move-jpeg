@@ -1,0 +1,9 @@
+#!/bin/zsh
+# Move crushed JPEG file to replace original
+
+if [ -z "$1" ]; then
+  echo "Usage: crush-move-jpeg <file.jpg>"
+  exit 1
+fi
+
+mv "$1"{.,}

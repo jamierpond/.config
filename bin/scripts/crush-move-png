@@ -1,0 +1,9 @@
+#!/bin/zsh
+# Move crushed PNG file to replace original
+
+if [ -z "$1" ]; then
+  echo "Usage: crush-move-png <file.png>"
+  exit 1
+fi
+
+mv "$1"{.,}

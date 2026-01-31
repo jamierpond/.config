@@ -1,0 +1,13 @@
+#!/bin/zsh
+# Fuzzy select and run a Jest describe block
+
+test_name=$(rg -o 'describe\("([^"]+)"' -r '$1' --no-filename | fzf)
+
+if [ -z "$test_name" ]; then
+  echo "No test selected"
+  exit 0
+fi
+
+cmd="npm run test -- -t \"$test_name\""
+print -s "$cmd" 2>/dev/null
+eval "$cmd"
