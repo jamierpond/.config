@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Fast flake check
+  check:
+    name: Flake Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Check flake
+        run: nix flake check
+
+  # Build Linux home-manager config
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build home-manager config
+        run: nix build .#homeConfigurations.jamie@ci.activationPackage
+
+      - name: Show what would be installed
+        run: |
+          echo "=== Packages in profile ==="
+          ls -la ./result/home-path/bin/ | head -40
+          echo ""
+          echo "=== Config files ==="
+          ls -la ./result/home-files/.config/ 2>/dev/null || echo "(no .config files)"
+
+  # Build macOS config (optional - runs on macos runner)
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build darwin config
+        run: nix build .#darwinConfigurations.macbook.system
+
+  # Docker test (full integration)
+  docker:
+    name: Docker Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and test in Docker
+        run: docker build -t dotfiles-test .
+
+      - name: Run container
+        run: docker run --rm dotfiles-test

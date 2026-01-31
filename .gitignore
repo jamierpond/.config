@@ -39,3 +39,12 @@
 *.conf
 !bell.mp3
 !GLOBAL_AGENTS.md
+
+# Nix config
+!flake.nix
+!flake.lock
+!home/
+!darwin/
+!nix/
+!nix-migration-plan.md
+!Dockerfile
