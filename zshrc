@@ -579,6 +579,7 @@ export PATH=$PATH:$HOME/.local/bin
 export PATH=$PATH:/snap/bin
 export PATH=$PATH:$HOME/.cargo/bin
 source $HOME/.config/nvm/nvm.sh
+nvm use default --silent
 export DO_NOT_TRACK=1
 
 # This is cruvial for zsh history management
