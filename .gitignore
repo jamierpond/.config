@@ -14,6 +14,9 @@
 !skhd/
 !yabai/
 !zshrc
+!prompt.zsh
+!vi-mode.zsh
+!completion.zsh
 !ranger/
 !bash_aliases.sh
 !lazygit/
