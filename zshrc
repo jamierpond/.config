@@ -1,6 +1,4 @@
 # Modernized zshrc - no oh-my-zsh
-zmodload zsh/zprof  # Profiling - remove after debugging
-
 this_dir=$(dirname "$0")
 
 # Modular configs
@@ -15,10 +13,6 @@ export PATH="$PATH:$(go env GOPATH)/bin"
 export PATH="$PATH:$HOME/.local/bin"
 export PATH="$PATH:/snap/bin"
 export PATH="$PATH:$HOME/.cargo/bin"
-
-# Pyenv
-export PYENV_ROOT="$HOME/.pyenv"
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 
 # Environment variables
 export HISTFILE="$HOME/.zsh_history"
@@ -198,10 +192,40 @@ if [ -n "$git_root" ]; then
   fi
 fi
 
-# Tool initialization
-source $HOME/.config/nvm/nvm.sh
-nvm use default --silent
-eval "$(pyenv init -)"
+# Lazy load nvm (saves ~1s startup)
+export NVM_DIR="$HOME/.config/nvm"
+nvm() {
+  unfunction nvm node npm npx 2>/dev/null
+  source "$NVM_DIR/nvm.sh"
+  nvm "$@"
+}
+node() {
+  unfunction nvm node npm npx 2>/dev/null
+  source "$NVM_DIR/nvm.sh"
+  nvm use default --silent
+  node "$@"
+}
+npm() {
+  unfunction nvm node npm npx 2>/dev/null
+  source "$NVM_DIR/nvm.sh"
+  nvm use default --silent
+  npm "$@"
+}
+npx() {
+  unfunction nvm node npm npx 2>/dev/null
+  source "$NVM_DIR/nvm.sh"
+  nvm use default --silent
+  npx "$@"
+}
+
+# Pyenv - lazy load
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+pyenv() {
+  unfunction pyenv
+  eval "$(command pyenv init -)"
+  pyenv "$@"
+}
 
 # Google Cloud SDK
 if [ -f '/Users/jamiepond/Downloads/google-cloud-sdk/path.zsh.inc' ]; then
