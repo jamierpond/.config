@@ -25,6 +25,7 @@
     # Languages (replaces nvm/pyenv)
     nodejs_20
     python312
+    go
 
     # Nice to have
     bat
