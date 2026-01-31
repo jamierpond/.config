@@ -125,16 +125,16 @@ endif
 test: ## Run setup tests
 	@bash ./test_setup.sh
 
-docker-build: ## Build Docker test image
-	DOCKER_BUILDKIT=1 docker build -t dotfiles-test .
+docker-build: ## Build Docker test image (x86_64)
+	DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -t dotfiles-test .
 
-docker-test: ## Run full test in Docker container
-	DOCKER_BUILDKIT=1 docker build -t dotfiles-test .
-	docker run --rm dotfiles-test
+docker-test: ## Run full test in Docker container (x86_64)
+	DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -t dotfiles-test .
+	docker run --platform linux/amd64 --rm dotfiles-test
 
-docker-shell: ## Interactive shell in test container
-	DOCKER_BUILDKIT=1 docker build -t dotfiles-test .
-	docker run --rm -it dotfiles-test
+docker-shell: ## Interactive shell in test container (x86_64)
+	DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -t dotfiles-test .
+	docker run --platform linux/amd64 --rm -it dotfiles-test
 
 # ============================================================================
 # CI
