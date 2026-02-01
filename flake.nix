@@ -54,78 +54,88 @@
         # "jamie@other-host" = mkHome { ... };
       };
 
-      # Dev shells for specific projects
-      devShells.x86_64-linux = let
-        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      # Dev shells - available on all systems
+      # Usage: nix develop .#<shell-name>
+      devShells = let
+        # Helper to make shells for a given system
+        mkShells = system: let
+          pkgs = nixpkgs.legacyPackages.${system};
+          isLinux = pkgs.stdenv.isLinux;
+        in {
+          # Default shell with common dev tools
+          default = pkgs.mkShell {
+            name = "dev";
+            packages = with pkgs; [
+              git gh lazygit
+              ripgrep fd fzf jq
+              nodejs_20 pnpm
+              python312 uv
+              go
+            ];
+            shellHook = ''
+              echo "Dev shell ready"
+            '';
+          };
+
+          # C/C++ development
+          cpp = pkgs.mkShell {
+            name = "cpp-dev";
+            packages = with pkgs; [
+              gcc clang llvm lld
+              cmake ninja gnumake
+              pkg-config
+              gdb lldb
+            ];
+            shellHook = ''
+              echo "C/C++ dev shell ready"
+            '';
+          };
+
+          # Audio plugin development (JUCE-friendly)
+          audio = pkgs.mkShell {
+            name = "audio-dev";
+            packages = with pkgs; [
+              gcc clang cmake ninja pkg-config
+              # Cross-platform audio libs
+              libsndfile freetype
+            ] ++ lib.optionals isLinux [
+              # Linux-specific audio/X11/GTK deps for JUCE
+              alsa-lib jack2
+              xorg.libX11 xorg.libXext xorg.libXrender
+              xorg.libXcursor xorg.libXinerama xorg.libXrandr
+              gtk3 webkitgtk
+            ];
+            shellHook = ''
+              echo "Audio dev shell ready (JUCE-compatible)"
+            '';
+          };
+        } // (if isLinux then {
+          # Ardour development (Linux only - uses GTK2/X11)
+          ardour = pkgs.mkShell {
+            name = "ardour-dev";
+            nativeBuildInputs = [ pkgs.zsh ];
+            packages = with pkgs; [
+              python3 pkg-config wafHook
+              gtk2 gtkmm2 glib glibmm cairomm pangomm atkmm
+              jack2 alsa-lib libsndfile libsamplerate aubio
+              rubberband vamp-plugin-sdk fftw fftwFloat
+              lv2 lilv serd sord sratom suil
+              boost libxml2 libxslt curl liblo taglib
+              libusb1 readline libuuid libarchive
+              xorg.libX11 xorg.libXext xorg.libXrender
+              xorg.libXcursor xorg.libXi xorg.libXinerama
+              gcc gnumake
+            ];
+            shellHook = ''
+              echo "Ardour dev environment ready"
+              echo "  ./waf configure && ./waf"
+            '';
+          };
+        } else {});
       in {
-        # Ardour development environment
-        ardour = pkgs.mkShell {
-          name = "ardour-dev";
-          nativeBuildInputs = [ pkgs.zsh ];
-          packages = with pkgs; [
-            # Build system
-            python3
-            pkg-config
-            wafHook
-
-            # Core GTK2 stack (Ardour uses GTK2, not GTK3/4)
-            gtk2
-            gtkmm2
-            glib
-            glibmm       # This is 2.4 series in nixpkgs
-            cairomm
-            pangomm
-            atkmm
-
-            # Audio
-            jack2
-            alsa-lib
-            libsndfile
-            libsamplerate
-            aubio
-            rubberband
-            vamp-plugin-sdk
-            fftw
-            fftwFloat
-
-            # LV2/plugin support
-            lv2
-            lilv
-            serd
-            sord
-            sratom
-            suil
-
-            # Other deps
-            boost
-            libxml2
-            libxslt
-            curl
-            liblo          # OSC
-            taglib
-            libusb1
-            readline
-            libuuid
-            libarchive
-
-            # X11
-            xorg.libX11
-            xorg.libXext
-            xorg.libXrender
-            xorg.libXcursor
-            xorg.libXi
-            xorg.libXinerama
-
-            # Compiler
-            gcc
-            gnumake
-          ];
-
-          shellHook = ''
-            echo "Ardour dev environment ready"
-            echo "  ./waf configure && ./waf"
-          '';
-        };
+        x86_64-linux = mkShells "x86_64-linux";
+        aarch64-darwin = mkShells "aarch64-darwin";
+        x86_64-darwin = mkShells "x86_64-darwin";
       };
 
       # macOS config (nix-darwin + home-manager integrated)

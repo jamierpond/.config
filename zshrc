@@ -246,14 +246,48 @@ if command -v yapi &> /dev/null; then
   source <(yapi completion zsh)
 fi
 
-# Nix dev shell picker (fzf)
+# =============================================================================
+# Nix helpers - making nix ergonomic
+# =============================================================================
+
+# Detect current nix system
+_nix_system() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    [[ "$(uname -m)" == "arm64" ]] && echo "aarch64-darwin" || echo "x86_64-darwin"
+  else
+    echo "x86_64-linux"
+  fi
+}
+
+# Quick rebuild & switch
+nrs() {
+  cd ~/.config && make switch && cd - > /dev/null
+}
+
+# Search nixpkgs with fzf
+nsp() {
+  local query="$1"
+  if [[ -z "$query" ]]; then
+    echo "Usage: nsp <search-term>"
+    return 1
+  fi
+  nix search nixpkgs "$query" 2>/dev/null | less
+}
+
+# Dev shell picker (fzf) - works on both Darwin and Linux
 ds() {
   local flake="${1:-$HOME/.config}"
-  local shells=$(nix flake show "$flake" --json 2>/dev/null | jq -r '.devShells["x86_64-linux"] // {} | keys[]')
+  local sys=$(_nix_system)
+  local shells=$(nix flake show "$flake" --json 2>/dev/null | jq -r ".devShells[\"$sys\"] // {} | keys[]")
   if [[ -z "$shells" ]]; then
-    echo "No devShells found in $flake"
+    echo "No devShells found in $flake for $sys"
     return 1
   fi
   local shell=$(echo "$shells" | fzf --prompt="dev shell> " --height=40%)
   [[ -n "$shell" ]] && nix develop "$flake#$shell" --command zsh
+}
+
+# Quick edit packages and rebuild
+nix-edit() {
+  ${EDITOR:-nvim} ~/.config/home/default.nix && nrs
 }

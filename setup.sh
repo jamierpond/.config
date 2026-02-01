@@ -69,14 +69,16 @@ else
     IS_CONTAINER=true
   fi
 
+  # Use Determinate Systems installer - better maintained, works everywhere
   if [[ "$IS_CONTAINER" == true ]]; then
-    info "Container detected, using Determinate installer..."
-    # Use Determinate Systems installer - better Docker/emulation support
+    info "Container detected, using Determinate installer (no daemon)..."
     curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux --no-confirm --init none
   elif [[ "$OS" == "macos" ]]; then
-    sh <(curl -L https://nixos.org/nix/install)
+    info "Installing Nix via Determinate installer..."
+    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm
   else
-    sh <(curl -L https://nixos.org/nix/install) --daemon
+    info "Installing Nix via Determinate installer..."
+    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm
   fi
 
   # Source nix
@@ -156,8 +158,10 @@ if [[ "$OS" == "macos" ]]; then
     info "Running darwin-rebuild..."
     darwin-rebuild switch --flake ".#macbook"
   else
-    info "Bootstrapping nix-darwin..."
-    nix run nix-darwin -- switch --flake ".#macbook"
+    info "Bootstrapping nix-darwin (this will take a moment)..."
+    # Build first, then activate with the built darwin-rebuild
+    nix build .#darwinConfigurations.macbook.system
+    ./result/bin/darwin-rebuild switch --flake .#macbook
   fi
 else
   info "Running home-manager..."

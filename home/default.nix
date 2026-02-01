@@ -135,6 +135,11 @@
       ll = "eza -la";
       cat = "bat";
       lg = "lazygit";
+
+      # Nix shortcuts
+      nrs = "cd ~/.config && make switch && cd -";  # nix rebuild switch
+      nfu = "nix flake update";                     # update flake inputs
+      ngc = "nix-collect-garbage -d";               # garbage collect
     };
   };
 
@@ -148,6 +153,14 @@
   programs.zoxide = {
     enable = true;
     enableZshIntegration = true;
+  };
+
+  # Direnv - auto-load dev shells when entering directories
+  # Usage: echo "use flake" > .envrc && direnv allow
+  programs.direnv = {
+    enable = true;
+    enableZshIntegration = true;
+    nix-direnv.enable = true;  # faster nix integration
   };
 
   # Claude Code

@@ -18,7 +18,7 @@ else
 	NIX_SYSTEM := x86_64-linux
 endif
 
-.PHONY: help setup switch update clean gc test docker-build docker-test docker-run ci info darwin-build darwin-activate darwin-switch darwin-switch-debug
+.PHONY: help setup switch update clean gc test docker-build docker-test docker-run ci info darwin-build darwin-activate darwin-switch darwin-switch-debug edit edit-darwin shells
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -77,7 +77,7 @@ endif
 
 darwin-activate: ## Activate darwin config (requires sudo)
 ifeq ($(SYSTEM),Darwin)
-	sudo ./result/sw/bin/darwin-rebuild switch --flake .#$(DARWIN_HOST)
+	./result/bin/darwin-rebuild switch --flake .#$(DARWIN_HOST)
 else
 	@echo "darwin-activate is macOS only"
 	@exit 1
@@ -88,7 +88,7 @@ darwin-switch: darwin-build darwin-activate ## Build and activate darwin config
 darwin-switch-debug: ## Build and activate darwin config with verbose output
 ifeq ($(SYSTEM),Darwin)
 	nix build .#darwinConfigurations.$(DARWIN_HOST).system --show-trace
-	sudo ./result/sw/bin/darwin-rebuild switch --flake .#$(DARWIN_HOST) --show-trace
+	./result/bin/darwin-rebuild switch --flake .#$(DARWIN_HOST) --show-trace
 else
 	@echo "darwin-switch-debug is macOS only"
 	@exit 1
@@ -125,6 +125,16 @@ else
 endif
 
 # ============================================================================
+# Quick edit
+# ============================================================================
+
+edit: ## Edit packages in $EDITOR, then rebuild
+	$${EDITOR:-nvim} home/default.nix && $(MAKE) switch
+
+edit-darwin: ## Edit darwin config in $EDITOR, then rebuild
+	$${EDITOR:-nvim} darwin/default.nix && $(MAKE) darwin-switch
+
+# ============================================================================
 # Search & explore
 # ============================================================================
 
@@ -133,6 +143,9 @@ search: ## Search nixpkgs (usage: make search q=ripgrep)
 
 repl: ## Open nix repl with flake
 	nix repl .
+
+shells: ## List available dev shells
+	@nix flake show --json 2>/dev/null | jq -r '.devShells | to_entries[] | "\(.key): \(.value | keys | join(", "))"'
 
 why: ## Show why a package is installed (usage: make why p=gcc)
 	nix why-depends ~/.nix-profile $(p)
