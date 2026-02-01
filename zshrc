@@ -9,7 +9,7 @@ source "$this_dir/completion.zsh"
 # PATH setup - scripts directory first
 export PATH="$this_dir/bin/scripts:$PATH"
 export PATH="$PATH:/usr/local/go/bin"
-export PATH="$PATH:$(go env GOPATH)/bin"
+command -v go &>/dev/null && export PATH="$PATH:$(go env GOPATH)/bin"
 export PATH="$PATH:$HOME/.local/bin"
 export PATH="$PATH:/snap/bin"
 export PATH="$PATH:$HOME/.cargo/bin"
