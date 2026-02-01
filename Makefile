@@ -24,24 +24,8 @@ help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 # ============================================================================
-# Installation
+# Setup
 # ============================================================================
-
-bootstrap: ## Full setup from scratch (run on fresh machine)
-	./setup.sh
-
-install-darwin: ## Install nix-darwin (macOS only, run after 'make install')
-ifeq ($(SYSTEM),Darwin)
-	@echo "Bootstrapping nix-darwin..."
-	nix run nix-darwin -- switch --flake .#$(DARWIN_HOST)
-else
-	@echo "nix-darwin is macOS only"
-	@exit 1
-endif
-
-install-hm: ## Bootstrap home-manager (Linux, run after 'make install')
-	@echo "Bootstrapping home-manager for $(USERNAME)@$(HOSTNAME)..."
-	nix run home-manager -- switch --flake .#$(USERNAME)@$(HOSTNAME)
 
 setup: ## First-time setup (requires nix to be installed)
 	@command -v nix >/dev/null 2>&1 || { echo "Error: Nix is not installed. Install it first: https://nixos.org/download"; exit 1; }
@@ -50,6 +34,19 @@ ifeq ($(SYSTEM),Darwin)
 else
 	@$(MAKE) install-hm
 endif
+
+install-darwin: ## Bootstrap nix-darwin (macOS)
+ifeq ($(SYSTEM),Darwin)
+	@echo "Bootstrapping nix-darwin..."
+	nix run nix-darwin -- switch --flake .#$(DARWIN_HOST)
+else
+	@echo "nix-darwin is macOS only"
+	@exit 1
+endif
+
+install-hm: ## Bootstrap home-manager (Linux)
+	@echo "Bootstrapping home-manager for $(USERNAME)@$(HOSTNAME)..."
+	nix run home-manager -- switch --flake .#$(USERNAME)@$(HOSTNAME)
 
 # ============================================================================
 # Daily use
