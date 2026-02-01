@@ -25,6 +25,7 @@
           modules = [
             ./home
             {
+              nixpkgs.config.allowUnfree = true;
               home.username = username;
               home.homeDirectory = if homeDirectory != null
                 then homeDirectory
@@ -138,7 +139,12 @@
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
-              home-manager.users.jamie = import ./home;
+              home-manager.backupFileExtension = "backup";
+              home-manager.users.jamiepond = {
+              imports = [ ./home ];
+              home.username = "jamiepond";
+              home.homeDirectory = "/Users/jamiepond";
+            };
             }
           ];
         };
