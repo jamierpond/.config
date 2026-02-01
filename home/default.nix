@@ -67,9 +67,9 @@
 
     # C/C++ toolchain
     gcc
-    clang
     llvm
     lld              # fast linker
+    clang-tools      # clangd, clang-format, etc. (no cc conflict)
 
     # ==========================================================================
     # Media & misc
