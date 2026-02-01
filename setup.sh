@@ -64,8 +64,23 @@ else
   info "Installing Nix..."
 
   # Detect if we're in Docker/container (no systemd)
+  IS_CONTAINER=false
   if [[ -f /.dockerenv ]] || [[ ! -d /run/systemd/system ]]; then
-    info "Container detected, using single-user install..."
+    IS_CONTAINER=true
+  fi
+
+  # Pre-create nix.conf with sandbox disabled for emulation compatibility
+  # (seccomp BPF doesn't work under x86_64 emulation on ARM)
+  if [[ "$IS_CONTAINER" == true ]]; then
+    info "Container detected, disabling sandbox for emulation compatibility..."
+    mkdir -p "$HOME/.config/nix"
+    echo "sandbox = false" > "$HOME/.config/nix/nix.conf"
+    echo "experimental-features = nix-command flakes" >> "$HOME/.config/nix/nix.conf"
+    export NIX_CONFIG="sandbox = false"
+  fi
+
+  if [[ "$IS_CONTAINER" == true ]]; then
+    info "Using single-user install..."
     sh <(curl -L https://nixos.org/nix/install) --no-daemon
   elif [[ "$OS" == "macos" ]]; then
     sh <(curl -L https://nixos.org/nix/install)
@@ -81,10 +96,10 @@ else
   fi
 fi
 
-# Enable flakes
-info "Enabling Nix flakes..."
+# Enable flakes (if not already enabled above)
 mkdir -p "$HOME/.config/nix"
 if ! grep -q "experimental-features" "$HOME/.config/nix/nix.conf" 2>/dev/null; then
+  info "Enabling Nix flakes..."
   echo "experimental-features = nix-command flakes" >> "$HOME/.config/nix/nix.conf"
 fi
 
