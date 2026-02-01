@@ -48,3 +48,4 @@
 !nix/
 !nix-migration-plan.md
 !Dockerfile
+!setup.sh
