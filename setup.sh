@@ -81,6 +81,9 @@ else
 
   if [[ "$IS_CONTAINER" == true ]]; then
     info "Using single-user install..."
+    # Create system nix.conf with sandbox disabled (needed during installation)
+    sudo mkdir -p /etc/nix
+    echo "sandbox = false" | sudo tee /etc/nix/nix.conf > /dev/null
     sh <(curl -L https://nixos.org/nix/install) --no-daemon
   elif [[ "$OS" == "macos" ]]; then
     sh <(curl -L https://nixos.org/nix/install)
