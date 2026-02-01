@@ -69,22 +69,10 @@ else
     IS_CONTAINER=true
   fi
 
-  # Pre-create nix.conf with sandbox disabled for emulation compatibility
-  # (seccomp BPF doesn't work under x86_64 emulation on ARM)
   if [[ "$IS_CONTAINER" == true ]]; then
-    info "Container detected, disabling sandbox for emulation compatibility..."
-    mkdir -p "$HOME/.config/nix"
-    echo "sandbox = false" > "$HOME/.config/nix/nix.conf"
-    echo "experimental-features = nix-command flakes" >> "$HOME/.config/nix/nix.conf"
-    export NIX_CONFIG="sandbox = false"
-  fi
-
-  if [[ "$IS_CONTAINER" == true ]]; then
-    info "Using single-user install..."
-    # Create system nix.conf with sandbox disabled (needed during installation)
-    sudo mkdir -p /etc/nix
-    echo "sandbox = false" | sudo tee /etc/nix/nix.conf > /dev/null
-    sh <(curl -L https://nixos.org/nix/install) --no-daemon
+    info "Container detected, using Determinate installer..."
+    # Use Determinate Systems installer - better Docker/emulation support
+    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux --no-confirm --init none
   elif [[ "$OS" == "macos" ]]; then
     sh <(curl -L https://nixos.org/nix/install)
   else
