@@ -134,7 +134,7 @@ alias rgpu="pkill wandb && pgpu | xargs -I {} kill -9 {} && kgpu"
 
 # Aliases - SSH/remote
 alias lm="sh ~/projects/lambda-machine/remote.sh"
-alias mm="ssh -t jamie@mm.pond.audio"
+alias mm="ssh -tt jamie@mm.pond.audio"
 alias vie="sh ~/projects/lambda-machine/vienna-remote.sh"
 alias ms="ssh administrator@208.52.154.141"
 
