@@ -53,6 +53,79 @@
         # "jamie@other-host" = mkHome { ... };
       };
 
+      # Dev shells for specific projects
+      devShells.x86_64-linux = let
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      in {
+        # Ardour development environment
+        ardour = pkgs.mkShell {
+          name = "ardour-dev";
+          packages = with pkgs; [
+            # Build system
+            python3
+            pkg-config
+            wafHook
+
+            # Core GTK2 stack (Ardour uses GTK2, not GTK3/4)
+            gtk2
+            gtkmm2
+            glib
+            glibmm       # This is 2.4 series in nixpkgs
+            cairomm
+            pangomm
+            atkmm
+
+            # Audio
+            jack2
+            alsa-lib
+            libsndfile
+            libsamplerate
+            aubio
+            rubberband
+            vamp-plugin-sdk
+            fftw
+            fftwFloat
+
+            # LV2/plugin support
+            lv2
+            lilv
+            serd
+            sord
+            sratom
+            suil
+
+            # Other deps
+            boost
+            libxml2
+            libxslt
+            curl
+            liblo          # OSC
+            taglib
+            libusb1
+            readline
+            libuuid
+            libarchive
+
+            # X11
+            xorg.libX11
+            xorg.libXext
+            xorg.libXrender
+            xorg.libXcursor
+            xorg.libXi
+            xorg.libXinerama
+
+            # Compiler
+            gcc
+            gnumake
+          ];
+
+          shellHook = ''
+            echo "Ardour dev environment ready"
+            echo "  ./waf configure && ./waf"
+          '';
+        };
+      };
+
       # macOS config (nix-darwin + home-manager integrated)
       darwinConfigurations = {
         # Adjust hostname and arch as needed
