@@ -18,7 +18,7 @@ else
 	NIX_SYSTEM := x86_64-linux
 endif
 
-.PHONY: help bootstrap install switch update clean gc test docker-build docker-test ci info
+.PHONY: help bootstrap install switch update clean gc test docker-build docker-test docker-run ci info
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -137,6 +137,9 @@ docker-test: ## Run full test in Docker container (x86_64)
 
 docker-shell: ## Interactive shell in test container (x86_64)
 	DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -t dotfiles-test .
+	docker run --platform linux/amd64 --rm -it dotfiles-test
+
+docker-run: ## Run container without rebuilding
 	docker run --platform linux/amd64 --rm -it dotfiles-test
 
 # ============================================================================
