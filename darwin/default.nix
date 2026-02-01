@@ -3,8 +3,14 @@
 {
   # System-level macOS settings via nix-darwin
 
-  # Enable Nix daemon
-  services.nix-daemon.enable = true;
+  # Declare users (required for home-manager integration)
+  users.users.jamiepond = {
+    name = "jamiepond";
+    home = "/Users/jamiepond";
+  };
+
+  # Primary user for user-specific system defaults
+  system.primaryUser = "jamiepond";
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
