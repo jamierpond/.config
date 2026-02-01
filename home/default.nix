@@ -150,6 +150,13 @@
     enableZshIntegration = true;
   };
 
+  # Claude Code
+  programs.claude-code = {
+    enable = true;
+    # settings = { };      # Add settings if needed
+    # mcpServers = { };    # Add MCP servers if needed
+  };
+
   # Home-manager state version (don't change after initial setup)
   home.stateVersion = "24.05";
 }
