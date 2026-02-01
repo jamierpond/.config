@@ -18,7 +18,7 @@ else
 	NIX_SYSTEM := x86_64-linux
 endif
 
-.PHONY: help setup switch update clean gc test docker-build docker-test docker-run ci info
+.PHONY: help setup switch update clean gc test docker-build docker-test docker-run ci info darwin-build darwin-activate darwin-switch darwin-switch-debug
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -38,10 +38,7 @@ endif
 install-darwin: ## Bootstrap nix-darwin (macOS)
 ifeq ($(SYSTEM),Darwin)
 	@echo "Bootstrapping nix-darwin..."
-	@echo "Step 1: Building system configuration..."
-	nix build .#darwinConfigurations.$(DARWIN_HOST).system
-	@echo "Step 2: Activating system (requires sudo)..."
-	sudo ./result/sw/bin/darwin-rebuild switch --flake .#$(DARWIN_HOST)
+	@$(MAKE) darwin-switch
 else
 	@echo "nix-darwin is macOS only"
 	@exit 1
@@ -57,16 +54,44 @@ install-hm: ## Bootstrap home-manager (Linux)
 
 switch: ## Apply config for current machine
 ifeq ($(SYSTEM),Darwin)
-	darwin-rebuild switch --flake .#$(DARWIN_HOST)
+	@$(MAKE) darwin-switch
 else
 	home-manager switch --flake .#$(USERNAME)@$(HOSTNAME)
 endif
 
 switch-debug: ## Apply config with verbose output
 ifeq ($(SYSTEM),Darwin)
-	darwin-rebuild switch --flake .#$(DARWIN_HOST) --show-trace
+	@$(MAKE) darwin-switch-debug
 else
 	home-manager switch --flake .#$(USERNAME)@$(HOSTNAME) --show-trace
+endif
+
+# Darwin-specific targets (build as user, activate as root)
+darwin-build: ## Build darwin config without activating
+ifeq ($(SYSTEM),Darwin)
+	nix build .#darwinConfigurations.$(DARWIN_HOST).system
+else
+	@echo "darwin-build is macOS only"
+	@exit 1
+endif
+
+darwin-activate: ## Activate darwin config (requires sudo)
+ifeq ($(SYSTEM),Darwin)
+	sudo ./result/sw/bin/darwin-rebuild switch --flake .#$(DARWIN_HOST)
+else
+	@echo "darwin-activate is macOS only"
+	@exit 1
+endif
+
+darwin-switch: darwin-build darwin-activate ## Build and activate darwin config
+
+darwin-switch-debug: ## Build and activate darwin config with verbose output
+ifeq ($(SYSTEM),Darwin)
+	nix build .#darwinConfigurations.$(DARWIN_HOST).system --show-trace
+	sudo ./result/sw/bin/darwin-rebuild switch --flake .#$(DARWIN_HOST) --show-trace
+else
+	@echo "darwin-switch-debug is macOS only"
+	@exit 1
 endif
 
 update: ## Update all flake inputs
