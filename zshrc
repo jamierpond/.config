@@ -2,7 +2,11 @@
 this_dir=$(dirname "$0")
 
 # Secrets (not version controlled)
-[[ -f ~/.secrets ]] && source ~/.secrets
+if [[ -f ~/.secrets ]]; then
+  source ~/.secrets
+else
+  echo "WARNING: ~/.secrets not found - env vars may be missing"
+fi
 
 # Nix profile (home-manager packages)
 if [[ -f "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" ]]; then
