@@ -18,7 +18,7 @@ else
 	NIX_SYSTEM := x86_64-linux
 endif
 
-.PHONY: help bootstrap install setup switch update clean gc test docker-build docker-test docker-run ci info
+.PHONY: help setup switch update clean gc test docker-build docker-test docker-run ci info
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
