@@ -60,6 +60,7 @@
         # Ardour development environment
         ardour = pkgs.mkShell {
           name = "ardour-dev";
+          nativeBuildInputs = [ pkgs.zsh ];
           packages = with pkgs; [
             # Build system
             python3

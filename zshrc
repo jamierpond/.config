@@ -245,3 +245,15 @@ fi
 if command -v yapi &> /dev/null; then
   source <(yapi completion zsh)
 fi
+
+# Nix dev shell picker (fzf)
+ds() {
+  local flake="${1:-$HOME/.config}"
+  local shells=$(nix flake show "$flake" --json 2>/dev/null | jq -r '.devShells["x86_64-linux"] // {} | keys[]')
+  if [[ -z "$shells" ]]; then
+    echo "No devShells found in $flake"
+    return 1
+  fi
+  local shell=$(echo "$shells" | fzf --prompt="dev shell> " --height=40%)
+  [[ -n "$shell" ]] && nix develop "$flake#$shell" --command zsh
+}
