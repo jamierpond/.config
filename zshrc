@@ -205,31 +205,12 @@ if [ -n "$git_root" ]; then
   fi
 fi
 
-# Lazy load nvm (saves ~1s startup)
-export NVM_DIR="$HOME/.config/nvm"
-nvm() {
-  unfunction nvm node npm npx 2>/dev/null
-  source "$NVM_DIR/nvm.sh"
-  nvm "$@"
-}
-node() {
-  unfunction nvm node npm npx 2>/dev/null
-  source "$NVM_DIR/nvm.sh"
-  nvm use default --silent
-  node "$@"
-}
-npm() {
-  unfunction nvm node npm npx 2>/dev/null
-  source "$NVM_DIR/nvm.sh"
-  nvm use default --silent
-  npm "$@"
-}
-npx() {
-  unfunction nvm node npm npx 2>/dev/null
-  source "$NVM_DIR/nvm.sh"
-  nvm use default --silent
-  npx "$@"
-}
+# nvm removed - using Nix-managed Node.js instead
+# export NVM_DIR="$HOME/.config/nvm"
+# nvm() { ... }
+# node() { ... }
+# npm() { ... }
+# npx() { ... }
 
 # Pyenv - lazy load
 export PYENV_ROOT="$HOME/.pyenv"
