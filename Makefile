@@ -18,7 +18,7 @@ else
 	NIX_SYSTEM := x86_64-linux
 endif
 
-.PHONY: help bootstrap install switch update clean gc test docker-build docker-test docker-run ci info
+.PHONY: help bootstrap install setup switch update clean gc test docker-build docker-test docker-run ci info
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -30,17 +30,6 @@ help: ## Show this help
 bootstrap: ## Full setup from scratch (run on fresh machine)
 	./setup.sh
 
-install: ## Install Nix only (run once on new machine)
-ifeq ($(SYSTEM),Darwin)
-	@echo "Installing Nix on macOS..."
-	sh <(curl -L https://nixos.org/nix/install)
-else
-	@echo "Installing Nix on Linux..."
-	sh <(curl -L https://nixos.org/nix/install) --daemon
-endif
-	@echo ""
-	@echo "Nix installed! Restart your shell, then run: make switch"
-
 install-darwin: ## Install nix-darwin (macOS only, run after 'make install')
 ifeq ($(SYSTEM),Darwin)
 	@echo "Bootstrapping nix-darwin..."
@@ -48,6 +37,18 @@ ifeq ($(SYSTEM),Darwin)
 else
 	@echo "nix-darwin is macOS only"
 	@exit 1
+endif
+
+install-hm: ## Bootstrap home-manager (Linux, run after 'make install')
+	@echo "Bootstrapping home-manager for $(USERNAME)@$(HOSTNAME)..."
+	nix run home-manager -- switch --flake .#$(USERNAME)@$(HOSTNAME)
+
+setup: ## First-time setup (requires nix to be installed)
+	@command -v nix >/dev/null 2>&1 || { echo "Error: Nix is not installed. Install it first: https://nixos.org/download"; exit 1; }
+ifeq ($(SYSTEM),Darwin)
+	@$(MAKE) install-darwin
+else
+	@$(MAKE) install-hm
 endif
 
 # ============================================================================
