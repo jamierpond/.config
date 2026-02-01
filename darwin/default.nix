@@ -12,6 +12,9 @@
   # Primary user for user-specific system defaults
   system.primaryUser = "jamiepond";
 
+  # Disable nix-darwin's nix management (using Determinate Nix)
+  nix.enable = false;
+
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 

@@ -1,9 +1,6 @@
 { config, pkgs, lib, ... }:
 
 {
-  # Allow unfree packages (claude-code, etc.)
-  nixpkgs.config.allowUnfree = true;
-
   # Let home-manager manage itself
   programs.home-manager.enable = true;
 

@@ -25,6 +25,7 @@
           modules = [
             ./home
             {
+              nixpkgs.config.allowUnfree = true;
               home.username = username;
               home.homeDirectory = if homeDirectory != null
                 then homeDirectory
