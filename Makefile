@@ -18,7 +18,7 @@ else
 	NIX_SYSTEM := x86_64-linux
 endif
 
-.PHONY: help install switch update clean gc test docker-build docker-test ci info
+.PHONY: help bootstrap install switch update clean gc test docker-build docker-test ci info
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -27,7 +27,10 @@ help: ## Show this help
 # Installation
 # ============================================================================
 
-install: ## Install Nix (run once on new machine)
+bootstrap: ## Full setup from scratch (run on fresh machine)
+	./setup.sh
+
+install: ## Install Nix only (run once on new machine)
 ifeq ($(SYSTEM),Darwin)
 	@echo "Installing Nix on macOS..."
 	sh <(curl -L https://nixos.org/nix/install)
