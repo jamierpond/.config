@@ -9,7 +9,7 @@ FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Minimal dependencies (what a fresh Ubuntu has + curl/git)
+# Minimal dependencies (what a fresh Ubuntu server has)
 RUN apt-get update && apt-get install -y \
     curl \
     xz-utils \
@@ -32,47 +32,23 @@ WORKDIR /home/jamie
 ENV USER=jamie
 ENV HOME=/home/jamie
 
-# Install Nix (single-user for Docker)
-RUN curl -L https://nixos.org/nix/install | sh -s -- --no-daemon
-
-ENV PATH="/home/jamie/.nix-profile/bin:$PATH"
-
-# Enable flakes
-RUN mkdir -p ~/.config/nix \
-    && echo "experimental-features = nix-command flakes" > ~/.config/nix/nix.conf
-
-# Copy dotfiles (simulates: git clone the repo)
+# Copy dotfiles (in real life this is: git clone)
 COPY --chown=jamie:jamie . /home/jamie/.config/
 
-WORKDIR /home/jamie/.config
-
-# Create projects dir and clone yapi (simulates the REPOS part of setup.sh)
-RUN mkdir -p ~/projects \
-    && git clone https://github.com/jamierpond/yapi.git ~/projects/yapi || true
-
-# Run the core of setup.sh: apply home-manager
-RUN . ~/.nix-profile/etc/profile.d/nix.sh \
-    && nix run home-manager -- switch --flake .#jamie@ci
+# Run the setup script
+RUN cd ~/.config && ./setup.sh
 
 # Verify everything works
-RUN . ~/.nix-profile/etc/profile.d/nix.sh \
-    && echo "=== Verifying installed programs ===" \
-    && nvim --version | head -1 \
-    && tmux -V \
-    && rg --version | head -1 \
-    && node --version \
-    && python3 --version \
-    && go version \
-    && git --version \
-    && lazygit --version | head -1 \
-    && yarn --version \
-    && make --version | head -1 \
+RUN echo "=== Verifying installed programs ===" \
+    && ~/.nix-profile/bin/nvim --version | head -1 \
+    && ~/.nix-profile/bin/tmux -V \
+    && ~/.nix-profile/bin/rg --version | head -1 \
+    && ~/.nix-profile/bin/node --version \
+    && ~/.nix-profile/bin/python3 --version \
+    && ~/.nix-profile/bin/go version \
+    && ~/.nix-profile/bin/git --version \
+    && ~/.nix-profile/bin/lazygit --version | head -1 \
     && echo "=== All programs verified! ==="
-
-# Open nvim and check plugins load (headless)
-RUN . ~/.nix-profile/etc/profile.d/nix.sh \
-    && timeout 60 nvim --headless "+Lazy! sync" +qa || true \
-    && echo "=== Neovim plugins synced ==="
 
 # Default: zsh
 CMD ["/home/jamie/.nix-profile/bin/zsh", "-l"]
