@@ -1,6 +1,9 @@
 # Modernized zshrc - no oh-my-zsh
 this_dir=$(dirname "$0")
 
+# Secrets (not version controlled)
+[[ -f ~/.secrets ]] && source ~/.secrets
+
 # Nix profile (home-manager packages)
 if [[ -f "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" ]]; then
   source "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh"
