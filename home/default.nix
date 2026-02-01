@@ -27,6 +27,11 @@
     python312
     go
 
+    # Build tools (needed by nvim plugins)
+    yarn
+    gnumake
+    gcc
+
     # Nice to have
     bat
     eza

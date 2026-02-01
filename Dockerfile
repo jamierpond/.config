@@ -1,14 +1,15 @@
 # Dotfiles test environment
-# Build: docker build -t dotfiles-test .
-# Test:  docker run --rm dotfiles-test
-# Shell: docker run --rm -it dotfiles-test bash
+# Validates that setup.sh works on a fresh Ubuntu machine
+#
+# Build: make docker-build
+# Test:  make docker-test
+# Shell: make docker-shell
 
 FROM ubuntu:24.04
 
-# Avoid interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies for Nix
+# Minimal dependencies (what a fresh Ubuntu has + curl/git)
 RUN apt-get update && apt-get install -y \
     curl \
     xz-utils \
@@ -22,7 +23,7 @@ RUN apt-get update && apt-get install -y \
 ENV LANG=en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8
 
-# Create user (Nix multi-user install needs a real user)
+# Create user
 RUN useradd -m -s /bin/bash jamie \
     && echo "jamie ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
@@ -31,41 +32,47 @@ WORKDIR /home/jamie
 ENV USER=jamie
 ENV HOME=/home/jamie
 
-# Install Nix (single-user mode for Docker simplicity)
+# Install Nix (single-user for Docker)
 RUN curl -L https://nixos.org/nix/install | sh -s -- --no-daemon
 
-# Set up Nix environment
-ENV PATH="/home/jamie/.nix-profile/bin:/nix/var/nix/profiles/default/bin:${PATH}"
-ENV NIX_PATH="nixpkgs=channel:nixpkgs-unstable"
+ENV PATH="/home/jamie/.nix-profile/bin:$PATH"
 
 # Enable flakes
-RUN mkdir -p /home/jamie/.config/nix \
-    && echo "experimental-features = nix-command flakes" > /home/jamie/.config/nix/nix.conf
+RUN mkdir -p ~/.config/nix \
+    && echo "experimental-features = nix-command flakes" > ~/.config/nix/nix.conf
 
-# Copy dotfiles
+# Copy dotfiles (simulates: git clone the repo)
 COPY --chown=jamie:jamie . /home/jamie/.config/
 
 WORKDIR /home/jamie/.config
 
-# Build and activate home-manager config
-RUN . /home/jamie/.nix-profile/etc/profile.d/nix.sh \
-    && nix build .#homeConfigurations.jamie@ci.activationPackage -o result \
-    && ./result/activate \
-    && echo "=== Build and activation successful! ==="
+# Create projects dir and clone yapi (simulates the REPOS part of setup.sh)
+RUN mkdir -p ~/projects \
+    && git clone https://github.com/jamierpond/yapi.git ~/projects/yapi || true
 
-# Verify key programs are available
-RUN . /home/jamie/.nix-profile/etc/profile.d/nix.sh \
-    && export PATH="$HOME/.nix-profile/bin:$PATH" \
+# Run the core of setup.sh: apply home-manager
+RUN . ~/.nix-profile/etc/profile.d/nix.sh \
+    && nix run home-manager -- switch --flake .#jamie@ci
+
+# Verify everything works
+RUN . ~/.nix-profile/etc/profile.d/nix.sh \
     && echo "=== Verifying installed programs ===" \
     && nvim --version | head -1 \
     && tmux -V \
     && rg --version | head -1 \
-    && fzf --version \
     && node --version \
     && python3 --version \
+    && go version \
     && git --version \
     && lazygit --version | head -1 \
+    && yarn --version \
+    && make --version | head -1 \
     && echo "=== All programs verified! ==="
 
-# Default: drop into zsh
+# Open nvim and check plugins load (headless)
+RUN . ~/.nix-profile/etc/profile.d/nix.sh \
+    && timeout 60 nvim --headless "+Lazy! sync" +qa || true \
+    && echo "=== Neovim plugins synced ==="
+
+# Default: zsh
 CMD ["/home/jamie/.nix-profile/bin/zsh", "-l"]
