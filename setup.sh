@@ -62,7 +62,12 @@ if command -v nix &> /dev/null; then
   info "Nix already installed: $(nix --version)"
 else
   info "Installing Nix..."
-  if [[ "$OS" == "macos" ]]; then
+
+  # Detect if we're in Docker/container (no systemd)
+  if [[ -f /.dockerenv ]] || [[ ! -d /run/systemd/system ]]; then
+    info "Container detected, using single-user install..."
+    sh <(curl -L https://nixos.org/nix/install) --no-daemon
+  elif [[ "$OS" == "macos" ]]; then
     sh <(curl -L https://nixos.org/nix/install)
   else
     sh <(curl -L https://nixos.org/nix/install) --daemon
