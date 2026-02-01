@@ -16,7 +16,7 @@ source "$this_dir/completion.zsh"
 export PATH="$this_dir/bin/scripts:$PATH"
 export PATH="$PATH:/usr/local/go/bin"
 command -v go &>/dev/null && export PATH="$PATH:$(go env GOPATH)/bin"
-export PATH="$PATH:$HOME/.local/bin"
+export PATH="$HOME/.local/bin:$PATH"
 export PATH="$PATH:/snap/bin"
 export PATH="$PATH:$HOME/.cargo/bin"
 

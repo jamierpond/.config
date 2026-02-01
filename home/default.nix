@@ -1,12 +1,17 @@
 { config, pkgs, lib, ... }:
 
 {
+  # Allow unfree packages (claude-code, etc.)
+  nixpkgs.config.allowUnfree = true;
+
   # Let home-manager manage itself
   programs.home-manager.enable = true;
 
   # Packages to install
   home.packages = with pkgs; [
+    # ==========================================================================
     # CLI essentials
+    # ==========================================================================
     ripgrep
     fd
     fzf
@@ -14,31 +19,89 @@
     tree
     htop
     btop
+    wget
+    curl
+    rsync
+    unzip
+    zip
+    file
+    killall          # psmisc - needed by xbase
+    watch
+    entr             # run commands on file change
 
+    # ==========================================================================
     # Dev tools
+    # ==========================================================================
     git
     gh
     lazygit
     neovim
     tmux
+    ranger
+    delta            # better git diffs
 
-    # Languages (replaces nvm/pyenv)
+    # ==========================================================================
+    # Languages & runtimes
+    # ==========================================================================
+    # Node.js
     nodejs_20
+    pnpm
+    yarn
+
+    # Python
     python312
+    uv               # fast python package manager
+
+    # Go
     go
 
-    # Build tools
-    yarn
+    # Rust
+    rustup           # manages rust toolchains, provides cargo
+
+    # ==========================================================================
+    # Build tools & compilers
+    # ==========================================================================
     gnumake
     cmake
-    gcc
+    ninja            # fast build system
     bazel
+    pkg-config
+    protobuf         # protoc
 
+    # C/C++ toolchain
+    gcc
+    llvm
+    lld              # fast linker
+    clang-tools      # clangd, clang-format, etc. (no cc conflict)
+
+    # ==========================================================================
+    # Media & misc
+    # ==========================================================================
+    ffmpeg
+    sox
+    imagemagick
+
+    # ==========================================================================
+    # Cloud & infrastructure
+    # ==========================================================================
+    cloudflared      # Cloudflare tunnel
+    # docker         # usually installed system-wide
+
+    # ==========================================================================
     # Nice to have
-    bat
-    eza
-    delta
-    zoxide
+    # ==========================================================================
+    bat              # better cat
+    eza              # better ls
+    zoxide           # smart cd
+    tldr             # simplified man pages
+    hyperfine        # benchmarking
+    tokei            # code stats
+    dust             # better du
+    duf              # better df
+    procs            # better ps
+    sd               # better sed
+    choose           # better cut
+    difftastic       # structural diff
   ];
 
   # Git config
@@ -72,8 +135,6 @@
     '';
 
     shellAliases = {
-      # Add aliases here as you migrate them
-      # Or keep them in zshrc for now
       ll = "eza -la";
       cat = "bat";
       lg = "lazygit";
@@ -92,8 +153,12 @@
     enableZshIntegration = true;
   };
 
-  # Starship prompt (optional - you have a custom prompt)
-  # programs.starship.enable = true;
+  # Claude Code
+  programs.claude-code = {
+    enable = true;
+    # settings = { };      # Add settings if needed
+    # mcpServers = { };    # Add MCP servers if needed
+  };
 
   # Home-manager state version (don't change after initial setup)
   home.stateVersion = "24.05";
