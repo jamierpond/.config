@@ -3,9 +3,9 @@ set -e
 
 # --- Config ---
 ssh_user="jamiepond"
-hostname_exec="ssh.pond.audio"
-hostname_file="me.pond.audio"
+hostname="me.pond.audio"
 remote_tmp="/Users/${ssh_user}/.mactmp"
+ssh_opts=(-o "ProxyCommand=cloudflared access ssh --hostname %h" -o "StrictHostKeyChecking=accept-new")
 
 # Extension -> command mapping ({} = remote file path)
 declare -A handlers=(
@@ -54,8 +54,7 @@ EOF
 
 run_command() {
   local cmd="$1"
-  ssh-keygen -f "$HOME/.ssh/known_hosts" -R "$hostname_exec" 2>/dev/null || true
-  ssh -o "StrictHostKeyChecking=accept-new" "${ssh_user}@${hostname_exec}" -x "$cmd"
+  ssh "${ssh_opts[@]}" "${ssh_user}@${hostname}" -x "$cmd"
 }
 
 copy_and_run() {
@@ -71,23 +70,23 @@ copy_and_run() {
   local sha=$(sha256sum "$input_file" | awk '{print $1}')
   local trimmed_sha="${sha:0:8}"
   local extension="${input_file##*.}"
-  local ssh_host="${ssh_user}@${hostname_file}"
+  local ssh_host="${ssh_user}@${hostname}"
   local remote_file="${remote_tmp}/${trimmed_sha}.${extension}"
 
   # Ensure remote tmp dir exists
-  ssh -q "$ssh_host" "mkdir -p ${remote_tmp}" 2>/dev/null || true
+  ssh "${ssh_opts[@]}" -q "$ssh_host" "mkdir -p ${remote_tmp}" 2>/dev/null || true
 
   # Copy if not already there
-  if ! ssh -q "$ssh_host" "[[ -f '$remote_file' ]]"; then
+  if ! ssh "${ssh_opts[@]}" -q "$ssh_host" "[[ -f '$remote_file' ]]"; then
     echo "Copying to Mac..." >&2
-    scp -q "$input_file" "$ssh_host:$remote_file"
+    scp "${ssh_opts[@]}" -q "$input_file" "$ssh_host:$remote_file"
   else
     echo "Using cached file" >&2
   fi
 
   # Run command with {} replaced by remote path
   local cmd="${cmd_template//\{\}/$remote_file}"
-  ssh "$ssh_host" -x "$cmd"
+  ssh "${ssh_opts[@]}" "$ssh_host" -x "$cmd"
 }
 
 # --- Parse args ---

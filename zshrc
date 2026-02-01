@@ -1,6 +1,12 @@
 # Modernized zshrc - no oh-my-zsh
 this_dir=$(dirname "$0")
 
+# Nix profile (home-manager packages)
+if [[ -f "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" ]]; then
+  source "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh"
+fi
+export PATH="$HOME/.nix-profile/bin:$PATH"
+
 # Modular configs
 source "$this_dir/prompt.zsh"
 source "$this_dir/vi-mode.zsh"
