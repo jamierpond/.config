@@ -38,7 +38,10 @@ endif
 install-darwin: ## Bootstrap nix-darwin (macOS)
 ifeq ($(SYSTEM),Darwin)
 	@echo "Bootstrapping nix-darwin..."
-	sudo -H nix run nix-darwin -- switch --flake .#$(DARWIN_HOST)
+	@echo "Step 1: Building system configuration..."
+	nix build .#darwinConfigurations.$(DARWIN_HOST).system
+	@echo "Step 2: Activating system (requires sudo)..."
+	sudo ./result/sw/bin/darwin-rebuild switch --flake .#$(DARWIN_HOST)
 else
 	@echo "nix-darwin is macOS only"
 	@exit 1
@@ -54,14 +57,14 @@ install-hm: ## Bootstrap home-manager (Linux)
 
 switch: ## Apply config for current machine
 ifeq ($(SYSTEM),Darwin)
-	sudo -H darwin-rebuild switch --flake .#$(DARWIN_HOST)
+	darwin-rebuild switch --flake .#$(DARWIN_HOST)
 else
 	home-manager switch --flake .#$(USERNAME)@$(HOSTNAME)
 endif
 
 switch-debug: ## Apply config with verbose output
 ifeq ($(SYSTEM),Darwin)
-	sudo -H darwin-rebuild switch --flake .#$(DARWIN_HOST) --show-trace
+	darwin-rebuild switch --flake .#$(DARWIN_HOST) --show-trace
 else
 	home-manager switch --flake .#$(USERNAME)@$(HOSTNAME) --show-trace
 endif
@@ -91,7 +94,7 @@ generations: ## List home-manager generations
 
 rollback: ## Rollback to previous generation
 ifeq ($(SYSTEM),Darwin)
-	sudo -H darwin-rebuild --rollback
+	darwin-rebuild --rollback
 else
 	home-manager generations | head -2 | tail -1 | awk '{print $$NF}' | xargs -I {} home-manager switch --flake {}
 endif
