@@ -174,7 +174,10 @@
   home.sessionVariables = {
     PNPM_HOME = "$HOME/.local/share/pnpm";
   };
-  home.sessionPath = [ "$HOME/.local/share/pnpm" ];
+  home.sessionPath = [
+    "$HOME/.local/bin"
+    "$HOME/.local/share/pnpm"
+  ];
 
   # Home-manager state version (don't change after initial setup)
   home.stateVersion = "24.05";
