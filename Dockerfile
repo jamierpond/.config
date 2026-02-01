@@ -44,10 +44,20 @@ RUN echo "=== Verifying installed programs ===" \
     && ~/.nix-profile/bin/tmux -V \
     && ~/.nix-profile/bin/rg --version | head -1 \
     && ~/.nix-profile/bin/node --version \
+    && ~/.nix-profile/bin/pnpm --version \
     && ~/.nix-profile/bin/python3 --version \
     && ~/.nix-profile/bin/go version \
+    && ~/.nix-profile/bin/rustup --version \
     && ~/.nix-profile/bin/git --version \
     && ~/.nix-profile/bin/lazygit --version | head -1 \
+    && ~/.nix-profile/bin/cmake --version | head -1 \
+    && ~/.nix-profile/bin/make --version | head -1 \
+    && ~/.nix-profile/bin/clang --version | head -1 \
+    && ~/.nix-profile/bin/gcc --version | head -1 \
+    && ~/.nix-profile/bin/bazel --version \
+    && ~/.nix-profile/bin/ffmpeg -version | head -1 \
+    && ~/.nix-profile/bin/cloudflared --version \
+    && ~/.nix-profile/bin/killall --version | head -1 \
     && echo "=== All programs verified! ==="
 
 # Default: zsh
