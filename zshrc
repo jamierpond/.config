@@ -266,11 +266,6 @@ _nix_system() {
   fi
 }
 
-# Quick rebuild & switch
-nrs() {
-  cd ~/.config && make switch && cd - > /dev/null
-}
-
 # Search nixpkgs with fzf
 nsp() {
   local query="$1"
