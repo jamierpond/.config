@@ -1,0 +1,129 @@
+#!/bin/bash
+set -e
+
+# --- Config ---
+ssh_user="jamiepond"
+hostname="me.pond.audio"
+remote_tmp="/Users/${ssh_user}/.mactmp"
+ssh_opts=(-o "ProxyCommand=cloudflared access ssh --hostname %h" -o "StrictHostKeyChecking=accept-new")
+
+# Extension -> command mapping ({} = remote file path)
+declare -A handlers=(
+  [mp3]="/opt/homebrew/bin/ffplay {}"
+  [wav]="/opt/homebrew/bin/ffplay {}"
+  [flac]="/opt/homebrew/bin/ffplay {}"
+  [ogg]="/opt/homebrew/bin/ffplay {}"
+  [m4a]="/opt/homebrew/bin/ffplay {}"
+  [aac]="/opt/homebrew/bin/ffplay {}"
+  [mp4]="/opt/homebrew/bin/ffplay {}"
+  [mkv]="/opt/homebrew/bin/ffplay {}"
+  [webm]="/opt/homebrew/bin/ffplay {}"
+  [mov]="/opt/homebrew/bin/ffplay {}"
+  [avi]="/opt/homebrew/bin/ffplay {}"
+  [png]="open -a Preview {}"
+  [jpg]="open -a Preview {}"
+  [jpeg]="open -a Preview {}"
+  [gif]="open -a Preview {}"
+  [webp]="open -a Preview {}"
+  [bmp]="open -a Preview {}"
+  [tiff]="open -a Preview {}"
+  [pdf]="open {}"
+  [html]="open {}"
+  [txt]="open {}"
+)
+
+# --- Functions ---
+usage() {
+  cat <<EOF
+Usage: mac [options] <file | "command">
+
+Run commands or open files on your Mac remotely.
+
+Examples:
+  mac "open https://example.com"     Run command on Mac
+  mac song.mp3                       Copy & play with ffplay
+  mac image.png                      Copy & open in Preview
+  mac video.mp4 -c "open -a VLC {}"  Copy & use custom command
+
+Options:
+  -c "cmd {}"   Custom command ({} = remote file path)
+  -h            Show this help
+EOF
+  exit 0
+}
+
+run_command() {
+  local cmd="$1"
+  ssh "${ssh_opts[@]}" "${ssh_user}@${hostname}" -x "$cmd"
+}
+
+copy_and_run() {
+  local input_file="$1"
+  local cmd_template="$2"
+
+  if [ ! -f "$input_file" ]; then
+    echo "File not found: $input_file" >&2
+    exit 1
+  fi
+
+  # SHA-based remote path for caching
+  local sha=$(sha256sum "$input_file" | awk '{print $1}')
+  local trimmed_sha="${sha:0:8}"
+  local extension="${input_file##*.}"
+  local ssh_host="${ssh_user}@${hostname}"
+  local remote_file="${remote_tmp}/${trimmed_sha}.${extension}"
+
+  # Ensure remote tmp dir exists
+  ssh "${ssh_opts[@]}" -q "$ssh_host" "mkdir -p ${remote_tmp}" 2>/dev/null || true
+
+  # Copy if not already there
+  if ! ssh "${ssh_opts[@]}" -q "$ssh_host" "[[ -f '$remote_file' ]]"; then
+    echo "Copying to Mac..." >&2
+    scp "${ssh_opts[@]}" -q "$input_file" "$ssh_host:$remote_file"
+  else
+    echo "Using cached file" >&2
+  fi
+
+  # Run command with {} replaced by remote path
+  local cmd="${cmd_template//\{\}/$remote_file}"
+  ssh "${ssh_opts[@]}" "$ssh_host" -x "$cmd"
+}
+
+# --- Parse args ---
+custom_cmd=""
+while getopts "c:h" opt; do
+  case $opt in
+    c) custom_cmd="$OPTARG" ;;
+    h) usage ;;
+    *) usage ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+if [ $# -eq 0 ]; then
+  usage
+fi
+
+input="$1"
+
+# --- Main logic ---
+
+# If it's a file that exists, copy and run
+if [ -f "$input" ]; then
+  extension="${input##*.}"
+  extension="${extension,,}"  # lowercase
+
+  if [ -n "$custom_cmd" ]; then
+    cmd="$custom_cmd"
+  elif [ -n "${handlers[$extension]}" ]; then
+    cmd="${handlers[$extension]}"
+  else
+    # Default: just open it
+    cmd="open {}"
+  fi
+
+  copy_and_run "$input" "$cmd"
+else
+  # Not a file, treat as command to run
+  run_command "$input"
+fi
