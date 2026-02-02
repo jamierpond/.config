@@ -2,16 +2,34 @@
 set -eou pipefail
 
 function detect_package_manager() {
-  local files=$(git ls-files)
-  if echo "$files" | grep -q "bun.lock"; then
-    echo "bun"
-  elif echo "$files" | grep -q "pnpm-lock.yaml"; then
-    echo "pnpm"
-  elif echo "$files" | grep -q "yarn.lock"; then
-    echo "yarn"
-  else
-    echo "npm"
-  fi
+  local target_dir="$1"
+  local locks=$(git ls-files | grep -E "(bun\.lockb?|pnpm-lock\.yaml|yarn\.lock|package-lock\.json)$")
+
+  [[ -z "$locks" ]] && echo "npm" && return
+
+  local best_pm="npm"
+  local best_depth=-1
+
+  while IFS= read -r lock; do
+    local lock_dir=$(dirname "$lock")
+    [[ "$lock_dir" == "." ]] && lock_dir=""
+
+    # Check if lock_dir is a prefix of target_dir (or same)
+    if [[ "$target_dir" == "$lock_dir"* ]]; then
+      local depth=${#lock_dir}
+      if (( depth > best_depth )); then
+        best_depth=$depth
+        case "$lock" in
+          *bun.lock*) best_pm="bun" ;;
+          *pnpm-lock.yaml) best_pm="pnpm" ;;
+          *yarn.lock) best_pm="yarn" ;;
+          *package-lock.json) best_pm="npm" ;;
+        esac
+      fi
+    fi
+  done <<< "$locks"
+
+  echo "$best_pm"
 }
 
 function npmf() {
