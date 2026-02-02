@@ -1,6 +1,19 @@
 #!/bin/bash
 set -eou pipefail
 
+function detect_package_manager() {
+  local files=$(git ls-files)
+  if echo "$files" | grep -q "bun.lock"; then
+    echo "bun"
+  elif echo "$files" | grep -q "pnpm-lock.yaml"; then
+    echo "pnpm"
+  elif echo "$files" | grep -q "yarn.lock"; then
+    echo "yarn"
+  else
+    echo "npm"
+  fi
+}
+
 function npmf() {
   scripts=$(git ls-files |                                                        \
     grep "package.json" |                                                      \
@@ -24,11 +37,14 @@ function npmf() {
   # Extract the directory from the package.json path
   dir=$(dirname "$file")
 
+  # Detect package manager from lock files
+  pm=$(detect_package_manager "$dir")
+
   # Build the command
-  cmd="cd \"$dir\" && npm run \"$script_name\""
+  cmd="cd \"$dir\" && $pm run \"$script_name\""
 
   # Show what we're running
-  echo "Running '$script_name' from $file"
+  echo "Running '$script_name' from $file (using $pm)"
   echo "Command: $command"
   echo ""
 
@@ -39,8 +55,8 @@ function npmf() {
     fi
   fi
 
-  # Change to the directory and run the npm script
-  cd "$dir" && npm run "$script_name"
+  # Change to the directory and run the script
+  cd "$dir" && $pm run "$script_name"
 }
 
 
