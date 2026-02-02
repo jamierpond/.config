@@ -82,6 +82,7 @@
     # Cloud & infrastructure
     # ==========================================================================
     cloudflared      # Cloudflare tunnel
+    vercel           # Vercel CLI
     # docker         # usually installed system-wide
 
     # ==========================================================================
