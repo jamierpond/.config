@@ -77,7 +77,7 @@ endif
 
 darwin-activate: ## Activate darwin config (requires sudo)
 ifeq ($(SYSTEM),Darwin)
-	./result/bin/darwin-rebuild switch --flake .#$(DARWIN_HOST)
+	sudo ./result/sw/bin/darwin-rebuild switch --flake .#$(DARWIN_HOST)
 else
 	@echo "darwin-activate is macOS only"
 	@exit 1
@@ -88,7 +88,7 @@ darwin-switch: darwin-build darwin-activate ## Build and activate darwin config
 darwin-switch-debug: ## Build and activate darwin config with verbose output
 ifeq ($(SYSTEM),Darwin)
 	nix build .#darwinConfigurations.$(DARWIN_HOST).system --show-trace
-	./result/bin/darwin-rebuild switch --flake .#$(DARWIN_HOST) --show-trace
+	sudo ./result/sw/bin/darwin-rebuild switch --flake .#$(DARWIN_HOST) --show-trace
 else
 	@echo "darwin-switch-debug is macOS only"
 	@exit 1
