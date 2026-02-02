@@ -30,6 +30,8 @@
     # Dev tools
     # ==========================================================================
     git
+    git-lfs
+    git-secret
     gh
     lazygit
     neovim
