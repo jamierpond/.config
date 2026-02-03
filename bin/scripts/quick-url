@@ -119,13 +119,31 @@ $(generate_emulator_urls)
 EOF
 )
 
-# Use fzf to interactively select a URL
-# The `sed` command cleans up the selected line for the `open` command
-selected_url=$(echo "${all_urls}" | fzf | sed -e 's/ |.*//' -e 's/ //g')
+# Format for display: DESCRIPTION | URL (truncated)
+# Raw format is: URL | Description (or just URL)
+display=$(echo "${all_urls}" | awk -F' \\| ' '{
+  url = $1
+  desc = ($2 != "") ? $2 : url
+  # Truncate for display
+  desc_trunc = substr(desc, 1, 40)
+  url_trunc = substr(url, 1, 70)
+  printf "%-40s  %s\n", desc_trunc, url_trunc
+}')
+
+# Use fzf with line numbers to track selection
+selected_num=$(echo "$display" | nl -ba | \
+  fzf --border --prompt="Open URL: " \
+      --header="DESCRIPTION                               URL" \
+      --with-nth=2.. | \
+  awk '{print $1}')
+
+# Get raw line by number and extract URL
+[[ -z "$selected_num" ]] && exit 0
+selected_url=$(echo "${all_urls}" | sed -n "${selected_num}p" | sed -e 's/ |.*//' -e 's/ //g')
 
 # Open the selected URL
 if [[ -n "${selected_url}" ]]; then
-    echo "🚀 Opening: ${selected_url}"
+    echo "Opening: ${selected_url}"
     if [[ "$(uname)" == "Darwin" ]]; then
         open "${selected_url}"
     else
