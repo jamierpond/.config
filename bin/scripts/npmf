@@ -33,24 +33,42 @@ function detect_package_manager() {
 }
 
 function npmf() {
-  scripts=$(git ls-files |                                                        \
-    grep "package.json" |                                                      \
-    xargs jq -r '.scripts // {} | to_entries[] | input_filename + "|" + .key + "|" + .value' 2>/dev/null \
+  # Generate raw data using | as delimiter (safe since we control the format)
+  raw_scripts=$(git ls-files |
+    grep "package.json" |
+    xargs jq -r '
+      (.name // "unnamed") as $pkg |
+      (.scripts // {}) | to_entries[] |
+      [input_filename, $pkg, .key, .value] | join("|")
+    ' 2>/dev/null
   )
 
-  # Use fzf to select a script
-  selected=$(echo "$scripts" | fzf --border --prompt="Select a script to run: ")
+  [[ -z "$raw_scripts" ]] && echo "No scripts found" && exit 0
+
+  # Format for fzf display: package (truncated), script, command preview
+  display=$(echo "$raw_scripts" | awk -F'|' '{
+    pkg = substr($2, 1, 25)
+    script = substr($3, 1, 20)
+    cmd = substr($4, 1, 60)
+    printf "%-25s  %-20s  %s\n", pkg, script, cmd
+  }')
+
+  # Use fzf with line numbers to track selection
+  selected_num=$(echo "$display" | nl -ba | \
+    fzf --border --prompt="Select script: " --header="PACKAGE                    SCRIPT                COMMAND" | \
+    awk '{print $1}')
 
   # Exit if no selection was made
-  if [ -z "$selected" ]; then
+  if [ -z "$selected_num" ]; then
     echo "No script selected"
     exit 0
   fi
 
-  # Parse the selected line: file|script_name|command
-  file=$(echo "$selected" | cut -d'|' -f1)
-  script_name=$(echo "$selected" | cut -d'|' -f2)
-  command=$(echo "$selected" | cut -d'|' -f3-)
+  # Get raw line by number and parse
+  raw_line=$(echo "$raw_scripts" | sed -n "${selected_num}p")
+  file=$(echo "$raw_line" | cut -d'|' -f1)
+  script_name=$(echo "$raw_line" | cut -d'|' -f3)
+  command=$(echo "$raw_line" | cut -d'|' -f4-)
 
   # Extract the directory from the package.json path
   dir=$(dirname "$file")
