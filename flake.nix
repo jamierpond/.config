@@ -10,14 +10,16 @@
     };
 
     # macOS system config (unused on Linux)
-    darwin = {
-      url = "github:LnL7/nix-darwin";
+    nix-darwin = {
+      url = "github:nix-darwin/nix-darwin/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, darwin, ... }:
+  outputs = { self, nixpkgs, home-manager, nix-darwin, ... }:
     let
+      lib = nixpkgs.lib;
+
       # Helper to make home-manager config for any system
       mkHome = { system, username, homeDirectory ? null }:
         home-manager.lib.homeManagerConfiguration {
@@ -68,7 +70,7 @@
             packages = with pkgs; [
               git gh lazygit
               ripgrep fd fzf jq
-              nodejs_20 pnpm
+              nodejs_22 pnpm
               python312 uv
               go
             ];
@@ -141,8 +143,7 @@
       # macOS config (nix-darwin + home-manager integrated)
       darwinConfigurations = {
         # Adjust hostname and arch as needed
-        "macbook" = darwin.lib.darwinSystem {
-          system = "aarch64-darwin"; # Use "x86_64-darwin" for Intel Mac
+        "macbook" = nix-darwin.lib.darwinSystem {
           modules = [
             ./darwin
             home-manager.darwinModules.home-manager

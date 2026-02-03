@@ -15,6 +15,9 @@
   # Disable nix-darwin's nix management (using Determinate Nix)
   nix.enable = false;
 
+  # Platform (aarch64-darwin for Apple Silicon, x86_64-darwin for Intel)
+  nixpkgs.hostPlatform = "aarch64-darwin";
+
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
@@ -61,5 +64,5 @@
   # };
 
   # Required for nix-darwin
-  system.stateVersion = 4;
+  system.stateVersion = 6;
 }

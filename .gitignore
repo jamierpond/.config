@@ -52,3 +52,4 @@ bin/scripts/quick-url-github-repos.txt
 !nix-migration-plan.md
 !Dockerfile
 !setup.sh
+!direnv/

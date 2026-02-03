@@ -22,9 +22,11 @@
     unzip
     zip
     file
-    killall          # psmisc - needed by xbase
     watch
     entr             # run commands on file change
+  ] ++ lib.optionals stdenv.isLinux [
+    killall          # psmisc - Linux only (macOS has /usr/bin/killall)
+  ] ++ [
 
     # ==========================================================================
     # Dev tools
