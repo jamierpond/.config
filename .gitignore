@@ -39,6 +39,9 @@
 *.conf
 !bell.mp3
 !GLOBAL_AGENTS.md
+bin/scripts/quick-urls.yaml
+bin/scripts/quick-url-gcloud-projects.txt
+bin/scripts/quick-url-github-repos.txt
 
 # Nix config
 !flake.nix
