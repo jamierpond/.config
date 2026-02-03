@@ -1,0 +1,166 @@
+# Quick URL launcher configuration
+
+# Static URLs - simple list of urls with optional names
+static:
+  - url: https://github.com
+    name: GitHub
+  - url: https://console.firebase.google.com/u/0/
+    name: Firebase Home
+  - url: https://covers.ai/
+  - url: https://covers.ai/ai-song-generator
+  - url: https://covers.ai/about
+  - url: http://localhost:3000/
+    name: localhost
+  - url: http://localhost:3000/ai-song-generator
+  - url: http://localhost:3000/record
+  - url: http://localhost:3000/about
+  - url: https://chat.openai.com/?model=gpt-4
+  - url: https://web.whatsapp.com
+  - url: https://beta.popstarz.ai/ai-image
+    name: Popstarz AI Image
+  - url: https://pond.audio
+  - url: https://pond.audio/github
+  - url: https://pond.audio/li
+  - url: https://pond.audio/linkedin
+    name: LinkedIn
+  - url: https://pond.audio/gh
+    name: GitHub
+  - url: https://vercel.com
+    name: Vercel
+  - url: https://calendar.google.com/calendar/u/0/r
+    name: Personal Calendar
+  - url: https://calendar.google.com/calendar/u/1/r
+    name: Work Calendar
+  - url: https://mail.google.com/mail/u/0/#inbox
+    name: Gmail Personal
+  - url: https://mail.google.com/mail/u/1/#inbox
+    name: Gmail Mayk Work
+  - url: https://console.cloud.google.com/run/detail/us-central1/songgpt/logs?project=mayk-studio-staging
+    name: SongGPT Staging Logs
+  - url: https://console.cloud.google.com/run/detail/us-central1/fayk-it/logs?project=drayk-it-f3e35
+    name: fayk logs cloud
+  - url: https://app.circleci.com/pipelines/github/mayk-it
+    name: CircleCI Dashboard cci
+  - url: https://mar.band
+  - url: https://song-gpt.com
+    name: SongGPT full website
+  - url: https://staging.song-gpt.com
+    name: Staging SongGPT
+  - url: https://vercel.com/mayk-it/mayk-studio
+    name: SongGPT Vercel
+  - url: https://vercel.com/mayk-it/covers-ai
+    name: Covers Vercel
+  - url: https://vercel.com/mayk-it/popstar
+    name: Popstarz Vercel
+  - url: https://docs.google.com/document/d/1LuOCWHJ8C2GzEjts2ZkuUXggkC4_BkkHIGSiVCd6Km4/edit
+    name: SongGPT Roadmap
+  - url: https://github.com/pulls
+    name: My Pull Requests
+  - url: https://mayk.atlassian.net/jira/software/c/projects/MAYK/boards/2?assignee=5f94739dddb0df006e98c181
+    name: Jira
+  - url: https://docs.google.com/document/d/1X9jZAIaNLJNGMzag-rdrN0FLRp10xkHkZzbr54QFQLk/edit
+    name: Empire State of Audio Roadmap
+  - url: https://app.slack.com/client/T018TFZ34EL/D033C1DPV7V
+    name: Stefan Slack
+  - url: https://app.slack.com/client/T018TFZ34EL/D033QK7LBAM
+    name: Akiva Slack
+  - url: https://app.slack.com/client/T018TFZ34EL/C063MK5HN78
+    name: SongGPT Slack
+  - url: https://app.slack.com/client/T018TFZ34EL/D04AMVA3KAP
+    name: Kelly Slack
+  - url: https://app.slack.com/client/T018TFZ34EL/D03LCE84GNT
+    name: Matthew Rice Slack
+  - url: https://app.slack.com/client/T018TFZ34EL/D04PZT0J6PK
+    name: Marianne Slack
+  - url: https://app.slack.com/client/T018TFZ34EL/C060XSTPT7G
+    name: Popstarz Channel Slack
+  - url: https://github.com/pulls/review-requested
+    name: Pull Review Requests
+  - url: https://onejourney.vercel.app/
+    name: OneJourney
+  - url: https://dash.cloudflare.com/
+    name: Cloudflare
+  - url: https://console.firebase.google.com/u/0/project/drayk-it-f3e35/firestore/data/~2Frender-tasks~2F0008393ffe924e1f8faa1ba84c27584d
+    name: Fayk render data songs info
+  - url: https://wandb.com/home
+    name: Weights and Biases
+
+# GCloud projects - generates URLs for each service per project
+gcloud:
+  projects:
+    - mayk-ai-video-sandbox
+    - mayk-ai-video-dev
+    - mayk-ai-video
+    - nova-pipeline
+    - karaoke-data-platform
+    - gen-pipeline
+    - mayk-ai
+    - mayk-karaoke-rush
+    - karaoke-test-ab024
+    - callback-service-961f4
+    - song-rewrite
+    - karaoke-game-57a6d
+    - rap-battle-f88d7
+    - gcs-path-uploader
+    - popstar-firebase
+    - data-ingestion-pipeline-993c5
+    - electric-goods-408104
+    - instasong-c647a
+    - covers-ai-staging
+    - remayk-it-prod
+    - billing-data-export-395607
+    - mayk-studio-staging
+    - hit-machine-4bf64
+    - nansypp
+    - covers-ai
+    - beatfkr
+    - audio-ml-375919
+    - drayk-it-f3e35
+    - drayk-it
+    - kibo-the-bunny
+    - cover-mayker
+    - starperformer
+    - mayk-staging
+    - mayk-songs
+  services:
+    - storage
+    - run
+    - compute
+    - cloudtasks
+
+# Firebase - generates URLs for each service per project
+firebase:
+  services:
+    - firestore
+    - functions
+    - storage
+    - hosting
+    - authentication/users
+
+# GitHub repos - generates repo, pulls, main, develop URLs
+github:
+  repos:
+    # Tamber
+    - Tamber-Inc/tamber-web
+    - Tamber-Inc/xdaw
+    - Tamber-Inc/hey-buddy
+    - Tamber-Inc/tamber-chords
+    - Tamber-Inc/drum-decompose
+    - Tamber-Inc/clap-local
+    - Tamber-Inc/tamber-data-vis
+    - Tamber-Inc/audio-retrieval-demo
+    - Tamber-Inc/clap-service
+    - Tamber-Inc/synth-preset-retrieval-demo
+    - Tamber-Inc/ableton-mcp
+    - Tamber-Inc/sound-packs
+    - Tamber-Inc/tamber-audio
+    - Tamber-Inc/tamber-embeddings
+    # Personal
+    - jamierpond/.config
+    - jamierpond/journal
+    - jamierpond/pond.audio
+    - jamierpond/yapi
+
+# Local emulator
+emulator:
+  base_url: http://127.0.0.1:4000

@@ -1,153 +1,78 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
-# --- Configuration ---
-
-# Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG="${SCRIPT_DIR}/quick-urls.yaml"
 
-# Load configuration from files
-GCLOUD_PROJECTS=($(cat "${SCRIPT_DIR}/quick-url-gcloud-projects.txt"))
-GITHUB_REPOS=($(cat "${SCRIPT_DIR}/quick-url-github-repos.txt"))
+[[ ! -f "$CONFIG" ]] && echo "Config not found: $CONFIG" && exit 1
 
-# Firebase services
-FIREBASE_SERVICES=(
-    "firestore"
-    "functions"
-    "storage"
-    "hosting"
-    "authentication/users"
-)
+# Generate all URLs from YAML config
+generate_urls() {
+  # Static URLs
+  yq -r '.static[] | (.name // .url) + "|" + .url' "$CONFIG" 2>/dev/null
 
-# --- Functions ---
-
-# Generate Google Cloud Console URLs for various services
-generate_gcloud_urls() {
-    for project_id in "${GCLOUD_PROJECTS[@]}"; do
-        echo "https://console.cloud.google.com/storage?project=${project_id} | ${project_id} Storage"
-        echo "https://console.cloud.google.com/run?project=${project_id} | ${project_id} Cloud Run"
-        echo "https://console.cloud.google.com/compute?project=${project_id} | ${project_id} Compute Engine"
-        echo "https://console.cloud.google.com/cloudtasks?project=${project_id} | ${project_id} Cloud Tasks"
+  # GCloud URLs
+  local gcloud_projects=$(yq -r '.gcloud.projects[]' "$CONFIG" 2>/dev/null)
+  local gcloud_services=$(yq -r '.gcloud.services[]' "$CONFIG" 2>/dev/null)
+  for project in $gcloud_projects; do
+    for service in $gcloud_services; do
+      echo "${project} ${service}|https://console.cloud.google.com/${service}?project=${project}"
     done
+  done
+
+  # Firebase URLs
+  local firebase_services=$(yq -r '.firebase.services[]' "$CONFIG" 2>/dev/null)
+  for project in $gcloud_projects; do
+    echo "${project} Firebase|https://console.cloud.google.com/welcome?project=${project}"
+    for service in $firebase_services; do
+      echo "${project} ${service}|https://console.firebase.google.com/u/0/project/${project}/${service}"
+    done
+  done
+
+  # GitHub URLs
+  local github_repos=$(yq -r '.github.repos[]' "$CONFIG" 2>/dev/null)
+  for repo in $github_repos; do
+    echo "${repo}|https://github.com/${repo}"
+    echo "${repo} pulls|https://github.com/${repo}/pulls"
+  done
+
+  # Emulator URLs
+  local emulator_base=$(yq -r '.emulator.base_url' "$CONFIG" 2>/dev/null)
+  if [[ -n "$emulator_base" && "$emulator_base" != "null" ]]; then
+    echo "Local Emulator|${emulator_base}"
+    for service in $firebase_services; do
+      echo "Local ${service}|${emulator_base}/${service}"
+    done
+  fi
 }
 
-# Generate Firebase Console URLs
-generate_firebase_urls() {
-    for project_id in "${GCLOUD_PROJECTS[@]}"; do
-        echo "https://console.cloud.google.com/welcome?project=${project_id} | ${project_id} Firebase Welcome"
-        for service in "${FIREBASE_SERVICES[@]}"; do
-            echo "https://console.firebase.google.com/u/0/project/${project_id}/${service} | ${project_id} ${service}"
-        done
-    done
-}
+# Generate and cache URLs
+all_urls=$(generate_urls)
 
-# Generate GitHub URLs for a given repository
-generate_github_urls() {
-    for repo_full_name in "${GITHUB_REPOS[@]}"; do
-        local base_url="https://github.com/${repo_full_name}"
-        echo "${base_url} | ${repo_full_name}"
-        echo "${base_url}/pulls | ${repo_full_name} Pulls"
-        echo "${base_url}/tree/main | ${repo_full_name} main"
-        echo "${base_url}/tree/develop | ${repo_full_name} develop"
-    done
-}
-
-# Generate URLs for the local Firebase emulator suite
-generate_emulator_urls() {
-    local base_url="http://127.0.0.1:4000"
-    echo "${base_url} | _Local Emulator Suite"
-    for service in "${FIREBASE_SERVICES[@]}"; do
-        echo "${base_url}/${service} | _Local ${service} emulator"
-    done
-}
-
-# --- Main Logic ---
-
-# Combine all URL sources into a single list
-all_urls=$(cat <<EOF
-https://github.com | GitHub
-https://console.firebase.google.com/u/0/ | Firebase Home
-https://covers.ai/
-https://covers.ai/ai-song-generator
-https://covers.ai/about
-http://localhost:3000/ | localhost
-http://localhost:3000/ai-song-generator
-http://localhost:3000/record
-http://localhost:3000/about
-https://chat.openai.com/?model=gpt-4
-https://web.whatsapp.com
-https://beta.popstarz.ai/ai-image | Popstarz AI Image
-https://pond.audio
-https://pond.audio/github
-https://pond.audio/li
-https://pond.audio/linkedin | LinkedIn
-https://pond.audio/gh | GitHub
-https://vercel.com | Vercel
-https://calendar.google.com/calendar/u/0/r | Personal Calendar
-https://calendar.google.com/calendar/u/1/r | Work Calendar
-https://mail.google.com/mail/u/0/#inbox | Gmail Personal
-https://mail.google.com/mail/u/1/#inbox | Gmail Mayk Work
-https://console.cloud.google.com/run/detail/us-central1/songgpt/logs?project=mayk-studio-staging | SongGPT Staging _Logs
-https://console.cloud.google.com/run/detail/us-central1/fayk-it/logs?project=drayk-it-f3e35 | fayk logs cloud
-https://app.circleci.com/pipelines/github/mayk-it | CircleCI Dashboard cci
-https://mar.band
-https://song-gpt.com | SongGPT full _website
-https://staging.song-gpt.com | Staging SongGPT Staging full _website
-https://vercel.com/mayk-it/mayk-studio | SongGPT Vercel
-https://vercel.com/mayk-it/covers-ai | Covers Vercel
-https://vercel.com/mayk-it/popstar | Popstarz Vercel
-https://docs.google.com/document/d/1LuOCWHJ8C2GzEjts2ZkuUXggkC4_BkkHIGSiVCd6Km4/edit | SongGPT _Roadmap
-https://github.com/pulls | My _Pull Requests
-https://mayk.atlassian.net/jira/software/c/projects/MAYK/boards/2?assignee=5f94739dddb0df006e98c181 | Jira
-https://docs.google.com/document/d/1X9jZAIaNLJNGMzag-rdrN0FLRp10xkHkZzbr54QFQLk/edit | Empire State of Audio, Audio Engine _Roadmap
-https://app.slack.com/client/T018TFZ34EL/D033C1DPV7V | Stefan Slack
-https://app.slack.com/client/T018TFZ34EL/D033QK7LBAM | Akiva Slack
-https://app.slack.com/client/T018TFZ34EL/C063MK5HN78 | SongGPT Slack
-https://app.slack.com/client/T018TFZ34EL/D04AMVA3KAP | Kelly Slack
-https://app.slack.com/client/T018TFZ34EL/D03LCE84GNT | Matthew Rice Slack
-https://app.slack.com/client/T018TFZ34EL/D04PZT0J6PK | Marianne Slack
-https://app.slack.com/client/T018TFZ34EL/C060XSTPT7G | Popstarz _Channel Slack
-https://github.com/pulls/review-requested | Pull _Review Requests
-https://onejourney.vercel.app/ | OneJourney
-https://dash.cloudflare.com/ | Cloudflare
-https://console.firebase.google.com/u/0/project/drayk-it-f3e35/firestore/data/~2Frender-tasks~2F0008393ffe924e1f8faa1ba84c27584d | Fayk render data songs info
-https://wandb.com/home | Weights and Biases
-$(generate_gcloud_urls)
-$(generate_firebase_urls)
-$(generate_github_urls)
-$(generate_emulator_urls)
-EOF
-)
-
-# Format for display: DESCRIPTION | URL (truncated)
-# Raw format is: URL | Description (or just URL)
-display=$(echo "${all_urls}" | awk -F' \\| ' '{
-  url = $1
-  desc = ($2 != "") ? $2 : url
-  # Truncate for display
-  desc_trunc = substr(desc, 1, 40)
-  url_trunc = substr(url, 1, 70)
-  printf "%-40s  %s\n", desc_trunc, url_trunc
+# Format for display: NAME | URL (truncated)
+display=$(echo "$all_urls" | awk -F'|' '{
+  name = substr($1, 1, 45)
+  url = substr($2, 1, 65)
+  printf "%-45s  %s\n", name, url
 }')
 
 # Use fzf with line numbers to track selection
 selected_num=$(echo "$display" | nl -ba | \
   fzf --border --prompt="Open URL: " \
-      --header="DESCRIPTION                               URL" \
+      --header="NAME                                           URL" \
       --with-nth=2.. | \
   awk '{print $1}')
 
-# Get raw line by number and extract URL
 [[ -z "$selected_num" ]] && exit 0
-selected_url=$(echo "${all_urls}" | sed -n "${selected_num}p" | sed -e 's/ |.*//' -e 's/ //g')
 
-# Open the selected URL
-if [[ -n "${selected_url}" ]]; then
-    echo "Opening: ${selected_url}"
-    if [[ "$(uname)" == "Darwin" ]]; then
-        open "${selected_url}"
-    else
-        # If not on macOS, use a custom script for remote execution
-        ~/.config/bin/scripts/do-on-mac "open ${selected_url}"
-    fi
+# Get raw line by number and extract URL
+selected_url=$(echo "$all_urls" | sed -n "${selected_num}p" | cut -d'|' -f2)
+
+if [[ -n "$selected_url" ]]; then
+  echo "Opening: ${selected_url}"
+  if [[ "$(uname)" == "Darwin" ]]; then
+    open "$selected_url"
+  else
+    ~/.config/bin/scripts/do-on-mac "open ${selected_url}"
+  fi
 fi
