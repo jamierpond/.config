@@ -84,7 +84,7 @@
     # Cloud & infrastructure
     # ==========================================================================
     cloudflared      # Cloudflare tunnel
-    vercel           # Vercel CLI
+    # vercel         # not in nixpkgs - install via npm
     # docker         # usually installed system-wide
 
     # ==========================================================================
@@ -116,10 +116,9 @@
     };
   };
 
-  # Delta (better git diffs)
+  # Delta (better git diffs) - disabled, using regular git diff
   programs.delta = {
-    enable = true;
-    enableGitIntegration = true;
+    enable = false;
   };
 
   # Zsh config
