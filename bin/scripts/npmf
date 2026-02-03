@@ -3,7 +3,7 @@ set -eou pipefail
 
 function detect_package_manager() {
   local target_dir="$1"
-  local locks=$(git ls-files | grep -E "(bun\.lockb?|pnpm-lock\.yaml|yarn\.lock|package-lock\.json)$")
+  local locks=$(git ls-files --recurse-submodules | grep -E "(bun\.lockb?|pnpm-lock\.yaml|yarn\.lock|package-lock\.json)$")
 
   [[ -z "$locks" ]] && echo "npm" && return
 
@@ -34,8 +34,9 @@ function detect_package_manager() {
 
 function npmf() {
   # Generate raw data using | as delimiter (safe since we control the format)
-  raw_scripts=$(git ls-files |
-    grep "package.json" |
+  # --recurse-submodules includes submodule files, grep -v excludes templates
+  raw_scripts=$(git ls-files --recurse-submodules |
+    grep "package\.json$" |
     xargs jq -r '
       (.name // "unnamed") as $pkg |
       (.scripts // {}) | to_entries[] |
@@ -53,9 +54,11 @@ function npmf() {
     printf "%-25s  %-20s  %s\n", pkg, script, cmd
   }')
 
-  # Use fzf with line numbers to track selection
+  # Use fzf with hidden line numbers to track selection
   selected_num=$(echo "$display" | nl -ba | \
-    fzf --border --prompt="Select script: " --header="PACKAGE                    SCRIPT                COMMAND" | \
+    fzf --border --prompt="Select script: " \
+        --header="PACKAGE                    SCRIPT                COMMAND" \
+        --with-nth=2.. | \
     awk '{print $1}')
 
   # Exit if no selection was made
