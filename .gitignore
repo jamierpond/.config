@@ -42,6 +42,8 @@
 bin/scripts/quick-urls.yaml
 bin/scripts/quick-url-gcloud-projects.txt
 bin/scripts/quick-url-github-repos.txt
+!AGENTS.md
+!CLAUDE.md
 
 # Nix config
 !flake.nix
