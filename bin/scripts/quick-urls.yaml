@@ -65,7 +65,6 @@ gcloud:
     - gcs-path-uploader
     - popstar-firebase
     - data-ingestion-pipeline-993c5
-    - electric-goods-408104
     - instasong-c647a
     - covers-ai-staging
     - billing-data-export-395607
