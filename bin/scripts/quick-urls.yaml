@@ -6,9 +6,6 @@ static:
     name: GitHub
   - url: https://console.firebase.google.com/u/0/
     name: Firebase Home
-  - url: https://covers.ai/
-  - url: https://covers.ai/ai-song-generator
-  - url: https://covers.ai/about
   - url: http://localhost:3000/
     name: localhost
   - url: http://localhost:3000/ai-song-generator
@@ -54,29 +51,7 @@ static:
 # GCloud projects - generates URLs for each service per project
 gcloud:
   projects:
-    - nova-pipeline
-    - karaoke-data-platform
-    - gen-pipeline
-    - karaoke-test-ab024
-    - callback-service-961f4
-    - song-rewrite
-    - karaoke-game-57a6d
-    - rap-battle-f88d7
-    - gcs-path-uploader
-    - popstar-firebase
-    - data-ingestion-pipeline-993c5
-    - instasong-c647a
-    - covers-ai-staging
-    - billing-data-export-395607
-    - hit-machine-4bf64
-    - nansypp
-    - covers-ai
-    - beatfkr
-    - audio-ml-375919
-    - drayk-it-f3e35
-    - drayk-it
-    - kibo-the-bunny
-    - starperformer
+    - tamber-prod
   services:
     - storage
     - run

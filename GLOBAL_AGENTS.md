@@ -59,6 +59,16 @@ Either we're doing a job piece by piece and this is required, or it's temporary.
 You may not break rules without this approval.
 
 
+## Scripts Over Ad-Hoc Bash Chains
+If a script exists, **run the script**. Do not decompose it into individual bash commands or "improve" the process by running its steps manually.
+
+If you find yourself stringing together a long series of bash commands to accomplish a task, STOP. That is tribal knowledge leaking into an ephemeral shell session. Instead:
+1. Write a script that captures that process
+2. Put it somewhere sensible in the repo
+3. Run the script
+
+Multi-step bash chains are a code smell. Source code is durable; shell history is not.
+
 ## On Changing Course Mid-Task
 If you encounter a constraint, tradeoff, or obstacle while executing a task:
 1. STOP and present the situation to the user
