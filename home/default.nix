@@ -13,6 +13,7 @@
     fd
     fzf
     jq
+    yq-go           # yq for YAML (Mike Farah's Go implementation)
     tree
     htop
     btop
