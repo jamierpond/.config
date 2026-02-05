@@ -19,6 +19,9 @@ bell
 
 This is a shell alias, not a built-in Claude Code tool.
 
+## Token Economy
+Be deliberate with token usage. Don't re-read files you've already read. Don't dump entire files when you only need a few lines. Don't produce verbose explanations when a short answer suffices. Prefer targeted searches over broad exploration. Every token costs money and energy — respect both the wallet and the climate.
+
 ## So-called 'fallbacks'
 If you find yourself reaching for to say 'let me implement a fallback', we don't do that here. We like to write code that works, or FAILS hard. In between-ness in this dimension creates poor brittle outcomes.
 
