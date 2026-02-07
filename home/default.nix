@@ -13,6 +13,7 @@
     fd
     fzf
     jq
+    yq-go           # yq for YAML (Mike Farah's Go implementation)
     tree
     htop
     btop
@@ -55,6 +56,10 @@
 
     # Go
     go
+    gopls            # Go language server
+    golangci-lint    # Go linter (pre-built, avoids CGO linking issues)
+    (lib.setPrio 10 gotools)  # goimports, godoc, etc. (low prio to avoid /bin/play conflict with sox)
+    delve            # Go debugger
 
     # Rust
     rustup           # manages rust toolchains, provides cargo
@@ -177,10 +182,12 @@
   # Session variables and PATH
   home.sessionVariables = {
     PNPM_HOME = "$HOME/.local/share/pnpm";
+    GOPATH = "$HOME/go";
   };
   home.sessionPath = [
     "$HOME/.local/bin"
     "$HOME/.local/share/pnpm"
+    "$HOME/go/bin"
   ];
 
   # Home-manager state version (don't change after initial setup)

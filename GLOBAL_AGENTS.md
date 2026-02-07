@@ -4,6 +4,7 @@
 - Never proclaim "Perfect!" or similar when you have completed a task. You are likely wrong and it is annoying.
 - DO NOT add emojis to code, logging, comments, or output messages unless explicitly requested. Keep code output professional and clean.
 - NEVER USE GIT. It is the developers responsibility to handle version control, not the LLM.
+- **AGENTS.md** is always the real/canonical agent instructions file per repo. Vendor-specific files (CLAUDE.md, CURSOR.md, etc.) should be **symlinked** to AGENTS.md.
 
 ## Bell Notification
 The user has a zshrc alias called `bell` that triggers a system notification/sound. Use it to alert the user when:
@@ -17,6 +18,9 @@ bell
 ```
 
 This is a shell alias, not a built-in Claude Code tool.
+
+## Token Economy
+Be deliberate with token usage. Don't re-read files you've already read. Don't dump entire files when you only need a few lines. Don't produce verbose explanations when a short answer suffices. Prefer targeted searches over broad exploration. Every token costs money and energy — respect both the wallet and the climate.
 
 ## So-called 'fallbacks'
 If you find yourself reaching for to say 'let me implement a fallback', we don't do that here. We like to write code that works, or FAILS hard. In between-ness in this dimension creates poor brittle outcomes.
@@ -57,6 +61,16 @@ This must only be for very logical reasons or extremely practical reasons.
 Either we're doing a job piece by piece and this is required, or it's temporary.
 You may not break rules without this approval.
 
+
+## Scripts Over Ad-Hoc Bash Chains
+If a script exists, **run the script**. Do not decompose it into individual bash commands or "improve" the process by running its steps manually.
+
+If you find yourself stringing together a long series of bash commands to accomplish a task, STOP. That is tribal knowledge leaking into an ephemeral shell session. Instead:
+1. Write a script that captures that process
+2. Put it somewhere sensible in the repo
+3. Run the script
+
+Multi-step bash chains are a code smell. Source code is durable; shell history is not.
 
 ## On Changing Course Mid-Task
 If you encounter a constraint, tradeoff, or obstacle while executing a task:

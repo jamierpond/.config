@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Ensure package managers are in PATH (needed when run from tmux)
+# Nix, ARM64 Mac homebrew, Intel Mac homebrew
+export PATH="$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
+
 CONFIG="$HOME/.config/bin/scripts/quick-urls.yaml"
 
 [[ ! -f "$CONFIG" ]] && echo "Config not found: $CONFIG" && exit 1
@@ -33,6 +37,7 @@ generate_urls() {
   for repo in $github_repos; do
     echo "${repo}|https://github.com/${repo}"
     echo "${repo} pulls|https://github.com/${repo}/pulls"
+    echo "${repo} actions|https://github.com/${repo}/actions"
   done
 
   # Emulator URLs
