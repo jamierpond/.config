@@ -1,34 +1,89 @@
 #!/bin/bash
 set -eou pipefail
 
+function detect_package_manager() {
+  local target_dir="$1"
+  local locks=$(git ls-files --recurse-submodules | grep -E "(bun\.lockb?|pnpm-lock\.yaml|yarn\.lock|package-lock\.json)$")
+
+  [[ -z "$locks" ]] && echo "npm" && return
+
+  local best_pm="npm"
+  local best_depth=-1
+
+  while IFS= read -r lock; do
+    local lock_dir=$(dirname "$lock")
+    [[ "$lock_dir" == "." ]] && lock_dir=""
+
+    # Check if lock_dir is a prefix of target_dir (or same)
+    if [[ "$target_dir" == "$lock_dir"* ]]; then
+      local depth=${#lock_dir}
+      if (( depth > best_depth )); then
+        best_depth=$depth
+        case "$lock" in
+          *bun.lock*) best_pm="bun" ;;
+          *pnpm-lock.yaml) best_pm="pnpm" ;;
+          *yarn.lock) best_pm="yarn" ;;
+          *package-lock.json) best_pm="npm" ;;
+        esac
+      fi
+    fi
+  done <<< "$locks"
+
+  echo "$best_pm"
+}
+
 function npmf() {
-  scripts=$(git ls-files |                                                        \
-    grep "package.json" |                                                      \
-    xargs jq -r '.scripts // {} | to_entries[] | input_filename + "|" + .key + "|" + .value' 2>/dev/null \
+  # Generate raw data using | as delimiter (safe since we control the format)
+  # --recurse-submodules includes submodule files, grep -v excludes templates
+  raw_scripts=$(git ls-files --recurse-submodules |
+    grep "package\.json$" |
+    xargs jq -r '
+      (.name // "unnamed") as $pkg |
+      (.scripts // {}) | to_entries[] |
+      [input_filename, $pkg, .key, .value] | join("|")
+    ' 2>/dev/null
   )
 
-  # Use fzf to select a script
-  selected=$(echo "$scripts" | fzf --border --prompt="Select a script to run: ")
+  [[ -z "$raw_scripts" ]] && echo "No scripts found" && exit 0
+
+  # Format for fzf display: package (truncated), script, command preview
+  display=$(echo "$raw_scripts" | awk -F'|' '{
+    pkg = substr($2, 1, 25)
+    script = substr($3, 1, 20)
+    cmd = substr($4, 1, 60)
+    printf "%-25s  %-20s  %s\n", pkg, script, cmd
+  }')
+
+  # Use fzf with hidden line numbers to track selection
+  selected_num=$(echo "$display" | nl -ba | \
+    fzf --border --prompt="Select script: " \
+        --header="PACKAGE                    SCRIPT                COMMAND" \
+        --with-nth=2.. | \
+    awk '{print $1}')
 
   # Exit if no selection was made
-  if [ -z "$selected" ]; then
+  if [ -z "$selected_num" ]; then
     echo "No script selected"
     exit 0
   fi
 
-  # Parse the selected line: file|script_name|command
-  file=$(echo "$selected" | cut -d'|' -f1)
-  script_name=$(echo "$selected" | cut -d'|' -f2)
-  command=$(echo "$selected" | cut -d'|' -f3-)
+  # Get raw line by number and parse
+  raw_line=$(echo "$raw_scripts" | sed -n "${selected_num}p")
+  file=$(echo "$raw_line" | cut -d'|' -f1)
+  script_name=$(echo "$raw_line" | cut -d'|' -f3)
+  command=$(echo "$raw_line" | cut -d'|' -f4-)
 
   # Extract the directory from the package.json path
   dir=$(dirname "$file")
 
+  # Detect package manager from lock files
+  pm=$(detect_package_manager "$dir")
+
   # Build the command
-  cmd="cd \"$dir\" && npm run \"$script_name\""
+  cmd="cd \"$dir\" && $pm run \"$script_name\""
 
   # Show what we're running
-  echo "Running '$script_name' from $file"
+  echo "Running '$script_name' from $file (using $pm)"
   echo "Command: $command"
   echo ""
 
@@ -39,8 +94,8 @@ function npmf() {
     fi
   fi
 
-  # Change to the directory and run the npm script
-  cd "$dir" && npm run "$script_name"
+  # Change to the directory and run the script
+  cd "$dir" && $pm run "$script_name"
 }
 
 

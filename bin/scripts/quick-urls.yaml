@@ -1,0 +1,96 @@
+# Quick URL launcher configuration
+
+# Static URLs - simple list of urls with optional names
+static:
+  - url: https://github.com
+    name: GitHub
+  - url: https://console.firebase.google.com/u/0/
+    name: Firebase Home
+  - url: http://localhost:3000/
+    name: localhost
+  - url: http://localhost:3000/ai-song-generator
+  - url: http://localhost:3000/record
+  - url: http://localhost:3000/about
+  - url: https://chat.openai.com/?model=gpt-4
+  - url: https://web.whatsapp.com
+  - url: https://beta.popstarz.ai/ai-image
+    name: Popstarz AI Image
+  - url: https://pond.audio
+  - url: https://pond.audio/github
+  - url: https://pond.audio/li
+  - url: https://pond.audio/linkedin
+    name: LinkedIn
+  - url: https://pond.audio/gh
+    name: GitHub
+  - url: https://vercel.com
+    name: Vercel
+  - url: https://calendar.google.com/calendar/u/0/r
+    name: Personal Calendar
+  - url: https://calendar.google.com/calendar/u/1/r
+    name: Work Calendar
+  - url: https://mail.google.com/mail/u/0/#inbox
+    name: Gmail Personal
+  - url: https://console.cloud.google.com/run/detail/us-central1/fayk-it/logs?project=drayk-it-f3e35
+    name: fayk logs cloud
+  - url: https://mar.band
+  - url: https://github.com/pulls
+    name: My Pull Requests
+  - url: https://docs.google.com/document/d/1X9jZAIaNLJNGMzag-rdrN0FLRp10xkHkZzbr54QFQLk/edit
+    name: Empire State of Audio Roadmap
+  - url: https://github.com/pulls/review-requested
+    name: Pull Review Requests
+  - url: https://onejourney.vercel.app/
+    name: OneJourney
+  - url: https://dash.cloudflare.com/
+    name: Cloudflare
+  - url: https://console.firebase.google.com/u/0/project/drayk-it-f3e35/firestore/data/~2Frender-tasks~2F0008393ffe924e1f8faa1ba84c27584d
+    name: Fayk render data songs info
+  - url: https://wandb.com/home
+    name: Weights and Biases
+
+# GCloud projects - generates URLs for each service per project
+gcloud:
+  projects:
+    - tamber-prod
+  services:
+    - storage
+    - run
+    - compute
+    - cloudtasks
+
+# Firebase - generates URLs for each service per project
+firebase:
+  services:
+    - firestore
+    - functions
+    - storage
+    - hosting
+    - authentication/users
+
+# GitHub repos - generates repo, pulls, main, develop URLs
+github:
+  repos:
+    # Tamber
+    - Tamber-Inc/tamber-web
+    - Tamber-Inc/xdaw
+    - Tamber-Inc/hey-buddy
+    - Tamber-Inc/tamber-chords
+    - Tamber-Inc/drum-decompose
+    - Tamber-Inc/clap-local
+    - Tamber-Inc/tamber-data-vis
+    - Tamber-Inc/audio-retrieval-demo
+    - Tamber-Inc/clap-service
+    - Tamber-Inc/synth-preset-retrieval-demo
+    - Tamber-Inc/ableton-mcp
+    - Tamber-Inc/sound-packs
+    - Tamber-Inc/tamber-audio
+    - Tamber-Inc/tamber-embeddings
+    # Personal
+    - jamierpond/.config
+    - jamierpond/journal
+    - jamierpond/pond.audio
+    - jamierpond/yapi
+
+# Local emulator
+emulator:
+  base_url: http://127.0.0.1:4000

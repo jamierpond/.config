@@ -1,6 +1,19 @@
 # Modernized zshrc - no oh-my-zsh
 this_dir=$(dirname "$0")
 
+# Secrets (not version controlled)
+if [[ -f ~/.secrets ]]; then
+  source ~/.secrets
+else
+  echo "WARNING: ~/.secrets not found - env vars may be missing"
+fi
+
+# Nix profile (home-manager packages)
+if [[ -f "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" ]]; then
+  source "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh"
+fi
+export PATH="$HOME/.nix-profile/bin:$PATH"
+
 # Modular configs
 source "$this_dir/prompt.zsh"
 source "$this_dir/vi-mode.zsh"
@@ -9,8 +22,8 @@ source "$this_dir/completion.zsh"
 # PATH setup - scripts directory first
 export PATH="$this_dir/bin/scripts:$PATH"
 export PATH="$PATH:/usr/local/go/bin"
-export PATH="$PATH:$(go env GOPATH)/bin"
-export PATH="$PATH:$HOME/.local/bin"
+command -v go &>/dev/null && export PATH="$PATH:$(go env GOPATH)/bin"
+export PATH="$HOME/.local/bin:$PATH"
 export PATH="$PATH:/snap/bin"
 export PATH="$PATH:$HOME/.cargo/bin"
 
@@ -128,7 +141,7 @@ alias rgpu="pkill wandb && pgpu | xargs -I {} kill -9 {} && kgpu"
 
 # Aliases - SSH/remote
 alias lm="sh ~/projects/lambda-machine/remote.sh"
-alias mm="ssh jamie@mm.pond.audio"
+alias mm="ssh -tt jamie@mm.pond.audio"
 alias vie="sh ~/projects/lambda-machine/vienna-remote.sh"
 alias ms="ssh administrator@208.52.154.141"
 
@@ -192,31 +205,12 @@ if [ -n "$git_root" ]; then
   fi
 fi
 
-# Lazy load nvm (saves ~1s startup)
-export NVM_DIR="$HOME/.config/nvm"
-nvm() {
-  unfunction nvm node npm npx 2>/dev/null
-  source "$NVM_DIR/nvm.sh"
-  nvm "$@"
-}
-node() {
-  unfunction nvm node npm npx 2>/dev/null
-  source "$NVM_DIR/nvm.sh"
-  nvm use default --silent
-  node "$@"
-}
-npm() {
-  unfunction nvm node npm npx 2>/dev/null
-  source "$NVM_DIR/nvm.sh"
-  nvm use default --silent
-  npm "$@"
-}
-npx() {
-  unfunction nvm node npm npx 2>/dev/null
-  source "$NVM_DIR/nvm.sh"
-  nvm use default --silent
-  npx "$@"
-}
+# nvm removed - using Nix-managed Node.js instead
+# export NVM_DIR="$HOME/.config/nvm"
+# nvm() { ... }
+# node() { ... }
+# npm() { ... }
+# npx() { ... }
 
 # Pyenv - lazy load
 export PYENV_ROOT="$HOME/.pyenv"
@@ -239,3 +233,44 @@ fi
 if command -v yapi &> /dev/null; then
   source <(yapi completion zsh)
 fi
+
+# =============================================================================
+# Nix helpers - making nix ergonomic
+# =============================================================================
+
+# Detect current nix system
+_nix_system() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    [[ "$(uname -m)" == "arm64" ]] && echo "aarch64-darwin" || echo "x86_64-darwin"
+  else
+    echo "x86_64-linux"
+  fi
+}
+
+# Search nixpkgs with fzf
+nsp() {
+  local query="$1"
+  if [[ -z "$query" ]]; then
+    echo "Usage: nsp <search-term>"
+    return 1
+  fi
+  nix search nixpkgs "$query" 2>/dev/null | less
+}
+
+# Dev shell picker (fzf) - works on both Darwin and Linux
+ds() {
+  local flake="${1:-$HOME/.config}"
+  local sys=$(_nix_system)
+  local shells=$(nix flake show "$flake" --json 2>/dev/null | jq -r ".devShells[\"$sys\"] // {} | keys[]")
+  if [[ -z "$shells" ]]; then
+    echo "No devShells found in $flake for $sys"
+    return 1
+  fi
+  local shell=$(echo "$shells" | fzf --prompt="dev shell> " --height=40%)
+  [[ -n "$shell" ]] && nix develop "$flake#$shell" --command zsh
+}
+
+# Quick edit packages and rebuild
+nix-edit() {
+  ${EDITOR:-nvim} ~/.config/home/default.nix && nrs
+}

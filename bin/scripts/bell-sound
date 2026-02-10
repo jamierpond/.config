@@ -1,4 +1,10 @@
-#!/bin/zsh
-# Play a bell sound
+#!/bin/bash
+# Play a bell sound (works on macOS or remotely from Linux)
 
-afplay "$HOME/.config/bell.mp3" &
+bell_file="$HOME/.config/bell.mp3"
+
+if [[ "$(uname)" == "Darwin" ]]; then
+  afplay "$bell_file" &
+else
+  mac -c "afplay {}" "$bell_file" &
+fi

@@ -71,9 +71,9 @@ if [ -z "$matches" ]; then
 fi
 
 while IFS= read -r file; do
-    # Check MIME type, only include text/* files
-    mime=$(file --mime-type -b "$file")
-    if [[ "$mime" == text/* || "$mime" == application/json ]]; then
+    # Check encoding - binary files return "binary", text files return utf-8/ascii/etc.
+    encoding=$(file --mime-encoding -b "$file")
+    if [[ "$encoding" != "binary" ]]; then
         echo -e "\n"
         echo -e "\n#########################"
         echo -e "### $file"
@@ -84,9 +84,9 @@ while IFS= read -r file; do
         total_lines=$((total_lines + file_lines + 4))
         total_chars=$((total_chars + file_chars + 30 + ${#file}))
     else
-        echo -e "\n### Skipping binary: $file (mime: $mime)"
+        echo -e "\n### Skipping binary: $file"
         total_lines=$((total_lines + 2))
-        total_chars=$((total_chars + 30 + ${#file} + ${#mime}))
+        total_chars=$((total_chars + 30 + ${#file}))
     fi
 done <<< "$matches"
 
