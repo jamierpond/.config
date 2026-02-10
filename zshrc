@@ -1,4 +1,4 @@
-# Modernized zshrc - no oh-my-zsh
+# zshrc
 this_dir=$(dirname "$0")
 
 # Secrets (not version controlled)

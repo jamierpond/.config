@@ -28,7 +28,7 @@ make switch      # Apply changes
 
 ## Shell (Zsh)
 
-Native zsh setup (no oh-my-zsh) with **~0.3s startup** (down from ~11s).
+Native zsh setup with **~0.3s startup**.
 
 ### Modular Config
 - `prompt.zsh` - robbyrussell-style prompt with git status

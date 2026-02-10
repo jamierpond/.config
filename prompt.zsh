@@ -4,7 +4,7 @@ setopt PROMPT_SUBST
 # Load colors (sets up $fg, $fg_bold, $reset_color, etc.)
 autoload -U colors && colors
 
-# Git prompt info function (matches oh-my-zsh git_prompt_info)
+# Git prompt info function
 git_prompt_info() {
   local ref
   ref=$(git symbolic-ref --short HEAD 2>/dev/null) || return
