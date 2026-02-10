@@ -83,7 +83,13 @@
     # ==========================================================================
     # Document typesetting
     # ==========================================================================
-    texliveMedium    # pdflatex, bibtex, common packages (~1.5GB)
+    (texlive.combine {
+      inherit (texlive) scheme-medium
+        preprint        # fullpage
+        titlesec
+        enumitem
+        fontawesome5;
+    })
 
     # ==========================================================================
     # Media & misc
