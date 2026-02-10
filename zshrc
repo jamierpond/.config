@@ -62,6 +62,7 @@ alias a="yapi"
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # Aliases - scripts (short names for long script names)
+alias spicy="claude --dangerously-skip-permissions"
 alias r="temp-script-edit-run"
 alias mf="makefile-target-fzf"
 alias dt="jest-describe-test-fzf"
