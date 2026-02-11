@@ -73,6 +73,7 @@
               nodejs_22 pnpm
               python312 uv
               go
+              trufflehog
             ];
             shellHook = ''
               echo "Dev shell ready"

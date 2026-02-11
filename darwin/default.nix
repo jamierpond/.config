@@ -48,6 +48,19 @@
     };
   };
 
+  # Power management
+  # nix-darwin's power.sleep.* sets values globally (both AC and battery).
+  # We need AC-specific settings so servers stay alive when plugged in,
+  # but the laptop still sleeps normally on battery. pmset -c / -b is
+  # the only way to express that distinction.
+  system.activationScripts.power.text = ''
+    # AC power: never sleep (servers stay alive), display off after 10min
+    pmset -c sleep 0 displaysleep 10
+
+    # Battery: sleep after 1min, display off after 2min (preserve battery)
+    pmset -b sleep 1 displaysleep 2
+  '';
+
   # Keyboard remapping (alternative to Karabiner for simple mappings)
   # system.keyboard = {
   #   enableKeyMapping = true;
