@@ -72,6 +72,9 @@ If you find yourself stringing together a long series of bash commands to accomp
 
 Multi-step bash chains are a code smell. Source code is durable; shell history is not.
 
+## CI Status
+After creating or pushing to a PR, always check the CI status of the jobs (e.g. `gh pr checks <number>` or `gh run list`). Do not assume CI passes — verify it, and if it fails, investigate and fix before moving on.
+
 ## On Changing Course Mid-Task
 If you encounter a constraint, tradeoff, or obstacle while executing a task:
 1. STOP and present the situation to the user
