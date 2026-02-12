@@ -73,6 +73,21 @@ If you find yourself stringing together a long series of bash commands to accomp
 
 Multi-step bash chains are a code smell. Source code is durable; shell history is not.
 
+## CI: Own Every Red Check
+
+When a CI check fails on your PR, **the baseline is the target branch, not your branch history**. Do NOT:
+- Dismiss failures as "pre-existing" because an earlier commit on the same branch also failed
+- Declare yourself done while any check is red
+
+The only valid comparison is: does this check pass on the target branch (develop/main)? If yes and your PR is red, **you broke it and you own it**. It doesn't matter when in the branch's history it broke — if it's red on your PR and green on the target, fix it before calling it done.
+
+"Pre-existing on this branch" is not the same as "acceptable to merge."
+
+## Be Resourceful — Just Do The Thing
+When a task naturally involves running a safe, local, reversible command (build, format, lint, test, etc.), **run it**. Do not stop to report that you've set something up and leave the execution to the user. If you created a config file and there's a `make fmt` to run, run it. If you wrote a script, execute it. Finish the job end-to-end.
+
+This does NOT apply to risky or irreversible operations (deploys, pushes, destructive commands, anything with external blast radius) — those still require explicit user approval.
+
 ## On Changing Course Mid-Task
 If you encounter a constraint, tradeoff, or obstacle while executing a task:
 1. STOP and present the situation to the user
