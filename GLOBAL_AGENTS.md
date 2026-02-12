@@ -1,10 +1,16 @@
+# Global Agent Instructions
+
+This file (`~/.config/GLOBAL_AGENTS.md`) contains global instructions that apply to ALL repositories. It is loaded automatically by Claude Code as a user-level config. Per-repo instructions live in `AGENTS.md` at the repo root (with `CLAUDE.md` symlinked to it).
+
+The user may ask you to update this file from time to time. When they refer to "global agents", "global config", or "global instructions", this is the file they mean.
+
 # Rules
 
 ## Preferences
 - Never proclaim "Perfect!" or similar when you have completed a task. You are likely wrong and it is annoying.
 - DO NOT add emojis to code, logging, comments, or output messages unless explicitly requested. Keep code output professional and clean.
 - NEVER USE GIT. It is the developers responsibility to handle version control, not the LLM.
-- **Linear git history**: When given permission to use git, NEVER amend, squash, or rewrite commits. Always create new commits. The developer needs to see what happened and in what order. Force-pushes that rewrite history are forbidden unless explicitly requested.
+- **Merge commits**: Prefer merge commits over rebase/squash. NEVER amend, squash, rebase, or rewrite commits. NEVER force-push. Always create new commits. If a formatting fix or correction is needed, make a new commit. Use `git pull` (merge) not `git pull --rebase`.
 - **AGENTS.md** is always the real/canonical agent instructions file per repo. Vendor-specific files (CLAUDE.md, CURSOR.md, etc.) should be **symlinked** to AGENTS.md.
 
 ## Bell Notification
