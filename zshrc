@@ -39,6 +39,10 @@ export UV_PROJECT_ENVIRONMENT="venv"
 export VCPKG_ROOT="$HOME/vcpkg"
 export DO_NOT_TRACK=1
 export MANPATH="$HOME/.local/share/man:$MANPATH"
+# macOS SDK for cgo/framework headers (CoreAudio, etc.)
+if [[ "$(uname)" == "Darwin" ]]; then
+  export SDKROOT=$(xcrun --show-sdk-path)
+fi
 
 # History options
 setopt INC_APPEND_HISTORY

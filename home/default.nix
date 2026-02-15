@@ -74,8 +74,7 @@
     pkg-config
     protobuf         # protoc
 
-    # C/C++ toolchain
-    gcc
+    # C/C++ toolchain (no gcc — Apple clang handles macOS frameworks; gcc is in devShells if needed)
     llvm
     lld              # fast linker
     clang-tools      # clangd, clang-format, etc. (no cc conflict)
