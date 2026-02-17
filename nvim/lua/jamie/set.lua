@@ -26,6 +26,7 @@ vim.opt.isfname:append("@-@")
 
 vim.opt.updatetime = 50
 
+vim.opt.textwidth = 80
 vim.opt.colorcolumn = "80"
 
 -- Auto-refresh files when they change externally (like JetBrains)
