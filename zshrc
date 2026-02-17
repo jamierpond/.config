@@ -112,18 +112,13 @@ alias imgp="bash ~/.config/bin/scripts/clipimage.sh"
 alias npf="bash ~/.config/bin/scripts/npmf"
 alias prf="~/.config/bin/scripts/get-all-pr-feedback"
 alias so="source ~/.zshrc"
-alias bso="source ~/.bashrc"
 
 # Aliases - python/venv
 alias pipi="pip install -r requirements.txt"
-alias new-venv="python3 -m venv venv"
 alias nv="python3 -m venv venv"
-alias cv="python3 -m venv venv"
-alias act-venv="source venv/bin/activate"
 alias va="source venv/bin/activate"
 alias nva="nv && va"
 alias uva="uv venv venv && va"
-alias pos="poetry shell"
 
 # Aliases - tar
 alias tarls="tar -tvf"
@@ -159,9 +154,6 @@ alias tks="tmux kill-server"
 # Aliases - misc tools
 alias ka="killall"
 alias kaf="killall -9"
-alias ll="ls -alF"
-alias la="ls -A"
-alias ls='ls -a --color=auto'
 alias dec2hex="printf '%x\n'"
 alias d2h="printf '%x\n'"
 alias f="ranger"
@@ -173,16 +165,12 @@ alias ddd="rm -rf ~/Library/Developer/Xcode/DerivedData"
 alias ksmo='~/.config/bin/scripts/ksmo'
 alias cpp-compile="~/.config/bin/scripts/cpp-compile"
 alias cppc="~/.config/bin/scripts/cpp-compile"
-alias oc="crush"
-alias o="oc"
+alias o="crush"
 alias qb="/Applications/qutebrowser.app/Contents/MacOS/qutebrowser"
 alias ra="osascript ~/.config/bin/scripts/refresh-ableton.scpt"
 alias refresh-ableton="osascript ~/.config/bin/scripts/refresh-ableton.scpt"
 alias bwon="shortcuts run \"bw-on\""
 alias bwoff="shortcuts run \"bw-off\""
-alias mkae="make"
-alias mk="make"
-alias ma="make"
 alias m="make"
 alias g="gemini"
 alias rp="~/.config/bin/scripts/repo-print"
@@ -198,7 +186,6 @@ function gpls() {
 }
 
 # Auto-activate venv if found
-set +e
 git_root=$(git rev-parse --show-toplevel 2>/dev/null)
 if [ -n "$git_root" ]; then
   if [ -d "$git_root/venv" ]; then
@@ -209,13 +196,6 @@ if [ -n "$git_root" ]; then
     source "$git_root/.venv/bin/activate"
   fi
 fi
-
-# nvm removed - using Nix-managed Node.js instead
-# export NVM_DIR="$HOME/.config/nvm"
-# nvm() { ... }
-# node() { ... }
-# npm() { ... }
-# npx() { ... }
 
 # Pyenv - lazy load
 export PYENV_ROOT="$HOME/.pyenv"

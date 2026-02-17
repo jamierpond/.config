@@ -103,7 +103,7 @@ fi
 if [[ -d "$DOTFILES_DIR/.git" ]]; then
   info "Dotfiles already cloned at $DOTFILES_DIR"
   cd "$DOTFILES_DIR"
-  git pull --rebase || warn "Could not pull latest dotfiles"
+  git pull || warn "Could not pull latest dotfiles"
 else
   info "Cloning dotfiles..."
   # Backup existing .config if it exists

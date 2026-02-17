@@ -133,9 +133,14 @@
     };
   };
 
-  # Delta (better git diffs) - disabled, using regular git diff
+  # Delta (better git diffs)
   programs.delta = {
-    enable = false;
+    enable = true;
+    options = {
+      navigate = true;
+      side-by-side = true;
+      line-numbers = true;
+    };
   };
 
   # Zsh config
@@ -151,7 +156,10 @@
     '';
 
     shellAliases = {
+      # Modern replacements (these take priority over any zshrc defaults)
       ll = "eza -la";
+      ls = "eza -a";
+      la = "eza -a";
       cat = "bat";
       lg = "lazygit";
 

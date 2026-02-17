@@ -1,49 +1,41 @@
-# you will have to manually add files to include here, as
-# configs can often contain private data!
+# Allowlist pattern: ignore everything, then selectively include.
+# Add new config files/dirs with ! prefix to track them.
 /*
+
+# Git
 !.gitignore
-!./bin/scripts/ksmo
+!.gitmodules
+!.github
+
+# Agent/editor instructions
+!AGENTS.md
+!CLAUDE.md
+!GLOBAL_AGENTS.md
+!OpenCode.md
+!README.md
+
+# Shell config
+!zshrc
+!prompt.zsh
+!vi-mode.zsh
+!completion.zsh
+
+# App configs
 !nvim/
 !tmux/
 !bin/
 !iterm2/
 !karabiner/
-!brew-packages.txt
-!README.md
-!update-brew-packages.sh
+!ranger/
+!lazygit/
 !skhd/
 !yabai/
-!zshrc
-!prompt.zsh
-!vi-mode.zsh
-!completion.zsh
-!ranger/
-!bash_aliases.sh
-!lazygit/
-**Application Support**
-**.DS_Store**
-!.gitmodules
-!ubuntu-setup.sh
-!nvm/
-!test_setup.sh
-!Makefile
-!.github
-!ksmo2_atis.pls
-!screenrc
 !aerospace
-!OpenCode.md
 !opencode
-.crush
 !yapi
 !r2-backup
-*.conf
-!bell.mp3
-!GLOBAL_AGENTS.md
-!bin/scripts/quick-urls.yaml
-bin/scripts/quick-url-gcloud-projects.txt
-bin/scripts/quick-url-github-repos.txt
-!AGENTS.md
-!CLAUDE.md
+!direnv/
+!screenrc
 
 # Nix config
 !flake.nix
@@ -51,7 +43,24 @@ bin/scripts/quick-url-github-repos.txt
 !home/
 !darwin/
 !nix/
-!nix-migration-plan.md
 !Dockerfile
 !setup.sh
-!direnv/
+!Makefile
+!test_setup.sh
+
+# Script data
+!bin/scripts/quick-urls.yaml
+bin/scripts/quick-url-gcloud-projects.txt
+bin/scripts/quick-url-github-repos.txt
+
+# Media (only bell notification sound)
+!bell.mp3
+
+# Misc tracked files
+!ksmo2_atis.pls
+
+# Always ignore
+**Application Support**
+**.DS_Store**
+.crush
+*.conf
