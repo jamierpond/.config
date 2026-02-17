@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Check CI / deploy status for the current branch's PR.
+# Usage: ./scripts/check-ci.sh [--watch]
+#
+# Shows all checks (GitHub Actions + Vercel + third-party) for the
+# most recent push to the current branch's open PR.
+# For failing GitHub Actions checks, tails the error logs automatically.
+# With --watch, polls every 15s until everything resolves.
+
+TAIL_LINES=30
+WATCH=false
+if [[ "${1:-}" == "--watch" ]]; then
+  WATCH=true
+fi
+
+BRANCH=$(git branch --show-current)
+
+# Ensure there's a PR for this branch
+PR_NUMBER=$(gh pr view --json number --jq '.number' 2>/dev/null) || {
+  echo "No open PR found for branch: $BRANCH"
+  exit 1
+}
+PR_TITLE=$(gh pr view --json title --jq '.title')
+
+echo "Branch:  $BRANCH"
+echo "PR:      #$PR_NUMBER — $PR_TITLE"
+echo ""
+
+# Extract a GH Actions run ID from a URL like:
+#   https://github.com/Org/Repo/actions/runs/12345/job/67890
+# Returns empty string for non-Actions URLs (Vercel, Supabase, etc.)
+extract_run_id() {
+  local url="$1"
+  if [[ "$url" =~ actions/runs/([0-9]+) ]]; then
+    echo "${BASH_REMATCH[1]}"
+  fi
+}
+
+# Print error logs for a failed GH Actions run
+print_failed_logs() {
+  local run_id="$1"
+  local name="$2"
+  local logs
+  logs=$(gh run view "$run_id" --log-failed 2>&1 | tail -n "$TAIL_LINES") || true
+  if [[ -z "$logs" ]]; then
+    return
+  fi
+  # Filter to just ##[error] lines first; fall back to full tail if none
+  local errors
+  errors=$(echo "$logs" | grep -i '\[error\]' 2>/dev/null || true)
+  if [[ -n "$errors" ]]; then
+    echo "$errors"
+  else
+    echo "$logs"
+  fi
+}
+
+check_status() {
+  local output
+  output=$(gh pr checks "$PR_NUMBER" 2>&1)
+
+  local pass=0 fail=0 pending=0 skipping=0
+  # Collect failing check info for log tailing
+  local -a fail_names=()
+  local -a fail_urls=()
+
+  while IFS=$'\t' read -r name status elapsed url rest; do
+    case "$status" in
+      pass)     pass=$((pass + 1)) ;;
+      fail)
+        fail=$((fail + 1))
+        fail_names+=("$name")
+        fail_urls+=("$url")
+        ;;
+      pending)  pending=$((pending + 1)) ;;
+      skipping) skipping=$((skipping + 1)) ;;
+    esac
+  done <<< "$output"
+
+  local total=$((pass + fail + pending + skipping))
+
+  # Print table
+  printf "%-35s %-10s %-8s %s\n" "CHECK" "STATUS" "TIME" "URL"
+  printf "%-35s %-10s %-8s %s\n" "-----" "------" "----" "---"
+  while IFS=$'\t' read -r name status elapsed url rest; do
+    local icon
+    case "$status" in
+      pass)     icon="OK" ;;
+      fail)     icon="FAIL" ;;
+      pending)  icon="..." ;;
+      skipping) icon="SKIP" ;;
+      *)        icon="?" ;;
+    esac
+    local short_name="${name:0:33}"
+    printf "%-35s %-10s %-8s %s\n" "$short_name" "$icon" "$elapsed" "$url"
+  done <<< "$output"
+
+  echo ""
+  echo "--- Summary: $pass passed, $fail failed, $pending pending, $skipping skipped ($total total) ---"
+
+  # Show error logs for each failing check
+  if [[ $fail -gt 0 ]]; then
+    echo ""
+    for i in "${!fail_names[@]}"; do
+      local name="${fail_names[$i]}"
+      local url="${fail_urls[$i]}"
+      local run_id
+      run_id=$(extract_run_id "$url")
+
+      echo "========================================"
+      echo "FAILED: $name"
+      echo "   URL: $url"
+      echo "----------------------------------------"
+
+      if [[ -n "$run_id" ]]; then
+        print_failed_logs "$run_id" "$name"
+      else
+        # Non-Actions check (Vercel, etc.) — extract description from gh output
+        local desc
+        desc=$(echo "$output" | grep "^${name}" | awk -F'\t' '{print $NF}' | sed 's/^[[:space:]]*//')
+        if [[ -n "$desc" ]]; then
+          echo "$desc"
+        else
+          echo "(external check — open URL for details)"
+        fi
+      fi
+      echo ""
+    done
+
+    echo "NOT OK TO MERGE — $fail check(s) failing."
+    return 1
+  elif [[ $pending -gt 0 ]]; then
+    echo ""
+    echo "WAITING — $pending check(s) still running."
+    return 2
+  else
+    echo ""
+    echo "ALL GREEN — safe to merge."
+    return 0
+  fi
+}
+
+if [[ "$WATCH" == true ]]; then
+  while true; do
+    clear
+    echo "$(date '+%H:%M:%S') — Checking CI for #$PR_NUMBER ($BRANCH)"
+    echo ""
+    set +e
+    check_status
+    rc=$?
+    set -e
+    if [[ $rc -eq 0 || $rc -eq 1 ]]; then
+      # Resolved (all green or has failures) — stop polling
+      break
+    fi
+    echo ""
+    echo "(refreshing in 15s — Ctrl+C to stop)"
+    sleep 15
+  done
+else
+  check_status || true
+fi

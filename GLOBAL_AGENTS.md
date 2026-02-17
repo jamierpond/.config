@@ -9,7 +9,7 @@ The user may ask you to update this file from time to time. When they refer to "
 ## Preferences
 - Never proclaim "Perfect!" or similar when you have completed a task. You are likely wrong and it is annoying.
 - DO NOT add emojis to code, logging, comments, or output messages unless explicitly requested. Keep code output professional and clean.
-- NEVER USE GIT. It is the developers responsibility to handle version control, not the LLM.
+- **Git is off-limits by default.** Do not commit, push, or otherwise modify version control state unless the user explicitly grants permission for the current task. When the user gives permission (e.g., "make CI green", "commit and push this"), you may commit and push, but still follow all other git rules (no force-push, no amend, no rebase, new commits only, never push directly to main/staging/develop).
 - **Merge commits**: Prefer merge commits over rebase/squash. NEVER amend, squash, rebase, or rewrite commits. NEVER force-push. Always create new commits. If a formatting fix or correction is needed, make a new commit. Use `git pull` (merge) not `git pull --rebase`.
 - **AGENTS.md** is always the real/canonical agent instructions file per repo. Vendor-specific files (CLAUDE.md, CURSOR.md, etc.) should be **symlinked** to AGENTS.md.
 
@@ -94,9 +94,28 @@ When a task naturally involves running a safe, local, reversible command (build,
 
 This does NOT apply to risky or irreversible operations (deploys, pushes, destructive commands, anything with external blast radius) — those still require explicit user approval.
 
-## CI Status
-After creating or pushing to a PR, always check the CI status of the jobs (e.g. `gh pr checks <number>` or `gh run list`). Do not assume CI passes — verify it, and if it fails, investigate and fix before moving on.
+## CI Status & `ci-check`
 
+The user has a `ci-check` shell alias that reports the current CI status of the PR on the current branch. It shows each check's name, status (OK / FAIL / `...` for pending / SKIP), elapsed time, and a URL.
+
+**How to use:** Run `ci-check` via the Bash tool. It requires no arguments — it infers the PR from the current branch.
+
+**Workflow for making CI green:**
+1. Run `ci-check` to see current status.
+2. If checks are still pending (`...`), wait ~30-60s and re-run `ci-check`. Do NOT assume results — always verify.
+3. If a check fails, **fix it immediately** — don't waste time diagnosing what you already know how to fix. Common fixes:
+   - **Formatting**: Run `pnpm run --filter @tamber/web format:fix` — don't bother checking what's wrong first, just fix it.
+   - **Typecheck**: Run `pnpm typecheck` locally, read the errors, fix them.
+   - **Tests**: Run `pnpm test` locally, read the failures, fix them.
+4. Commit the fix and push — **if the user has granted permission**. Then re-run `ci-check` to verify.
+5. Repeat until all checks are green or skipped.
+6. Run `bell` when done to notify the user.
+
+**When the user says "make CI green" or similar**, this is implicit permission to commit and push fixes to the current feature branch. Fix issues, commit with clear messages, push, and loop `ci-check` until green. Do NOT push to main/staging/develop — only to the current feature branch.
+
+
+## Fix The System, Not The Symptom
+When the user corrects you and the feedback implies a missing or wrong instruction in your agent files (AGENTS.md, CLAUDE.md, GLOBAL_AGENTS.md), fix the **systemic issue first** — update the instructions so the mistake can't recur — before taking the corrective action itself. A bad prompt that stays bad will produce the same mistake next session. Patching the instructions is higher priority than band-aiding the immediate situation.
 
 ## On Changing Course Mid-Task
 If you encounter a constraint, tradeoff, or obstacle while executing a task:
