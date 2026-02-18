@@ -40,7 +40,7 @@
     neovim
     tmux
     ranger
-    delta            # better git diffs
+    # delta is provided by programs.delta below
 
     # ==========================================================================
     # Languages & runtimes
@@ -67,6 +67,7 @@
     # ==========================================================================
     # Build tools & compilers
     # ==========================================================================
+    just             # command runner (better make for project tasks)
     gnumake
     cmake
     ninja            # fast build system
