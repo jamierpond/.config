@@ -64,3 +64,6 @@ bin/scripts/quick-url-github-repos.txt
 **.DS_Store**
 .crush
 *.conf
+
+# Override *.conf for nix config (must come after *.conf)
+!nix/nix.conf
