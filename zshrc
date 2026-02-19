@@ -150,11 +150,10 @@ alias kgpu="fgpu | grep . | tr ' ' '\n' | xargs kill -9"
 alias rgpu="pkill wandb && pgpu | xargs -I {} kill -9 {} && kgpu"
 
 # Aliases - SSH/remote
-alias lm="sh ~/projects/lambda-machine/remote.sh"
-alias mm="ssh -tt jamie@mm.pond.audio"
-alias vie="sh ~/projects/lambda-machine/vienna-remote.sh"
-alias ms="ssh administrator@208.52.154.141"
 alias ssh-win="TERM=xterm ssh"
+alias mm="ssh -tt jamie@pondhq-mini"
+alias mi="ssh -tt jamiepond@pondhq-server"
+alias win="ssh-win -tt Ownser@windows"
 
 # Aliases - tmux
 alias ta="tmux attach"
