@@ -151,6 +151,62 @@ alias t="tmux"
 alias tmux='tmux -f ~/.config/tmux/tmux.conf'
 alias tks="tmux kill-server"
 
+# Phone-friendly tmux helpers (short commands, numbered lists)
+# Same dirs as tmux-sessionizer but no fzf — just numbers
+_tmux_project_dirs() {
+  find $HOME/projects $HOME/projects/mayk-it /tmp/time "$HOME/Music/NME/Project Files" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | xargs ls -dtu 2>/dev/null | tail -r
+}
+tmls() {
+  local sessions dirs
+  sessions=$(tmux list-sessions -F '#{session_name} (#{session_windows}w) #{?session_attached,*,}' 2>/dev/null)
+  dirs=$(_tmux_project_dirs)
+  if [ -n "$sessions" ]; then
+    echo "== sessions =="
+    echo "$sessions" | nl -v0 -ba -w2 -s'  '
+    local offset=$(echo "$sessions" | wc -l | tr -d ' ')
+    echo ""
+    echo "== projects (id starts at $offset) =="
+    echo "$dirs" | nl -v"$offset" -ba -w2 -s'  '
+  else
+    echo "== no active sessions =="
+    echo ""
+    echo "== projects =="
+    echo "$dirs" | nl -v0 -ba -w2 -s'  '
+  fi
+}
+tmas() {
+  [ -z "$1" ] && { tmls; return 1; }
+  local id=$1
+  local sessions dirs num_sessions
+  sessions=$(tmux list-sessions -F '#{session_name}' 2>/dev/null)
+  num_sessions=$(echo "$sessions" | grep -c . 2>/dev/null || echo 0)
+  # If id falls within active sessions, just attach
+  if [ "$id" -lt "$num_sessions" ] 2>/dev/null; then
+    local target=$(echo "$sessions" | sed -n "$((id+1))p")
+    tmux attach -t "$target" 2>/dev/null || tmux switch-client -t "$target"
+    return
+  fi
+  # Otherwise it's a project dir — create session if needed
+  dirs=$(_tmux_project_dirs)
+  local dir_index=$((id - num_sessions))
+  local selected=$(echo "$dirs" | sed -n "$((dir_index+1))p")
+  [ -z "$selected" ] && { echo "bad id"; tmls; return 1; }
+  local selected_name=$(basename "$selected" | tr . _)
+  if ! tmux has-session -t="$selected_name" 2>/dev/null; then
+    tmux new-session -ds "$selected_name" -c "$selected"
+  fi
+  tmux attach -t "$selected_name" 2>/dev/null || tmux switch-client -t "$selected_name"
+}
+tmks() {
+  [ -z "$1" ] && { tmls; return 1; }
+  local target
+  local sessions=$(tmux list-sessions -F '#{session_name}' 2>/dev/null)
+  target=$(echo "$sessions" | sed -n "$((${1}+1))p")
+  [ -z "$target" ] && { echo "bad id (only active sessions can be killed)"; tmls; return 1; }
+  tmux kill-session -t "$target"
+  echo "killed $target"
+}
+
 # Aliases - misc tools
 alias ka="killall"
 alias kaf="killall -9"
