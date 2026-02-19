@@ -10,10 +10,11 @@ ifeq ($(SYSTEM),Darwin)
 	ARCH := $(shell uname -m)
 	ifeq ($(ARCH),arm64)
 		NIX_SYSTEM := aarch64-darwin
+		DARWIN_HOST ?= macbook
 	else
 		NIX_SYSTEM := x86_64-darwin
+		DARWIN_HOST ?= macbook-intel
 	endif
-	DARWIN_HOST ?= macbook
 else
 	NIX_SYSTEM := x86_64-linux
 endif

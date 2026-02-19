@@ -142,24 +142,29 @@
       };
 
       # macOS config (nix-darwin + home-manager integrated)
-      darwinConfigurations = {
-        # Adjust hostname and arch as needed
-        "macbook" = nix-darwin.lib.darwinSystem {
+      darwinConfigurations = let
+        mkDarwin = system: nix-darwin.lib.darwinSystem {
           modules = [
             ./darwin
+            { nixpkgs.hostPlatform = system; }
             home-manager.darwinModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
               home-manager.users.jamiepond = {
-              imports = [ ./home ];
-              home.username = "jamiepond";
-              home.homeDirectory = "/Users/jamiepond";
-            };
+                imports = [ ./home ];
+                home.username = "jamiepond";
+                home.homeDirectory = "/Users/jamiepond";
+              };
             }
           ];
         };
+      in {
+        # ARM Mac (Apple Silicon)
+        "macbook" = mkDarwin "aarch64-darwin";
+        # Intel Mac
+        "macbook-intel" = mkDarwin "x86_64-darwin";
       };
     };
 }
