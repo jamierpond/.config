@@ -102,6 +102,7 @@
     # Cloud & infrastructure
     # ==========================================================================
     cloudflared      # Cloudflare tunnel
+    tailscale        # Mesh VPN — SSH to personal machines from anywhere
     # vercel         # not in nixpkgs - install via npm
     # docker         # usually installed system-wide
 

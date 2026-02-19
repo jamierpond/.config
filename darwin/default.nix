@@ -76,6 +76,9 @@
   #   ];
   # };
 
+  # Tailscale — mesh VPN for SSH access from anywhere
+  services.tailscale.enable = true;
+
   # Required for nix-darwin
   system.stateVersion = 6;
 }
