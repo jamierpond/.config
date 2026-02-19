@@ -1,1 +1,1 @@
-/nix/store/phca2gwfafj7v3x212pzv95zp69pafik-home-manager-files/.config/direnv/lib/hm-nix-direnv.sh
+/nix/store/9b5n8z6d35wpi7n29dzrp3lspqywrk77-home-manager-files/.config/direnv/lib/hm-nix-direnv.sh

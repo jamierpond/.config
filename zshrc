@@ -22,7 +22,8 @@ source "$this_dir/completion.zsh"
 # PATH setup - scripts directory first
 export PATH="$this_dir/bin/scripts:$PATH"
 export PATH="$PATH:/usr/local/go/bin"
-command -v go &>/dev/null && export PATH="$PATH:$(go env GOPATH)/bin"
+# Go bin path (static - faster than go env)
+export PATH="$PATH:$HOME/go/bin"
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$PATH:/snap/bin"
 export PATH="$PATH:$HOME/.cargo/bin"
@@ -40,8 +41,17 @@ export VCPKG_ROOT="$HOME/vcpkg"
 export DO_NOT_TRACK=1
 export MANPATH="$HOME/.local/share/man:$MANPATH"
 # macOS SDK for cgo/framework headers (CoreAudio, etc.)
+# Cached to avoid slow xcrun on every shell
 if [[ "$(uname)" == "Darwin" ]]; then
-  export SDKROOT=$(xcrun --show-sdk-path)
+  _sdkroot_cache="$HOME/.cache/sdkroot"
+  if [[ -f "$_sdkroot_cache" ]]; then
+    export SDKROOT=$(<"$_sdkroot_cache")
+  else
+    mkdir -p ~/.cache
+    export SDKROOT=$(xcrun --show-sdk-path)
+    echo "$SDKROOT" > "$_sdkroot_cache"
+  fi
+  unset _sdkroot_cache
 fi
 
 # History options
@@ -270,10 +280,15 @@ if [ -f '/Users/jamiepond/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then
   source '/Users/jamiepond/Downloads/google-cloud-sdk/completion.zsh.inc'
 fi
 
-# Yapi completion
-if command -v yapi &> /dev/null; then
-  source <(yapi completion zsh)
-fi
+# Yapi completion - lazy loaded on first use
+_yapi_completion_loaded=0
+_load_yapi_completion() {
+  if (( _yapi_completion_loaded == 0 )) && command -v yapi &>/dev/null; then
+    source <(yapi completion zsh)
+    _yapi_completion_loaded=1
+  fi
+}
+yapi() { _load_yapi_completion; command yapi "$@"; }
 
 # =============================================================================
 # Nix helpers - making nix ergonomic

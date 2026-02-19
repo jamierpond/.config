@@ -1,8 +1,8 @@
 # Native zsh completion configuration
 
-# Initialize completion system
-autoload -Uz compinit
-compinit -d ~/.cache/zcompdump
+# Skip compinit - already run by home-manager's zshrc
+# Just ensure the cache dir exists
+mkdir -p ~/.cache
 
 # Case-insensitive matching
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'

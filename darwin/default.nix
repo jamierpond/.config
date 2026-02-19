@@ -15,8 +15,7 @@
   # Disable nix-darwin's nix management (using Determinate Nix)
   nix.enable = false;
 
-  # Platform (aarch64-darwin for Apple Silicon, x86_64-darwin for Intel)
-  nixpkgs.hostPlatform = "aarch64-darwin";
+  # Platform is set in flake.nix (supports both aarch64-darwin and x86_64-darwin)
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;

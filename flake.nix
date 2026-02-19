@@ -41,7 +41,8 @@
     {
       # Ubuntu config (standalone home-manager)
       homeConfigurations = {
-        "jamie@mm2014" = mkHome {
+        # Intel Mac Mini running Ubuntu
+        "jamie@pondhq-mini" = mkHome {
           system = "x86_64-linux";
           username = "jamie";
         };
@@ -51,9 +52,6 @@
           system = "x86_64-linux";
           username = "jamie";
         };
-
-        # Add more Linux hosts here as needed
-        # "jamie@other-host" = mkHome { ... };
       };
 
       # Dev shells - available on all systems
@@ -142,22 +140,36 @@
       };
 
       # macOS config (nix-darwin + home-manager integrated)
-      darwinConfigurations = {
-        # Adjust hostname and arch as needed
-        "macbook" = nix-darwin.lib.darwinSystem {
+      darwinConfigurations = let
+        mkDarwin = { system, extraModules ? [] }: nix-darwin.lib.darwinSystem {
           modules = [
             ./darwin
+            { nixpkgs.hostPlatform = system; }
             home-manager.darwinModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
               home-manager.users.jamiepond = {
-              imports = [ ./home ];
-              home.username = "jamiepond";
-              home.homeDirectory = "/Users/jamiepond";
-            };
+                imports = [ ./home ];
+                home.username = "jamiepond";
+                home.homeDirectory = "/Users/jamiepond";
+              };
             }
+          ] ++ extraModules;
+        };
+      in {
+        # ARM Mac (Apple Silicon) - daily driver laptop
+        "daily-driver" = mkDarwin {
+          system = "aarch64-darwin";
+          extraModules = [{ networking.hostName = "daily-driver"; }];
+        };
+        # Intel Mac - headless server in cupboard
+        "pondhq-server" = mkDarwin {
+          system = "x86_64-darwin";
+          extraModules = [
+            ./darwin/server.nix
+            { networking.hostName = "pondhq-server"; }
           ];
         };
       };
