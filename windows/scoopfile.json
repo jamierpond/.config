@@ -1,0 +1,41 @@
+{
+    "buckets": [
+        {
+            "Name": "main",
+            "Source": "https://github.com/ScoopInstaller/Main.git"
+        },
+        {
+            "Name": "extras",
+            "Source": "https://github.com/ScoopInstaller/Extras"
+        }
+    ],
+    "apps": [
+        { "Name": "7zip",        "Source": "main"   },
+        { "Name": "bat",         "Source": "main"   },
+        { "Name": "btop",        "Source": "main"   },
+        { "Name": "cmake",       "Source": "main"   },
+        { "Name": "delta",       "Source": "main"   },
+        { "Name": "difftastic",  "Source": "main"   },
+        { "Name": "duf",         "Source": "main"   },
+        { "Name": "dust",        "Source": "main"   },
+        { "Name": "eza",         "Source": "main"   },
+        { "Name": "fd",          "Source": "main"   },
+        { "Name": "ffmpeg",      "Source": "main"   },
+        { "Name": "fzf",         "Source": "main"   },
+        { "Name": "go",          "Source": "main"   },
+        { "Name": "hyperfine",   "Source": "main"   },
+        { "Name": "imagemagick", "Source": "main"   },
+        { "Name": "jq",          "Source": "main"   },
+        { "Name": "just",        "Source": "main"   },
+        { "Name": "lazygit",     "Source": "extras" },
+        { "Name": "ninja",       "Source": "main"   },
+        { "Name": "nodejs",      "Source": "main"   },
+        { "Name": "protobuf",    "Source": "extras" },
+        { "Name": "ripgrep",     "Source": "main"   },
+        { "Name": "rustup",      "Source": "main"   },
+        { "Name": "sd",          "Source": "main"   },
+        { "Name": "tldr",        "Source": "main"   },
+        { "Name": "tokei",       "Source": "main"   },
+        { "Name": "zoxide",      "Source": "main"   }
+    ]
+}
