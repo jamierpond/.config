@@ -12,7 +12,8 @@
 #>
 param(
     [switch]$SkipClone,
-    [switch]$SkipSSHD
+    [switch]$SkipSSHD,
+    [switch]$ServerMode
 )
 
 Set-StrictMode -Version Latest
@@ -232,10 +233,45 @@ if (-not $SkipSSHD) {
         } else {
             Write-Info "sshd already running with Automatic start"
         }
+
+        # Set Git Bash as default shell for SSH sessions
+        $currentShell = Get-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -ErrorAction SilentlyContinue
+        $gitBash = "C:\Program Files\Git\bin\bash.exe"
+        if ($currentShell.DefaultShell -ne $gitBash) {
+            if (Test-Admin) {
+                Write-Info "Setting Git Bash as default SSH shell..."
+                New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value $gitBash -PropertyType String -Force | Out-Null
+                Write-Info "  SSH default shell set to Git Bash"
+            } else {
+                Write-Warn "Setting SSH default shell needs admin. Run in an elevated shell:"
+                Write-Warn "  New-ItemProperty -Path 'HKLM:\SOFTWARE\OpenSSH' -Name DefaultShell -Value '$gitBash' -PropertyType String -Force"
+            }
+        } else {
+            Write-Info "SSH default shell already set to Git Bash"
+        }
     } else {
         Write-Warn "OpenSSH Server not installed. Install via:"
         Write-Warn "  Settings > Apps > Optional Features > OpenSSH Server"
     }
+}
+
+# =============================================================================
+# Server mode: never sleep, lid close does nothing
+# =============================================================================
+
+if ($ServerMode) {
+    Write-Info "Configuring server power settings (never sleep, lid close = do nothing)..."
+    powercfg /change standby-timeout-ac 0
+    powercfg /change standby-timeout-dc 0
+    powercfg /change hibernate-timeout-ac 0
+    powercfg /change hibernate-timeout-dc 0
+    powercfg /change monitor-timeout-ac 0
+    powercfg /change monitor-timeout-dc 0
+    powercfg /setacvalueindex scheme_current sub_buttons lidaction 0
+    powercfg /setdcvalueindex scheme_current sub_buttons lidaction 0
+    powercfg /setactive scheme_current
+    Write-Info "  Sleep, hibernate, and monitor timeout disabled"
+    Write-Info "  Lid close action set to do nothing"
 }
 
 # =============================================================================
@@ -254,6 +290,9 @@ Write-Host "  - Neovim config:  ~/.config/nvim/ (auto-detected by nvim)"
 Write-Host "  - Lazygit config: ~/.config/lazygit/ (auto-detected)"
 Write-Host "  - Terminal:       symlinked from ~/.config/windows/terminal-settings.json"
 Write-Host "  - sshd:           running, auto-start on boot"
+if ($ServerMode) {
+    Write-Host "  - Power:          never sleep, lid close does nothing (server mode)"
+}
 Write-Host "  - Projects:       ~/projects/"
 Write-Host ""
 Write-Host "To update packages later:"
