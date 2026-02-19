@@ -10,10 +10,10 @@ ifeq ($(SYSTEM),Darwin)
 	ARCH := $(shell uname -m)
 	ifeq ($(ARCH),arm64)
 		NIX_SYSTEM := aarch64-darwin
-		DARWIN_HOST ?= macbook
+		DARWIN_HOST ?= daily-driver
 	else
 		NIX_SYSTEM := x86_64-darwin
-		DARWIN_HOST ?= macbook-intel
+		DARWIN_HOST ?= pondhq-server
 	endif
 else
 	NIX_SYSTEM := x86_64-linux
