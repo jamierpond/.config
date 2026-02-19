@@ -19,12 +19,13 @@ The user has a zshrc alias called `bell` that triggers a system notification/sou
 - You need the user's attention or input
 - You've finished a significant piece of work
 
-**How to use:** Run `bell` directly via the Bash tool. Do NOT use `printf '\a'` or other terminal bell methods - just run the alias directly:
-```
-bell
+**How to use:** Run `bell` via the Bash tool, then wait 2 seconds, then use `say` to speak a short summary of what happened. Do NOT use `printf '\a'` or other terminal bell methods.
+
+```bash
+bell && sleep 2 && say "done, tests passed"
 ```
 
-This is a shell alias, not a built-in Claude Code tool.
+The `say` message should be a brief, natural-language summary (e.g. "done, build succeeded", "need your input", "CI is green"). Keep it under ~8 words. Both `bell` and `say` are shell commands, not built-in Claude Code tools.
 
 ## Token Economy
 Be deliberate with token usage. Don't re-read files you've already read. Don't dump entire files when you only need a few lines. Don't produce verbose explanations when a short answer suffices. Prefer targeted searches over broad exploration. Every token costs money and energy — respect both the wallet and the climate.
@@ -78,6 +79,9 @@ If you find yourself stringing together a long series of bash commands to accomp
 3. Run the script
 
 Multi-step bash chains are a code smell. Source code is durable; shell history is not.
+
+## No Magic Environment Incantations
+If a build requires specific environment variables, SDK paths, toolchain overrides, or other env setup to work, that setup MUST be captured in build code (Makefile, .bazelrc, flake.nix, shell script, etc.). NEVER rely on the user remembering to set `DEVELOPER_DIR=... bazel build` or similar — that is tribal knowledge. If a build needs env setup, encode it so `make <target>` just works.
 
 ## CI: Own Every Red Check
 
