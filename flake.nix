@@ -47,6 +47,12 @@
           username = "jamie";
         };
 
+        # WSL on Windows
+        "jamiepond@wsl" = mkHome {
+          system = "x86_64-linux";
+          username = "jamiepond";
+        };
+
         # CI/Docker testing
         "jamie@ci" = mkHome {
           system = "x86_64-linux";
