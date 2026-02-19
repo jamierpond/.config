@@ -154,6 +154,7 @@ alias lm="sh ~/projects/lambda-machine/remote.sh"
 alias mm="ssh -tt jamie@mm.pond.audio"
 alias vie="sh ~/projects/lambda-machine/vienna-remote.sh"
 alias ms="ssh administrator@208.52.154.141"
+alias ssh-win="TERM=xterm ssh"
 
 # Aliases - tmux
 alias ta="tmux attach"
