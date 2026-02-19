@@ -18,7 +18,7 @@ else
 	NIX_SYSTEM := x86_64-linux
 endif
 
-.PHONY: help setup switch update clean gc test docker-build docker-test docker-run ci info darwin-build darwin-activate darwin-switch darwin-switch-debug edit edit-darwin shells
+.PHONY: help setup switch update clean gc test docker-build docker-test docker-run ci info darwin-build darwin-activate darwin-switch darwin-switch-debug edit edit-darwin shells tailscale
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -33,6 +33,7 @@ ifeq ($(SYSTEM),Darwin)
 	@$(MAKE) install-darwin
 else
 	@$(MAKE) install-hm
+	@$(MAKE) tailscale
 endif
 
 install-darwin: ## Bootstrap nix-darwin (macOS)
@@ -47,6 +48,20 @@ endif
 install-hm: ## Bootstrap home-manager (Linux)
 	@echo "Bootstrapping home-manager for $(USERNAME)@$(HOSTNAME)..."
 	nix run home-manager -- switch --flake .#$(USERNAME)@$(HOSTNAME)
+
+tailscale: ## Install Tailscale daemon (Linux — macOS uses nix-darwin service)
+ifeq ($(SYSTEM),Darwin)
+	@echo "Tailscale is managed by nix-darwin (services.tailscale.enable). Run: make darwin-switch"
+else
+	@if command -v tailscaled >/dev/null 2>&1 && systemctl is-active --quiet tailscaled; then \
+		echo "Tailscale is already installed and running."; \
+	else \
+		echo "Installing Tailscale..."; \
+		curl -fsSL https://tailscale.com/install.sh | sh; \
+		echo ""; \
+		echo "Tailscale installed. Run: sudo tailscale up --ssh"; \
+	fi
+endif
 
 # ============================================================================
 # Daily use
