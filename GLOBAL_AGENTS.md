@@ -19,13 +19,13 @@ The user has a zshrc alias called `bell` that triggers a system notification/sou
 - You need the user's attention or input
 - You've finished a significant piece of work
 
-**How to use:** Run `bell` via the Bash tool, then wait 2 seconds, then use `say` to speak a short summary of what happened. Do NOT use `printf '\a'` or other terminal bell methods.
+**How to use:** Run `bell` via the Bash tool, then wait 2 seconds, then use `say` to speak a short summary including the **project name, branch, and task/status**. Do NOT use `printf '\a'` or other terminal bell methods.
 
 ```bash
-bell && sleep 2 && say "done, tests passed"
+bell && sleep 2 && say "tamber-web, feature-login, CI now green"
 ```
 
-The `say` message should be a brief, natural-language summary (e.g. "done, build succeeded", "need your input", "CI is green"). Keep it under ~8 words. Both `bell` and `say` are shell commands, not built-in Claude Code tools.
+The `say` message format should be: `"<project>, <branch>, <status/task>"`. Keep it brief and natural — e.g. "tamber-web, fix-auth, tests passed", "dotfiles, main, need your input", "tamber-api, add-webhooks, build failed". Both `bell` and `say` are shell commands, not built-in Claude Code tools.
 
 ## Token Economy
 Be deliberate with token usage. Don't re-read files you've already read. Don't dump entire files when you only need a few lines. Don't produce verbose explanations when a short answer suffices. Prefer targeted searches over broad exploration. Every token costs money and energy — respect both the wallet and the climate.
