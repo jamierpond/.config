@@ -23,17 +23,19 @@ shopt -s histappend
 alias so="source ~/.bashrc"
 
 # =============================================================================
-# Bash-specific: Prompt (simple version of robbyrussell)
+# Bash-specific: Prompt (robbyrussell style, matches zsh)
 # =============================================================================
-_git_branch() {
-  git symbolic-ref --short HEAD 2>/dev/null
+_set_prompt() {
+  local branch git_info=""
+  branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+  if [ -n "$branch" ]; then
+    local dirty=""
+    [ -n "$(git status --porcelain 2>/dev/null)" ] && dirty=" \[\e[0;33m\]✗"
+    git_info=" \[\e[1;34m\]git:(\[\e[0;31m\]${branch}\[\e[1;34m\])${dirty}\[\e[0m\]"
+  fi
+  PS1="\[\e[1;32m\]➜ \[\e[0;36m\]\W\[\e[0m\]${git_info} "
 }
-
-_git_dirty() {
-  [ -n "$(git status --porcelain 2>/dev/null)" ] && echo " ✗"
-}
-
-PS1='\[\e[1;32m\]➜ \[\e[0;36m\]\W\[\e[0m\] \[\e[1;34m\]$(_git_branch && echo "git:(\[\e[0;31m\]$(_git_branch)\[\e[1;34m\])")\[\e[0;33m\]$(_git_dirty)\[\e[0m\] '
+PROMPT_COMMAND=_set_prompt
 
 # =============================================================================
 # Bash-specific: fzf
