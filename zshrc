@@ -153,7 +153,7 @@ alias rgpu="pkill wandb && pgpu | xargs -I {} kill -9 {} && kgpu"
 alias ssh-win="TERM=xterm ssh"
 alias mm="ssh -tt jamie@pondhq-mini"
 alias mi="ssh -tt jamiepond@pondhq-server"
-alias win="ssh-win -tt Ownser@windows"
+alias win="ssh-win -tt Owner@windows"
 
 # Aliases - tmux
 alias ta="tmux attach"
