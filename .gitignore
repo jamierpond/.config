@@ -15,6 +15,8 @@
 !README.md
 
 # Shell config
+!shellrc
+!bashrc
 !zshrc
 !prompt.zsh
 !vi-mode.zsh

@@ -6,6 +6,7 @@
   # Override power management for server use
   system.activationScripts.power.text = ''
     # Server mode: never sleep, even with lid closed
+    pmset -a disablesleep 1
     pmset -a sleep 0
     pmset -a disksleep 0
     pmset -a displaysleep 0
