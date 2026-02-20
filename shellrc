@@ -1,0 +1,263 @@
+# shellrc - portable shell config (bash/zsh compatible)
+# Sourced by both zshrc and bashrc
+
+# Resolve script directory portably
+if [ -n "$BASH_SOURCE" ]; then
+  SHELLRC_DIR="$(cd "$(dirname "$BASH_SOURCE")" && pwd)"
+elif [ -n "$ZSH_VERSION" ]; then
+  SHELLRC_DIR="$(cd "$(dirname "$0")" && pwd)"
+else
+  SHELLRC_DIR="$HOME/.config"
+fi
+
+# =============================================================================
+# Secrets
+# =============================================================================
+if [ -f ~/.secrets ]; then
+  . ~/.secrets
+fi
+
+# =============================================================================
+# PATH
+# =============================================================================
+export PATH="$SHELLRC_DIR/bin/scripts:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.nix-profile/bin:$PATH"
+export PATH="$PATH:/usr/local/go/bin"
+export PATH="$PATH:$HOME/go/bin"
+export PATH="$PATH:$HOME/.cargo/bin"
+export PATH="$PATH:/snap/bin"
+
+# Pyenv
+export PYENV_ROOT="$HOME/.pyenv"
+[ -d "$PYENV_ROOT/bin" ] && export PATH="$PYENV_ROOT/bin:$PATH"
+
+# =============================================================================
+# Environment variables
+# =============================================================================
+export EDITOR="${EDITOR:-nvim}"
+export SCREENRC="$HOME/.config/screenrc"
+export HOMEBREW_NO_AUTO_UPDATE=1
+export XDG_CONFIG_HOME="$HOME/.config"
+export VIRTUAL_ENV="venv"
+export UV_PROJECT_ENVIRONMENT="venv"
+export VCPKG_ROOT="$HOME/vcpkg"
+export DO_NOT_TRACK=1
+export MANPATH="$HOME/.local/share/man:$MANPATH"
+export PNPM_HOME="$HOME/.local/share/pnpm"
+export GOPATH="$HOME/go"
+
+# =============================================================================
+# Aliases - scripts
+# =============================================================================
+alias spicy="claude --dangerously-skip-permissions"
+alias r="temp-script-edit-run"
+alias mf="makefile-target-fzf"
+alias dt="jest-describe-test-fzf"
+alias re="list-recent-files"
+alias pport="port-show-process"
+alias sz="disk-usage-summary"
+alias jd="git-directory-jump-fzf"
+alias jv="json-validate-pretty"
+alias c="directory-navigate-fzf"
+alias tsh="pytorch-tensor-shape"
+alias dsh="docker-image-shell"
+alias gp="gcloud-project-switch"
+alias gssh="gcloud-instance-ssh"
+alias gstart="gcloud-instance-start"
+alias gstop="gcloud-instance-stop"
+alias gscp="gcloud-instance-scp"
+alias co="git-branch-checkout-fzf"
+alias e="git-shell-script-run-fzf"
+alias cl="github-repo-clone-fzf"
+alias tget="tar-extract-file-fzf"
+alias tcat="tar-cat-file-fzf"
+alias gls="git-files-fzf"
+alias pt="pytest-test-fzf"
+alias bell="bell-sound"
+alias yt="youtube-download"
+alias ytv="youtube-download -v"
+alias da="docker-container-attach-fzf"
+alias dcp="docker-container-cp-fzf"
+alias png="crush-png"
+alias gif="crush-gif"
+alias jpeg="crush-jpeg"
+alias mpng="crush-move-png"
+alias mgif="crush-move-gif"
+alias mjpeg="crush-move-jpeg"
+
+# =============================================================================
+# Aliases - docker
+# =============================================================================
+alias dockernuke='docker kill $(docker ps -q)'
+alias dn='dockernuke'
+
+# =============================================================================
+# Aliases - system
+# =============================================================================
+alias archbtw='~/.config/bin/scripts/arch.sh'
+alias imgp="bash ~/.config/bin/scripts/clipimage.sh"
+alias npf="bash ~/.config/bin/scripts/npmf"
+alias prf="~/.config/bin/scripts/get-all-pr-feedback"
+
+# =============================================================================
+# Aliases - python/venv
+# =============================================================================
+alias pipi="pip install -r requirements.txt"
+alias nv="python3 -m venv venv"
+alias va="source venv/bin/activate"
+alias nva="nv && va"
+alias uva="uv venv venv && va"
+
+# =============================================================================
+# Aliases - tar
+# =============================================================================
+alias tarls="tar -tvf"
+alias tls="tar -tvf"
+alias untar="tar -xvf"
+
+# =============================================================================
+# Aliases - git
+# =============================================================================
+alias smu="git submodule update --init"
+alias smur="git submodule update --init --recursive"
+alias gtree="git ls-files | tree --fromfile"
+alias cf="git --no-pager diff --name-only"
+alias grape="git grep"
+
+# =============================================================================
+# Aliases - GPU (Linux)
+# =============================================================================
+alias gpu="watch -n 0.5 nvidia-smi"
+alias pgpu="nvidia-smi --query-compute-apps=pid --format=csv,noheader"
+alias fgpu="sudo fuser -v /dev/nvidia*"
+alias kgpu="fgpu | grep . | tr ' ' '\n' | xargs kill -9"
+alias rgpu="pkill wandb && pgpu | xargs -I {} kill -9 {} && kgpu"
+
+# =============================================================================
+# Aliases - SSH/remote
+# =============================================================================
+alias ssh-win="TERM=xterm ssh"
+alias mm="ssh -tt jamie@pondhq-mini"
+alias mi="ssh -tt jamiepond@pondhq-server"
+alias win="ssh-win -tt Ownser@windows"
+
+# =============================================================================
+# Aliases - tmux
+# =============================================================================
+alias ta="tmux attach"
+alias t="tmux"
+alias tmux='tmux -f ~/.config/tmux/tmux.conf'
+alias tks="tmux kill-server"
+
+# =============================================================================
+# Aliases - misc tools
+# =============================================================================
+alias ka="killall"
+alias kaf="killall -9"
+alias dec2hex="printf '%x\n'"
+alias d2h="printf '%x\n'"
+alias f="ranger"
+alias fcp="~/.config/bin/scripts/ffplay-local.sh"
+alias fpl="~/.config/bin/scripts/ffplay-local.sh"
+alias img="~/.config/bin/scripts/img-preview.sh"
+alias dls="lsblk"
+alias ddd="rm -rf ~/Library/Developer/Xcode/DerivedData"
+alias ksmo='~/.config/bin/scripts/ksmo'
+alias cpp-compile="~/.config/bin/scripts/cpp-compile"
+alias cppc="~/.config/bin/scripts/cpp-compile"
+alias o="crush"
+alias qb="/Applications/qutebrowser.app/Contents/MacOS/qutebrowser"
+alias ra="osascript ~/.config/bin/scripts/refresh-ableton.scpt"
+alias refresh-ableton="osascript ~/.config/bin/scripts/refresh-ableton.scpt"
+alias bwon="shortcuts run \"bw-on\""
+alias bwoff="shortcuts run \"bw-off\""
+alias m="make"
+alias g="gemini"
+alias rp="~/.config/bin/scripts/repo-print"
+alias r2-sync="~/.config/r2-backup/r2-sync"
+alias r2-browse="~/.config/r2-backup/r2-browse"
+alias gde="~/.config/bin/scripts/git-diff-exclude"
+alias gd="~/.config/bin/scripts/git-diff-filter"
+alias mrd="list-recent-files ~/Downloads -n 1"
+
+# =============================================================================
+# Functions (portable)
+# =============================================================================
+
+# gcloud projects list
+gpls() {
+  gcloud projects list
+}
+
+# Phone-friendly tmux helpers
+_tmux_project_dirs() {
+  find $HOME/projects $HOME/projects/mayk-it /tmp/time "$HOME/Music/NME/Project Files" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | xargs ls -dtu 2>/dev/null | tail -r
+}
+
+tmls() {
+  local sessions dirs
+  sessions=$(tmux list-sessions -F '#{session_name} (#{session_windows}w) #{?session_attached,*,}' 2>/dev/null)
+  dirs=$(_tmux_project_dirs)
+  if [ -n "$sessions" ]; then
+    echo "== sessions =="
+    echo "$sessions" | nl -v0 -ba -w2 -s'  '
+    local offset=$(echo "$sessions" | wc -l | tr -d ' ')
+    echo ""
+    echo "== projects (id starts at $offset) =="
+    echo "$dirs" | nl -v"$offset" -ba -w2 -s'  '
+  else
+    echo "== no active sessions =="
+    echo ""
+    echo "== projects =="
+    echo "$dirs" | nl -v0 -ba -w2 -s'  '
+  fi
+}
+
+tmas() {
+  [ -z "$1" ] && { tmls; return 1; }
+  local id=$1
+  local sessions dirs num_sessions
+  sessions=$(tmux list-sessions -F '#{session_name}' 2>/dev/null)
+  num_sessions=$(echo "$sessions" | grep -c . 2>/dev/null || echo 0)
+  if [ "$id" -lt "$num_sessions" ] 2>/dev/null; then
+    local target=$(echo "$sessions" | sed -n "$((id+1))p")
+    tmux attach -t "$target" 2>/dev/null || tmux switch-client -t "$target"
+    return
+  fi
+  dirs=$(_tmux_project_dirs)
+  local dir_index=$((id - num_sessions))
+  local selected=$(echo "$dirs" | sed -n "$((dir_index+1))p")
+  [ -z "$selected" ] && { echo "bad id"; tmls; return 1; }
+  local selected_name=$(basename "$selected" | tr . _)
+  if ! tmux has-session -t="$selected_name" 2>/dev/null; then
+    tmux new-session -ds "$selected_name" -c "$selected"
+  fi
+  tmux attach -t "$selected_name" 2>/dev/null || tmux switch-client -t "$selected_name"
+}
+
+tmks() {
+  [ -z "$1" ] && { tmls; return 1; }
+  local target
+  local sessions=$(tmux list-sessions -F '#{session_name}' 2>/dev/null)
+  target=$(echo "$sessions" | sed -n "$((${1}+1))p")
+  [ -z "$target" ] && { echo "bad id (only active sessions can be killed)"; tmls; return 1; }
+  tmux kill-session -t "$target"
+  echo "killed $target"
+}
+
+# Auto-activate venv if in git repo with venv
+_auto_activate_venv() {
+  local git_root
+  git_root=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [ -n "$git_root" ]; then
+    if [ -d "$git_root/venv" ]; then
+      echo "Found venv at $git_root/venv"
+      . "$git_root/venv/bin/activate"
+    elif [ -d "$git_root/.venv" ]; then
+      echo "Found venv at $git_root/.venv"
+      . "$git_root/.venv/bin/activate"
+    fi
+  fi
+}
+_auto_activate_venv
