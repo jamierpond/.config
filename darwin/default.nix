@@ -44,6 +44,7 @@
       ApplePressAndHoldEnabled = false; # Key repeat instead of accents
       InitialKeyRepeat = 15;
       KeyRepeat = 2;
+      "com.apple.sound.beep.feedback" = 0; # Disable UI sound effects
     };
   };
 

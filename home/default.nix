@@ -153,6 +153,9 @@
 
     # Source your existing config (gradual migration)
     initContent = ''
+      # Disable terminal bell
+      unsetopt BEEP
+
       # Source existing config if it exists
       [[ -f ~/.config/zshrc ]] && source ~/.config/zshrc
     '';
