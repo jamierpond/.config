@@ -19,7 +19,7 @@ else
 	NIX_SYSTEM := x86_64-linux
 endif
 
-.PHONY: help setup switch update clean gc test docker-build docker-test docker-run ci info darwin-build darwin-activate darwin-switch darwin-switch-debug edit edit-darwin shells tailscale
+.PHONY: help setup switch update clean gc test docker-build docker-test docker-run ci info darwin-build darwin-activate darwin-switch darwin-switch-debug edit edit-darwin shells tailscale link-global-agents
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -149,6 +149,14 @@ edit: ## Edit packages in $EDITOR, then rebuild
 
 edit-darwin: ## Edit darwin config in $EDITOR, then rebuild
 	$${EDITOR:-nvim} darwin/default.nix && $(MAKE) darwin-switch
+
+# ============================================================================
+# Symlinks
+# ============================================================================
+
+link-global-agents: ## Symlink GLOBAL_AGENTS.md → ~/.claude/CLAUDE.md
+	ln -sf $(CURDIR)/GLOBAL_AGENTS.md $(HOME)/.claude/CLAUDE.md
+	@echo "Linked $(HOME)/.claude/CLAUDE.md → $(CURDIR)/GLOBAL_AGENTS.md"
 
 # ============================================================================
 # Search & explore

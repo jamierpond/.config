@@ -121,6 +121,7 @@
     sd               # better sed
     choose           # better cut
     difftastic       # structural diff
+    glow             # terminal markdown renderer
   ];
 
   # Git config
