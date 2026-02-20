@@ -12,6 +12,10 @@
     pmset -a hibernatemode 0
     pmset -a powernap 0
 
+    # Disable standby (deep sleep that kicks in after prolonged idle)
+    pmset -a standby 0
+    pmset -a autopoweroff 0
+
     # Prevent sleep on lid close (requires power adapter)
     pmset -a lidwake 1
 
