@@ -30,11 +30,17 @@ The `say` message format should be: `"<project>, <branch>, <status/task>"`. Keep
 ## Token Economy
 Be deliberate with token usage. Don't re-read files you've already read. Don't dump entire files when you only need a few lines. Don't produce verbose explanations when a short answer suffices. Prefer targeted searches over broad exploration. Every token costs money and energy — respect both the wallet and the climate.
 
-## So-called 'fallbacks'
-If you find yourself reaching for to say 'let me implement a fallback', we don't do that here. We like to write code that works, or FAILS hard. In between-ness in this dimension creates poor brittle outcomes.
+## Error Handling Philosophy: Dev vs Prod
+**In development: fail EXPLOSIVELY.** Throw, panic, crash — make broken invariants impossible to miss. Use assertions that throw, loud console errors, hard stops. The developer should never be able to accidentally ignore a problem.
 
-**FAIL HARD, DO NOT "FALLBACK", DO NOT CREATE SITUATIONS FOR QUIET, SILENT FAILURES THAT ARE IMPOSSIBLE TO DEBUG.**
-Either it works, or it doesn't. Reach for panicing/hard erroring over falling back.
+**In production: fail elegantly per-item, never silently.** A single bad record should not take down an entire page or API response. Filter it out, log an error so it's discoverable, and serve what you can. But NEVER swallow errors silently — every failure must be logged with enough context to diagnose.
+
+**What we never do:**
+- Silent fallbacks that hide problems (empty strings, default values that look like real data)
+- Swallowing errors without logging
+- Returning "looks OK" responses that are actually broken (e.g. empty URLs that pass validation but break at runtime)
+
+The pattern: assert/throw in dev, try/catch + log + filter in prod. `tamberassert` (or equivalent) handles the dev/prod split — it throws in dev and logs in prod. Callers should still handle the prod case explicitly (e.g. with a hard throw after the assert, caught by the caller).
 
 ## DRY
 Look. Being manically DRY is bad. However, not making an effort whatsoever will shorten my lifespan and make me incredibly sad.
