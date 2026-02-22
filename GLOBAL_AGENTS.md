@@ -138,4 +138,57 @@ DO NOT:
 - Abandon an approach when you hit resistance - propose alternatives instead
 - Revert work without confirming that's what the user wants
 
+## The Research-Plan-Implement Workflow
+
+For any non-trivial task, follow this pipeline. **Never write implementation code until the user has reviewed and approved a written plan.** This separation of planning and execution is mandatory.
+
+### Phase 1: Research
+When the user asks you to study, understand, or research a part of the codebase:
+- **Read deeply.** Don't skim signatures and move on. Read function bodies, follow call chains, understand data flow, trace edge cases. Words like "deeply", "in detail", "intricacies" are not filler — they mean surface-level reading is unacceptable.
+- **Write findings to a persistent markdown file** (e.g. `research.md`), not a chat summary. The file is the user's review surface — they need to verify you actually understood the system before any planning begins.
+- Wrong research leads to wrong plans leads to wrong code. The most expensive failure mode is implementations that work in isolation but break the surrounding system (ignoring caching layers, duplicating existing logic, violating ORM conventions). Research prevents this.
+
+### Phase 2: Planning
+When the user asks for a plan:
+- Write a detailed plan in a **persistent markdown file** (e.g. `plan.md`), not in chat and not using built-in plan mode. The user wants a real file they can edit in their editor.
+- The plan should include: approach explanation, code snippets showing actual changes, file paths to be modified, considerations and trade-offs.
+- Base the plan on the actual codebase. Read source files before proposing changes.
+- If the user provides a reference implementation (from open source, another part of the codebase, etc.), use it as a concrete basis for the plan — working from a reference produces dramatically better results than designing from scratch.
+
+### Phase 3: The Annotation Cycle
+This is the critical phase. After you write the plan:
+1. The user reviews it in their editor and adds inline notes directly into the document (corrections, rejections, constraints, domain knowledge).
+2. The user tells you to address the notes and update the document.
+3. **Update the plan. Do NOT implement.** The phrase "don't implement yet" is a hard stop. Respect it absolutely.
+4. This cycle repeats 1-6 times. The plan is not ready until the user explicitly says it is.
+
+The plan.md is **shared mutable state**. The user annotates it, you update it, they re-annotate. This is fundamentally different from steering through chat messages — the plan is a structured, complete specification the user can review holistically.
+
+### Phase 4: Todo List
+Before implementation, when the user asks for a task breakdown:
+- Add a granular checklist to the plan document with all phases and individual tasks.
+- This serves as the progress tracker during implementation. Mark items as completed as you go.
+
+### Phase 5: Implementation
+When the user says "implement it all" or equivalent:
+- Execute everything in the plan. Don't cherry-pick or skip items.
+- Mark tasks/phases as completed in the plan document as you go.
+- Do not stop for confirmation mid-flow unless you hit an obstacle.
+- Run typecheck (or equivalent) continuously — catch problems early, not at the end.
+- Do not add unnecessary comments, jsdocs, or weaken types.
+- Implementation should be **mechanical, not creative**. All creative decisions were made in the annotation cycles. If you find yourself making architectural choices during implementation, something went wrong in planning.
+
+### Phase 6: Feedback During Implementation
+Once you're executing:
+- The user's corrections will be **terse** — often a single sentence. You have full session context, so terse is enough.
+- For frontend work, expect rapid-fire visual corrections ("wider", "still cropped", "2px gap") and screenshots.
+- When the user references existing code ("make this look like the users table"), read that reference and match it — this communicates all implicit requirements.
+- If something goes wrong, the user may revert and re-scope. Don't try to patch a bad direction — accept the revert and the narrower scope.
+
+### Key Principles
+- **The user cherry-picks from your proposals.** When you identify multiple issues or improvements, present them, but expect the user to accept some, modify others, and reject the rest. Don't assume everything you suggest gets implemented.
+- **The user trims scope.** If they say "remove X from the plan", remove it cleanly. Don't argue for keeping nice-to-haves.
+- **The user protects interfaces.** If they say "these function signatures must not change", that's a hard constraint — adapt the callers, not the library.
+- **The plan document survives context compaction.** It's the persistent artifact that keeps the session coherent across long conversations. Always refer back to it.
+
 
