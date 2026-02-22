@@ -142,6 +142,8 @@ DO NOT:
 
 For any non-trivial task, follow this pipeline. **Never write implementation code until the user has reviewed and approved a written plan.** This separation of planning and execution is mandatory.
 
+**CRITICAL: Do NOT use the built-in `EnterPlanMode`/`ExitPlanMode` tools.** The user's workflow uses persistent markdown files (`research.md`, `plan.md`) in the repo root, which they review and annotate in their editor. The built-in plan mode writes to a hidden `.claude/plans/` directory the user cannot easily edit. Always use `Write`/`Edit` to create `plan.md` and `research.md` directly in the project root.
+
 ### Phase 1: Research
 When the user asks you to study, understand, or research a part of the codebase:
 - **Read deeply.** Don't skim signatures and move on. Read function bodies, follow call chains, understand data flow, trace edge cases. Words like "deeply", "in detail", "intricacies" are not filler — they mean surface-level reading is unacceptable.
@@ -150,7 +152,7 @@ When the user asks you to study, understand, or research a part of the codebase:
 
 ### Phase 2: Planning
 When the user asks for a plan:
-- Write a detailed plan in a **persistent markdown file** (e.g. `plan.md`), not in chat and not using built-in plan mode. The user wants a real file they can edit in their editor.
+- Write a detailed plan in **`plan.md` in the project root** — never in chat, never using built-in plan mode (`EnterPlanMode`), never in `.claude/plans/`.
 - The plan should include: approach explanation, code snippets showing actual changes, file paths to be modified, considerations and trade-offs.
 - Base the plan on the actual codebase. Read source files before proposing changes.
 - If the user provides a reference implementation (from open source, another part of the codebase, etc.), use it as a concrete basis for the plan — working from a reference produces dramatically better results than designing from scratch.
