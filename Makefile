@@ -101,6 +101,14 @@ endif
 
 darwin-switch: darwin-build darwin-activate ## Build and activate darwin config
 
+tamby: ## Switch to tamby (ARM Mac Mini) config
+ifeq ($(SYSTEM),Darwin)
+	$(MAKE) darwin-switch DARWIN_HOST=tamby
+else
+	@echo "tamby is macOS only"
+	@exit 1
+endif
+
 darwin-switch-debug: ## Build and activate darwin config with verbose output
 ifeq ($(SYSTEM),Darwin)
 	nix build .#darwinConfigurations.$(DARWIN_HOST).system --show-trace

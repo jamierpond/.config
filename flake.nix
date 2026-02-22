@@ -165,10 +165,15 @@
           ] ++ extraModules;
         };
       in {
-        # ARM Mac (Apple Silicon) - daily driver laptop
+        # ARM Mac - MacBook (daily driver laptop)
         "daily-driver" = mkDarwin {
           system = "aarch64-darwin";
           extraModules = [{ networking.hostName = "daily-driver"; }];
+        };
+        # ARM Mac Mini
+        "tamby" = mkDarwin {
+          system = "aarch64-darwin";
+          extraModules = [{ networking.hostName = "tamby"; }];
         };
         # Intel Mac - headless server in cupboard
         "pondhq-server" = mkDarwin {
