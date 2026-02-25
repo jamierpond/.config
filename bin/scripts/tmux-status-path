@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Print short path for tmux status bar. Shows ~/last/two/dirs.
+dir="${1:-$(tmux display-message -p '#{pane_current_path}' 2>/dev/null)}"
+[ -z "$dir" ] && exit 0
+dir="${dir/#$HOME/\~}"
+# If 3+ components, show last 2 with leading …/
+IFS='/' read -ra parts <<< "$dir"
+n=${#parts[@]}
+if [ "$n" -le 3 ]; then
+    printf '%s' "$dir"
+else
+    printf '…/%s/%s' "${parts[$((n-2))]}" "${parts[$((n-1))]}"
+fi
