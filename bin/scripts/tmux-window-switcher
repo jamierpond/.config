@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# fzf-based window switcher for the current tmux session.
+window=$(tmux list-windows -F '#I: #{pane_current_command} (#{pane_current_path})' \
+    | sed "s|$HOME|~|g" \
+    | fzf --reverse --no-info --prompt='window> ')
+
+[ -z "$window" ] && exit 0
+
+index="${window%%:*}"
+tmux select-window -t "$index"
