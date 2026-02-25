@@ -76,6 +76,10 @@ Either we're doing a job piece by piece and this is required, or it's temporary.
 You may not break rules without this approval.
 
 
+## Prefer Modern CLI Tools
+- Use `rg` (ripgrep) over `grep`. It's faster, respects `.gitignore`, and has saner defaults.
+- Use `git ls-files` (or `fd`) to list/filter project files instead of `find . | grep -v node_modules` or similar exclusion chains. `git ls-files` already knows what's tracked and ignores build artifacts, `node_modules`, etc.
+
 ## Scripts Over Ad-Hoc Bash Chains
 If a script exists, **run the script**. Do not decompose it into individual bash commands or "improve" the process by running its steps manually.
 
