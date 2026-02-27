@@ -198,3 +198,9 @@ Once you're executing:
 - **The plan document survives context compaction.** It's the persistent artifact that keeps the session coherent across long conversations. Always refer back to it.
 
 
+### Sub-Agents
+Only use sub-agents for meaty tasks where lots of research and planning is
+required. For small, self-contained tasks, just do the thing. We don't want to
+waste the time. Use your judgment to decide when a task is big enough to warrant
+a sub-agent.
+
