@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Print a clean window name for tmux. Replaces version-number process names
+# (like Claude Code's "2.1.52") with "claude".
+name="$1"
+if [[ "$name" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)*$ ]]; then
+    printf 'claude'
+else
+    printf '%s' "$name"
+fi

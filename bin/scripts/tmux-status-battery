@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Print battery % for tmux status bar. macOS and Linux aware.
+if command -v pmset &>/dev/null; then
+    pct=$(pmset -g batt | grep -oE '[0-9]+%' | head -1)
+elif [ -f /sys/class/power_supply/BAT0/capacity ]; then
+    pct="$(cat /sys/class/power_supply/BAT0/capacity)%"
+else
+    exit 0
+fi
+[ -n "$pct" ] && printf '%s' "$pct"

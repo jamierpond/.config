@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Print current git branch for tmux status bar.
+# Receives pane_current_path as $1 from tmux status-left format string.
+dir="${1:-$(tmux display-message -p '#{pane_current_path}' 2>/dev/null)}"
+[ -z "$dir" ] && exit 0
+branch=$(git -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null)
+[ -n "$branch" ] && printf '%s' "$branch"
