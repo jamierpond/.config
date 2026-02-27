@@ -29,6 +29,11 @@
   system.defaults = {
     dock = {
       autohide = true;
+      autohide-delay = 0.0; # No delay before dock shows
+      autohide-time-modifier = 0.0; # No dock show/hide animation
+      launchanim = false; # No launch bounce
+      mineffect = "scale"; # Fastest minimize effect
+      expose-animation-duration = 0.1; # Near-instant Mission Control
       show-recents = false;
       mru-spaces = false; # Don't rearrange spaces
     };
@@ -45,6 +50,33 @@
       InitialKeyRepeat = 15;
       KeyRepeat = 2;
       "com.apple.sound.beep.feedback" = 0; # Disable UI sound effects
+      # Kill animations
+      NSAutomaticWindowAnimationsEnabled = false; # No window open/close animations
+      NSScrollAnimationEnabled = false; # No smooth scrolling
+      NSWindowResizeTime = 0.001; # Instant window resize
+    };
+
+    universalaccess = {
+      reduceMotion = true; # System-wide reduce motion
+      reduceTransparency = true; # Less compositing overhead
+    };
+
+    # Defaults not covered by typed nix-darwin options
+    CustomUserPreferences = {
+      NSGlobalDomain = {
+        NSToolbarTitleViewRolloverDelay = 0.0;
+        "com.apple.springing.delay" = 0.0;
+        NSScrollViewRubberbanding = false; # No rubber-band scrolling
+        QLPanelAnimationDuration = 0.0; # Instant Quick Look
+      };
+      "com.apple.finder" = {
+        DisableAllAnimations = true;
+      };
+      "com.apple.dock" = {
+        springboard-show-duration = 0.0;
+        springboard-hide-duration = 0.0;
+        springboard-page-duration = 0.0;
+      };
     };
   };
 
