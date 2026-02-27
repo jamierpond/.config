@@ -52,6 +52,7 @@ fi
 # Zsh-specific: Aliases
 # =============================================================================
 alias so="source ~/.zshrc"
+alias tso="tmux source-file ~/.config/tmux/tmux.conf"
 alias a="yapi"
 
 # =============================================================================
