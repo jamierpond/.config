@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# List all aerospace windows across workspaces, fuzzy-pick one, focus it.
+# Dependencies: aerospace, jq, fzf
+
+tmpfile=$(mktemp)
+trap 'rm -f "$tmpfile"' EXIT
+
+for ws in $(aerospace list-workspaces --all --json | jq -r '.[].workspace'); do
+  aerospace list-windows --workspace "$ws" --json 2>/dev/null \
+    | jq -r --arg ws "$ws" '.[] | "\($ws)\t\(."app-name")\t\(."window-title")"' \
+    >> "$tmpfile"
+done
+
+[ ! -s "$tmpfile" ] && echo "No windows found." && exit 1
+
+selected=$(fzf \
+  --delimiter='\t' \
+  --with-nth=2,3 \
+  --preview-window=hidden \
+  --prompt="workspace> " \
+  --header="Select a window" \
+  < "$tmpfile")
+
+workspace=$(printf '%s' "$selected" | cut -f1)
+aerospace workspace "$workspace"
