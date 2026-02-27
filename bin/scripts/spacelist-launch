@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Focuses iTerm2, runs spacelist in a temporary tmux window, auto-dismisses.
+# Bound to ctrl+space via aerospace.
+
+export PATH="/opt/homebrew/bin:$PATH"
+
+SPACELIST="/Users/jamiepond/.config/bin/scripts/spacelist"
+
+# Focus iTerm2
+osascript -e 'tell application "iTerm2" to activate'
+
+# Create a temporary tmux window, run spacelist, window dies on exit
+tmux new-window -n spacelist "$SPACELIST"

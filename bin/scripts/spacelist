@@ -4,6 +4,8 @@ set -euo pipefail
 # List all aerospace windows across workspaces, fuzzy-pick one, focus it.
 # Dependencies: aerospace, jq, fzf
 
+export PATH="/opt/homebrew/bin:$PATH"
+
 tmpfile=$(mktemp)
 trap 'rm -f "$tmpfile"' EXIT
 
