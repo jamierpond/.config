@@ -104,7 +104,9 @@
     cloudflared      # Cloudflare tunnel
     tailscale        # Mesh VPN — SSH to personal machines from anywhere
     # vercel         # not in nixpkgs - install via npm
-    # docker         # usually installed system-wide
+    docker           # Docker CLI
+    docker-compose   # Docker Compose
+    colima           # Lightweight Docker runtime for macOS
 
     # ==========================================================================
     # Nice to have
@@ -209,6 +211,7 @@
     GOPATH = "$HOME/go";
   };
   home.sessionPath = [
+    "/opt/homebrew/bin"  # Homebrew on ARM Mac
     "$HOME/.local/bin"
     "$HOME/.local/share/pnpm"
     "$HOME/go/bin"
