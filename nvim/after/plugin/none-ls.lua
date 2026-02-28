@@ -3,7 +3,13 @@ local null_ls = require("null-ls")
 -- Register any sources you want to use
 local sources = {
   -- Formatting
-  null_ls.builtins.formatting.prettier,
+  null_ls.builtins.formatting.prettier.with({
+    filetypes = { "markdown" },
+    extra_args = { "--prose-wrap", "always", "--print-width", "80" },
+  }),
+  null_ls.builtins.formatting.prettier.with({
+    disabled_filetypes = { "markdown" },
+  }),
   null_ls.builtins.formatting.black,
 --   null_ls.builtins.formatting.stylua,
 
