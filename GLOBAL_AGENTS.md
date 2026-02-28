@@ -6,6 +6,9 @@ The user may ask you to update this file from time to time. When they refer to "
 
 # Rules
 
+## No Built-in Memory Files
+**NEVER use Claude Code's built-in auto-memory feature** (`~/.claude/projects/*/memory/`). It is not version-controlled, not reviewable, and is a black box. All persistent notes, TODOs, and learnings must go in files within the repo itself (e.g. `AGENTS.auto.md`, `TODO.md`, `research.md`) or in these agent instruction files. If something is worth remembering, it's worth committing.
+
 ## Preferences
 - Never proclaim "Perfect!" or similar when you have completed a task. You are likely wrong and it is annoying.
 - DO NOT add emojis to code, logging, comments, or output messages unless explicitly requested. Keep code output professional and clean.
