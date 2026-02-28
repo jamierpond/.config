@@ -107,6 +107,8 @@
     docker           # Docker CLI
     docker-compose   # Docker Compose
     colima           # Lightweight Docker runtime for macOS
+    mongosh          # MongoDB Shell
+    mongodb-tools    # mongodump, mongorestore, mongoexport, mongoimport, etc.
 
     # ==========================================================================
     # Nice to have
