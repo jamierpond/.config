@@ -79,6 +79,9 @@ Either we're doing a job piece by piece and this is required, or it's temporary.
 You may not break rules without this approval.
 
 
+## Next.js: `proxy.ts` replaces `middleware.ts`
+Next.js has renamed the middleware file convention. `middleware.ts` is deprecated — the file is now `proxy.ts` and the exported function is `proxy` (not `middleware`). The `config` export with `matcher` works the same way. Do NOT rename `proxy.ts` to `middleware.ts` or the exported function to `middleware`. Migration codemod: `npx @next/codemod@canary middleware-to-proxy .`
+
 ## Prefer Modern CLI Tools
 - Use `rg` (ripgrep) over `grep`. It's faster, respects `.gitignore`, and has saner defaults.
 - Use `git ls-files` (or `fd`) to list/filter project files instead of `find . | grep -v node_modules` or similar exclusion chains. `git ls-files` already knows what's tracked and ignores build artifacts, `node_modules`, etc.
