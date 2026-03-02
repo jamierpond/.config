@@ -68,14 +68,21 @@ if [[ ${#new_sessions[@]} -eq 0 ]]; then
   exit "$exit_code"
 fi
 
-# ── Copy sessions to repo ──────────────────────────────────────────────
+# ── Digest sessions to repo ────────────────────────────────────────────
+DIGEST_BIN="$(dirname "$0")/session-digest"
 dest="$git_root/sessions/$git_user/$branch"
 mkdir -p "$dest"
 
 for session_file in "${new_sessions[@]}"; do
   session_id="$(basename "$session_file" .jsonl)"
-  target="$dest/${timestamp}_${session_id}.jsonl"
-  cp "$session_file" "$target"
+  target="$dest/${timestamp}_${session_id}.md"
+  if [[ -x "$DIGEST_BIN" ]]; then
+    "$DIGEST_BIN" "$session_file" "$target"
+  else
+    # Fallback: copy raw JSONL if digest script is missing
+    target="$dest/${timestamp}_${session_id}.jsonl"
+    cp "$session_file" "$target"
+  fi
   echo "session saved: ${target#"$git_root"/}"
 done
 

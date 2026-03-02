@@ -1,0 +1,196 @@
+#!/usr/bin/env python3
+"""Convert a Claude Code session JSONL into a readable markdown digest.
+
+Usage: session-digest <session.jsonl> [output.md]
+  If output.md is omitted, writes to stdout.
+"""
+
+import json
+import sys
+from pathlib import Path
+
+
+def extract_header(lines: list[dict]) -> dict:
+    for line in lines:
+        if line.get("type") == "assistant" and line.get("message", {}).get("model"):
+            return {
+                "model": line["message"]["model"],
+                "version": line.get("version", "unknown"),
+                "slug": line.get("slug", "unknown"),
+                "timestamp": line.get("timestamp", "unknown"),
+                "sessionId": line.get("sessionId", "unknown"),
+            }
+    return {
+        "model": "unknown",
+        "version": "unknown",
+        "slug": "unknown",
+        "timestamp": "unknown",
+        "sessionId": "unknown",
+    }
+
+
+def format_tool_use(tool: dict) -> str:
+    name = tool.get("name", "?")
+    inp = tool.get("input", {})
+
+    if name == "Read":
+        return f"> `Read` {inp.get('file_path', '?')}"
+    if name == "Write":
+        return f"> `Write` {inp.get('file_path', '?')}"
+    if name == "Edit":
+        return f"> `Edit` {inp.get('file_path', '?')}"
+    if name == "Bash":
+        cmd = inp.get("command", "?")
+        # Indent each line of the command inside the blockquote
+        cmd_lines = cmd.split("\n")
+        if len(cmd_lines) == 1:
+            return f"> `Bash` `{cmd}`"
+        indented = "\n> ".join(cmd_lines)
+        return f"> `Bash`\n> ```\n> {indented}\n> ```"
+    if name == "Glob":
+        suffix = f" in {inp['path']}" if inp.get("path") else ""
+        return f"> `Glob` `{inp.get('pattern', '?')}`{suffix}"
+    if name == "Grep":
+        suffix = f" ({inp['glob']})" if inp.get("glob") else ""
+        return f"> `Grep` `{inp.get('pattern', '?')}`{suffix}"
+    if name == "Agent":
+        desc = inp.get("description", "?")
+        agent_type = inp.get("subagent_type", "?")
+        return f"> `Agent` {desc} — {agent_type}"
+
+    # Fallback: show name + truncated input
+    raw = json.dumps(inp)
+    if len(raw) > 120:
+        raw = raw[:120] + "..."
+    return f"> `{name}` {raw}"
+
+
+def format_user_content(msg: dict) -> str | None:
+    content = msg.get("content")
+    if content is None:
+        return None
+    if isinstance(content, str):
+        return content if content.strip() else None
+    if isinstance(content, list):
+        texts = [b["text"] for b in content if b.get("type") == "text" and b.get("text")]
+        return "\n".join(texts) if texts else None
+    return None
+
+
+def format_assistant_content(msg: dict) -> list[str]:
+    content = msg.get("content")
+    if not isinstance(content, list):
+        return []
+
+    parts: list[str] = []
+    # Buffer consecutive tool calls so they render as a tight block
+    tool_buffer: list[str] = []
+
+    def flush_tools():
+        if tool_buffer:
+            parts.append("\n".join(tool_buffer))
+            tool_buffer.clear()
+
+    for block in content:
+        btype = block.get("type")
+        if btype == "text" and block.get("text", "").strip():
+            flush_tools()
+            parts.append(block["text"])
+        elif btype == "tool_use":
+            tool_buffer.append(format_tool_use(block))
+        # Skip thinking, tool_result, etc.
+
+    flush_tools()
+    return parts
+
+
+def digest(input_path: Path) -> str:
+    lines: list[dict] = []
+    with open(input_path) as f:
+        for raw in f:
+            raw = raw.strip()
+            if not raw:
+                continue
+            try:
+                lines.append(json.loads(raw))
+            except json.JSONDecodeError:
+                continue
+
+    header = extract_header(lines)
+    out: list[str] = []
+
+    # Header
+    out.append(f"# Session: {header['slug']}")
+    out.append("")
+    out.append("| | |")
+    out.append("|---|---|")
+    out.append(f"| **Model** | `{header['model']}` |")
+    out.append(f"| **CLI** | `v{header['version']}` |")
+    out.append(f"| **Session** | `{header['sessionId']}` |")
+    out.append(f"| **Started** | {header['timestamp']} |")
+    out.append("")
+
+    prev_role = None
+
+    for line in lines:
+        ltype = line.get("type")
+
+        if ltype == "user" and line.get("userType") == "external":
+            text = format_user_content(line.get("message", {}))
+            if text:
+                out.append("---")
+                out.append("")
+                out.append("### User")
+                out.append("")
+                out.append(text)
+                out.append("")
+                prev_role = "user"
+
+        elif ltype == "assistant":
+            parts = format_assistant_content(line.get("message", {}))
+            if not parts:
+                continue
+
+            for i, part in enumerate(parts):
+                # Only print the "### Assistant" heading when transitioning
+                # from a non-assistant block, or for the first text after tools
+                is_tool_block = part.startswith(">")
+                if i == 0 and not is_tool_block and prev_role != "assistant_text":
+                    out.append("---")
+                    out.append("")
+                    out.append("### Assistant")
+                    out.append("")
+                elif i == 0 and is_tool_block and prev_role != "assistant_tool":
+                    out.append("")
+
+                out.append(part)
+                out.append("")
+
+                if is_tool_block:
+                    prev_role = "assistant_tool"
+                else:
+                    prev_role = "assistant_text"
+
+    return "\n".join(out)
+
+
+def main():
+    if len(sys.argv) < 2:
+        print("usage: session-digest <session.jsonl> [output.md]", file=sys.stderr)
+        sys.exit(1)
+
+    input_path = Path(sys.argv[1])
+    if not input_path.is_file():
+        print(f"error: file not found: {input_path}", file=sys.stderr)
+        sys.exit(1)
+
+    result = digest(input_path)
+
+    if len(sys.argv) >= 3:
+        Path(sys.argv[2]).write_text(result)
+    else:
+        print(result)
+
+
+if __name__ == "__main__":
+    main()
