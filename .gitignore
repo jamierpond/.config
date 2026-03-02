@@ -1,6 +1,7 @@
 # Allowlist pattern: ignore everything, then selectively include.
 # Add new config files/dirs with ! prefix to track them.
 /*
+!sessions/
 
 # Git
 !.gitignore
