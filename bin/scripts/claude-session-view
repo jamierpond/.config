@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Browse and view Claude Code session transcripts.
+#
+# Usage:
+#   claude-session-view [sessions_dir]
+#
+# Defaults to ./sessions if in a git repo, or ~/.config/sessions otherwise.
+# Uses fzf to pick a session, then renders the conversation in a pager.
+#
+# Requires: fzf, jq, bat (optional, falls back to less)
+
+SELF="$(realpath "$0")"
+
+# ── Sub-command: render a single session file (used by fzf preview) ──────
+if [[ "${1:-}" == "__render" ]]; then
+  jq -r '
+    select(.type == "user" or .type == "assistant") |
+    if .type == "user" then
+      "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n## USER  [\(.timestamp // "?" | split("T") | .[0:2] | join(" ") | gsub("Z$";""))]\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+      (if (.message.content | type) == "string" then
+        .message.content
+      elif (.message.content | type) == "array" then
+        [.message.content[] | select(.type == "text") | .text] | join("\n")
+      else
+        "<non-text content>"
+      end)
+    elif .type == "assistant" then
+      "\n────────────────────────────────────────────────────────────────────────────────\n## CLAUDE  [model: \(.message.model // "unknown")]\n────────────────────────────────────────────────────────────────────────────────\n" +
+      (if (.message.content | type) == "string" then
+        .message.content
+      elif (.message.content | type) == "array" then
+        [.message.content[] |
+          if .type == "text" then .text
+          elif .type == "tool_use" then "  [tool: \(.name)] \(.input | tostring | .[0:200])"
+          elif .type == "tool_result" then "  [tool_result: \(.content // "<empty>" | tostring | .[0:200])]"
+          else "  [\(.type)]"
+          end
+        ] | join("\n")
+      else
+        "<non-text content>"
+      end)
+    else empty end
+  ' "$2"
+  exit 0
+fi
+
+# ── Locate sessions directory ────────────────────────────────────────────
+if [[ $# -ge 1 ]]; then
+  SESSIONS_DIR="$1"
+elif git_root="$(git rev-parse --show-toplevel 2>/dev/null)"; then
+  SESSIONS_DIR="$git_root/sessions"
+else
+  SESSIONS_DIR="$HOME/.config/sessions"
+fi
+
+if [[ ! -d "$SESSIONS_DIR" ]]; then
+  echo "No sessions directory found at $SESSIONS_DIR" >&2
+  exit 1
+fi
+
+# ── Build session list for fzf ───────────────────────────────────────────
+# Format: filepath\tdate\t[branch]\tfirst_message
+build_session_list() {
+  find "$SESSIONS_DIR" -name '*.jsonl' -type f | sort -r | while IFS= read -r f; do
+    rel="${f#"$SESSIONS_DIR"/}"
+
+    # Extract timestamp from filename (YYYYMMDD_HHMMSS_...)
+    fname="$(basename "$f")"
+    raw_date="${fname%%_*}"
+    rest="${fname#*_}"
+    raw_time="${rest%%_*}"
+
+    if [[ ${#raw_date} -eq 8 ]] && [[ ${#raw_time} -eq 6 ]]; then
+      pretty_date="${raw_date:0:4}-${raw_date:4:2}-${raw_date:6:2} ${raw_time:0:2}:${raw_time:2:2}"
+    else
+      pretty_date="unknown"
+    fi
+
+    # Extract first user message as preview
+    first_msg="$(jq -r 'select(.type == "user") | .message.content' "$f" 2>/dev/null | head -1 | cut -c1-80)"
+    first_msg="${first_msg:-<empty>}"
+
+    # Extract branch from path (user/branch/file)
+    branch="$(dirname "$rel")"
+    branch="${branch##*/}"
+
+    printf '%s\t%s\t[%s]\t%s\n' "$f" "$pretty_date" "$branch" "$first_msg"
+  done
+}
+
+session_list="$(build_session_list)"
+
+if [[ -z "$session_list" ]]; then
+  echo "No session files found in $SESSIONS_DIR" >&2
+  exit 1
+fi
+
+# ── fzf selection with live preview ──────────────────────────────────────
+selected="$(echo "$session_list" | \
+  fzf --delimiter='\t' \
+      --with-nth=2.. \
+      --preview="$SELF __render {1}" \
+      --preview-window=right:60%:wrap \
+      --header='Select a Claude session (ESC to quit)' \
+      --height=100% \
+)" || exit 0
+
+# ── Render selected session into pager ───────────────────────────────────
+chosen_file="$(echo "$selected" | cut -f1)"
+
+if command -v bat &>/dev/null; then
+  "$SELF" __render "$chosen_file" | bat --language=markdown --style=plain --paging=always
+else
+  "$SELF" __render "$chosen_file" | less -R
+fi
