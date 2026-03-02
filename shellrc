@@ -50,7 +50,6 @@ export GOPATH="$HOME/go"
 # =============================================================================
 # Aliases - scripts
 # =============================================================================
-alias claude="claude-session"
 alias spicy="claude --dangerously-skip-permissions"
 alias r="temp-script-edit-run"
 alias mf="makefile-target-fzf"
