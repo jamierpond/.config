@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Aggregate all Claude Code sessions for the current git branch into a single
+# markdown file at ./sessions/$gituser/$branch.md
+#
+# Usage: generate-claude-branch-summary [branch]
+#   Defaults to the current branch. Must be run inside a git repo.
+#
+# Requires: git, jq, session-digest (sibling script)
+
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+DIGEST_BIN="$SCRIPT_DIR/session-digest"
+
+if [[ ! -x "$DIGEST_BIN" ]]; then
+  echo "error: session-digest not found at $DIGEST_BIN" >&2
+  exit 1
+fi
+
+git_root="$(git rev-parse --show-toplevel 2>/dev/null)" || {
+  echo "error: not in a git repository" >&2
+  exit 1
+}
+
+branch="${1:-$(git branch --show-current 2>/dev/null)}"
+if [[ -z "$branch" ]]; then
+  echo "error: could not determine branch (detached HEAD?)" >&2
+  exit 1
+fi
+
+git_user="$(git config user.name 2>/dev/null | tr '[:upper:]' '[:lower:]' | tr ' ' '-')"
+git_user="${git_user:-unknown}"
+
+# Claude stores sessions in ~/.claude/projects/<key>/<session-id>.jsonl
+# The key is the absolute cwd path with / and . both replaced by -
+# There may be multiple keys (subdir sessions, path variations), so check all
+# project dirs that could match this repo.
+projects_root="$HOME/.claude/projects"
+repo_key="$(echo "$git_root" | tr '/.' '-')"
+
+# Find all project dirs whose key starts with the repo key
+matching_dirs=()
+if [[ -d "$projects_root" ]]; then
+  while IFS= read -r -d '' d; do
+    matching_dirs+=("$d")
+  done < <(find "$projects_root" -maxdepth 1 -type d -name "${repo_key}*" -print0 2>/dev/null)
+fi
+
+if [[ ${#matching_dirs[@]} -eq 0 ]]; then
+  echo "error: no claude session directories found for $git_root" >&2
+  exit 1
+fi
+
+# Find all JSONL files across matching dirs that reference this branch
+session_files=()
+for dir in "${matching_dirs[@]}"; do
+  while IFS= read -r -d '' f; do
+    # Check if any record in the file references our branch
+    if jq -e --arg b "$branch" 'select(.gitBranch == $b)' "$f" >/dev/null 2>&1; then
+      session_files+=("$f")
+    fi
+  done < <(find "$dir" -maxdepth 1 -name '*.jsonl' -type f -print0 2>/dev/null)
+done
+
+if [[ ${#session_files[@]} -eq 0 ]]; then
+  echo "No sessions found for branch: $branch" >&2
+  exit 1
+fi
+
+# Sort by modification time (oldest first)
+IFS=$'\n' sorted=($(ls -1tr "${session_files[@]}")); unset IFS
+
+# Sanitize branch name for filesystem (/ -> -)
+safe_branch="$(echo "$branch" | tr '/' '-')"
+dest_dir="$git_root/sessions/$git_user"
+dest="$dest_dir/$safe_branch.md"
+mkdir -p "$dest_dir"
+
+# Build the aggregate document
+{
+  echo "# Claude Sessions: \`$branch\`"
+  echo ""
+  echo "**Branch:** $branch"
+  echo "**Generated:** $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo "**Sessions:** ${#sorted[@]}"
+  echo ""
+
+  for i in "${!sorted[@]}"; do
+    session_file="${sorted[$i]}"
+    session_id="$(basename "$session_file" .jsonl)"
+    n=$((i + 1))
+
+    echo "---"
+    echo ""
+    echo "## Session $n/$((${#sorted[@]})): \`$session_id\`"
+    echo ""
+
+    # Use session-digest but strip its top-level heading (we provide our own)
+    "$DIGEST_BIN" "$session_file" | tail -n +2
+
+    echo ""
+  done
+} > "$dest"
+
+echo "wrote: ${dest#"$git_root"/}"
+echo "  ${#sorted[@]} session(s) for branch '$branch'"

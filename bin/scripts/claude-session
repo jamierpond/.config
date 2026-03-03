@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Wrapper around `claude` that copies session transcripts into the repo
+# at ./sessions/$gituser/$branch/YYYYMMDD_HHMMSS.jsonl after each session.
+#
+# Usage: claude-session [claude args...]
+#   Or alias claude=claude-session in your shell.
+#
+# Requires: git, claude CLI
+# Skips session saving when not in a git repo or when using --print/-p mode.
+
+# ── Resolve the real claude binary (skip this wrapper if aliased) ──────────
+CLAUDE_BIN="$(command -v claude)"
+if [[ -z "$CLAUDE_BIN" ]]; then
+  echo "error: claude not found in PATH" >&2
+  exit 1
+fi
+
+# ── Detect non-interactive / non-git — just passthrough ──────────────────
+is_print_mode=false
+for arg in "$@"; do
+  case "$arg" in
+    -p|--print) is_print_mode=true; break ;;
+  esac
+done
+
+git_root="$(git rev-parse --show-toplevel 2>/dev/null)" || true
+
+if [[ "$is_print_mode" == true ]] || [[ -z "$git_root" ]]; then
+  exec "$CLAUDE_BIN" "$@"
+fi
+
+# ── Gather git context ───────────────────────────────────────────────────
+git_user="$(git config user.name 2>/dev/null | tr '[:upper:]' '[:lower:]' | tr ' ' '-')"
+git_user="${git_user:-unknown}"
+branch="$(git branch --show-current 2>/dev/null)"
+branch="${branch:-detached}"
+timestamp="$(date +%Y%m%d_%H%M%S)"
+
+# ── Compute the claude project hash ─────────────────────────────────────
+# Claude stores sessions in ~/.claude/projects/<hash>/<session-id>.jsonl
+# where <hash> is the absolute cwd path with / and . both replaced by -
+project_dir="$HOME/.claude/projects/$(pwd | tr '/.' '-')"
+
+# ── Drop a marker so we can find new/modified session files ─────────────
+marker="$(mktemp)"
+trap 'rm -f "$marker"' EXIT
+
+# ── Run claude ──────────────────────────────────────────────────────────
+set +e
+"$CLAUDE_BIN" "$@"
+exit_code=$?
+set -e
+
+# ── Find session files modified after the marker ────────────────────────
+if [[ ! -d "$project_dir" ]]; then
+  exit "$exit_code"
+fi
+
+# Find .jsonl files newer than the marker
+new_sessions=()
+while IFS= read -r -d '' f; do
+  new_sessions+=("$f")
+done < <(find "$project_dir" -maxdepth 1 -name '*.jsonl' -newer "$marker" -print0 2>/dev/null)
+
+if [[ ${#new_sessions[@]} -eq 0 ]]; then
+  exit "$exit_code"
+fi
+
+# ── Digest sessions to repo ────────────────────────────────────────────
+DIGEST_BIN="$(dirname "$0")/session-digest"
+dest="$git_root/sessions/$git_user/$branch"
+mkdir -p "$dest"
+
+for session_file in "${new_sessions[@]}"; do
+  session_id="$(basename "$session_file" .jsonl)"
+  target="$dest/${timestamp}_${session_id}.md"
+  if [[ -x "$DIGEST_BIN" ]]; then
+    "$DIGEST_BIN" "$session_file" "$target"
+  else
+    # Fallback: copy raw JSONL if digest script is missing
+    target="$dest/${timestamp}_${session_id}.jsonl"
+    cp "$session_file" "$target"
+  fi
+  echo "session saved: ${target#"$git_root"/}"
+done
+
+exit "$exit_code"
