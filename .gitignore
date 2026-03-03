@@ -14,7 +14,6 @@
 !GLOBAL_AGENTS.md
 !OpenCode.md
 !README.md
-!btop/
 
 # Shell config
 !shellrc
@@ -25,6 +24,7 @@
 !completion.zsh
 
 # App configs
+!btop/
 !nvim/
 !tmux/
 !bin/
@@ -72,4 +72,5 @@ bin/scripts/quick-url-github-repos.txt
 
 # Override *.conf for nix config (must come after *.conf)
 !nix/nix.conf
+!btop/btop.conf
 !justfile
