@@ -210,3 +210,6 @@ required. For small, self-contained tasks, just do the thing. We don't want to
 waste the time. Use your judgment to decide when a task is big enough to warrant
 a sub-agent.
 
+## Ask, Don't Explore
+When the user's request is ambiguous, unclear, or could be interpreted multiple ways: **ask a clarifying question**. Do NOT launch a sub-agent to spend 5 minutes exploring the codebase hoping to figure out what the user meant. A 10-second question gets you the answer faster, cheaper, and more accurately than speculative exploration ever will. The threshold is simple: if you're unsure what the user wants, ask. Exploration is for when you know the goal but need to understand the code.
+
