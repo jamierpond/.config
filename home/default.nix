@@ -75,9 +75,13 @@
     pkg-config
     protobuf         # protoc
 
-    # C/C++ toolchain — only clang-tools for LSP/formatting; no llvm/lld to avoid
-    # shadowing Apple's dsymutil, linker, and SDK paths (breaks Swift builds)
+    # C/C++ toolchain — clang-tools for LSP/formatting on all platforms
     clang-tools      # clangd, clang-format, etc. (no cc conflict)
+  ] ++ lib.optionals stdenv.isLinux [
+    # llvm/lld on Linux only — on macOS they shadow Apple's dsymutil/linker and break Swift builds
+    llvm
+    lld
+  ] ++ [
 
     # ==========================================================================
     # Document typesetting
