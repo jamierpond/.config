@@ -79,6 +79,9 @@ Either we're doing a job piece by piece and this is required, or it's temporary.
 You may not break rules without this approval.
 
 
+## Next.js: `proxy.ts` replaces `middleware.ts`
+Next.js has renamed the middleware file convention. `middleware.ts` is deprecated — the file is now `proxy.ts` and the exported function is `proxy` (not `middleware`). The `config` export with `matcher` works the same way. Do NOT rename `proxy.ts` to `middleware.ts` or the exported function to `middleware`. Migration codemod: `npx @next/codemod@canary middleware-to-proxy .`
+
 ## Prefer Modern CLI Tools
 - Use `rg` (ripgrep) over `grep`. It's faster, respects `.gitignore`, and has saner defaults.
 - Use `git ls-files` (or `fd`) to list/filter project files instead of `find . | grep -v node_modules` or similar exclusion chains. `git ls-files` already knows what's tracked and ignores build artifacts, `node_modules`, etc.
@@ -206,4 +209,7 @@ Only use sub-agents for meaty tasks where lots of research and planning is
 required. For small, self-contained tasks, just do the thing. We don't want to
 waste the time. Use your judgment to decide when a task is big enough to warrant
 a sub-agent.
+
+## Ask, Don't Explore
+When the user's request is ambiguous, unclear, or could be interpreted multiple ways: **ask a clarifying question**. Do NOT launch a sub-agent to spend 5 minutes exploring the codebase hoping to figure out what the user meant. A 10-second question gets you the answer faster, cheaper, and more accurately than speculative exploration ever will. The threshold is simple: if you're unsure what the user wants, ask. Exploration is for when you know the goal but need to understand the code.
 

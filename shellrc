@@ -51,6 +51,7 @@ export GOPATH="$HOME/go"
 # Aliases - scripts
 # =============================================================================
 alias spicy="claude --dangerously-skip-permissions"
+alias cbs="generate-claude-branch-summary"
 alias r="temp-script-edit-run"
 alias mf="makefile-target-fzf"
 alias dt="jest-describe-test-fzf"
