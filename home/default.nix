@@ -140,6 +140,7 @@
       init.defaultBranch = "main";
       credential.helper = "${pkgs.gh}/bin/gh auth git-credential";
       push.autoSetupRemote = true;
+      pull.rebase = false;
     };
   };
 
