@@ -215,12 +215,6 @@
   home.sessionVariables = {
     PNPM_HOME = "$HOME/.local/share/pnpm";
     GOPATH = "$HOME/go";
-  } // lib.optionalAttrs pkgs.stdenv.isDarwin {
-    # Force native macOS SDK for all compilation. Nix ships its own Apple SDK
-    # (e.g. 14.4) which is missing system libraries like libresolv, breaking
-    # CGO linking, Swift builds, and anything that needs a complete SDK.
-    # Always use the real Xcode SDK instead.
-    SDKROOT = "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk";
   };
   home.sessionPath = [
     "/opt/homebrew/bin"  # Homebrew on ARM Mac
