@@ -175,6 +175,7 @@
           system = "aarch64-darwin";
           extraModules = [
             ./darwin/openclaw.nix
+            ./darwin/server.nix
             { networking.hostName = "tamby"; }
           ];
         };
