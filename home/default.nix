@@ -36,6 +36,7 @@
     git-lfs
     git-secret
     gh
+    graphite-cli   # gt - stacked git changes
     lazygit
     neovim
     tmux
