@@ -205,12 +205,12 @@
     nix-direnv.enable = true;  # faster nix integration
   };
 
-  # Claude Code
-  programs.claude-code = {
-    enable = true;
-    # settings = { };      # Add settings if needed
-    # mcpServers = { };    # Add MCP servers if needed
-  };
+#   # Claude Code
+#   programs.claude-code = {
+#     enable = true;
+#     # settings = { };      # Add settings if needed
+#     # mcpServers = { };    # Add MCP servers if needed
+#   };
 
   # Session variables and PATH
   home.sessionVariables = {
