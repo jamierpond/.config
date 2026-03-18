@@ -117,6 +117,9 @@
       KeepAlive = false;       # don't respawn if manually stopped
       StandardOutPath = "/tmp/colima.stdout.log";
       StandardErrorPath = "/tmp/colima.stderr.log";
+      EnvironmentVariables = {
+        PATH = "${pkgs.docker}/bin:${pkgs.lib.makeBinPath [ pkgs.docker pkgs.docker-compose ]}:/usr/bin:/bin:/usr/sbin:/sbin";
+      };
     };
   };
 
