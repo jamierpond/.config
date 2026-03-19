@@ -62,6 +62,9 @@
     (lib.setPrio 10 gotools)  # goimports, godoc, etc. (low prio to avoid /bin/play conflict with sox)
     delve            # Go debugger
 
+    # .NET
+    dotnet-sdk_10
+
     # Rust
     rustup           # manages rust toolchains, provides cargo
 

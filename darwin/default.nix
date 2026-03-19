@@ -108,6 +108,21 @@
   #   ];
   # };
 
+  # Colima — lightweight Docker runtime (replaces Docker Desktop)
+  launchd.user.agents.colima = {
+    command = "${pkgs.colima}/bin/colima start --foreground";
+    serviceConfig = {
+      Label = "com.github.abiosoft.colima";
+      RunAtLoad = true;
+      KeepAlive = false;       # don't respawn if manually stopped
+      StandardOutPath = "/tmp/colima.stdout.log";
+      StandardErrorPath = "/tmp/colima.stderr.log";
+      EnvironmentVariables = {
+        PATH = "${pkgs.lib.makeBinPath [ pkgs.docker pkgs.docker-compose ]}:/usr/bin:/bin:/usr/sbin:/sbin";
+      };
+    };
+  };
+
   # Tailscale — mesh VPN for SSH access from anywhere
   services.tailscale.enable = true;
 
