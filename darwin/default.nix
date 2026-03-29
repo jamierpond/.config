@@ -80,6 +80,33 @@
     };
   };
 
+  # Disable Apple daemons that phone home for content/suggestions/ads.
+  # Core Spotlight search, iCloud, software updates, auth, and certificate
+  # validation are left intact — only the "content" overlay is killed.
+  system.activationScripts.disablePhoneHome.text = let
+    uid = "$(id -u)";
+    agents = [
+      "com.apple.ap.promotedcontentd"      # Promoted content / ads
+      "com.apple.newsd"                     # Apple News
+      "com.apple.tipsd"                     # Tips
+      "com.apple.weatherd"                  # Weather widget
+      "com.apple.suggestd"                  # Siri Suggestions
+      "com.apple.parsecd"                   # Spotlight suggestions backend
+      "com.apple.parsec-fbf"               # Parsec feedback
+      "com.apple.knowledge-agent"           # Siri knowledge gathering
+      "com.apple.knowledgeconstructiond"    # Knowledge graph construction
+      "com.apple.siriknowledged"            # Siri knowledge
+      "com.apple.spotlightknowledged"       # Spotlight knowledge
+      "com.apple.spotlightknowledged.updater"
+      "com.apple.spotlightknowledged.importer"
+    ];
+    disableCmd = agent: ''
+      launchctl disable user/${uid}/${agent}
+      launchctl bootout gui/${uid}/${agent} 2>/dev/null || true
+    '';
+    script = builtins.concatStringsSep "\n" (map disableCmd agents);
+  in script;
+
   # Power management
   # nix-darwin's power.sleep.* sets values globally (both AC and battery).
   # We need AC-specific settings so servers stay alive when plugged in,
