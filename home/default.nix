@@ -62,8 +62,8 @@
     (lib.setPrio 10 gotools)  # goimports, godoc, etc. (low prio to avoid /bin/play conflict with sox)
     delve            # Go debugger
 
-    # .NET
-    dotnet-sdk_10
+    # .NET — removed: dotnet-sdk_10 pulls in Swift/LLVM source builds on macOS.
+    # Install manually: brew install dotnet-sdk, or use a flake devShell per-project.
 
     # Rust
     rustup           # manages rust toolchains, provides cargo

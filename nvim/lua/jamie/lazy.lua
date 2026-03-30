@@ -225,7 +225,7 @@ lazy.setup({
   "nvim-treesitter/playground",
   "theprimeagen/harpoon",
   "theprimeagen/refactoring.nvim",
-  "mbbill/undotree",
+  -- undotree is built-in since nvim 0.12
   "tpope/vim-fugitive",
   -- Uncomment and use this config to enable treesitter-context with proper background handling
   {
@@ -368,11 +368,7 @@ lazy.setup({
       end,
   },
 
-  -- Comment plugin
-  {
-    'numToStr/Comment.nvim',
-    config = "require('Comment').setup()"
-  },
+  -- Comment plugin removed: gc/gcc is built-in since nvim 0.10
 
   -- yapi (local plugin)
   {
