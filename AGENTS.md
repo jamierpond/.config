@@ -18,6 +18,16 @@ For packages not yet in nixpkgs or when you need a newer version than nixpkgs ha
 - Install to local prefix: `npm install -g <pkg>@<version> --prefix ~/.local`
 - This works because `~/.local/bin` is in PATH and takes precedence
 
+# Neovim Config Validation
+
+After modifying any nvim config files, validate the config loads cleanly:
+
+```bash
+nvim --headless -c 'quit' 2>&1
+```
+
+If there are errors, they'll be printed to stderr. Fix them before considering the task done.
+
 # Gitignore — Allowlist Pattern
 
 This repo uses an **allowlist** `.gitignore`: everything is ignored by default (`/*`), then specific files/dirs are included with `!` prefix (e.g. `!bin/`, `!tmux/`, `!nvim/`). If you create a new top-level config dir or file, you must add a `!dirname/` entry to `.gitignore` or it will be silently ignored.

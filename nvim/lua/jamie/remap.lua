@@ -18,8 +18,8 @@ vim.api.nvim_set_keymap("n", "N", "Nzzzv", {})
 vim.api.nvim_set_keymap("n", "<leader>vwm", "<cmd>lua require('vim-with-me').StartVimWithMe()<CR>", { noremap = true })
 vim.api.nvim_set_keymap("n", "<leader>svwm", "<cmd>lua require('vim-with-me').StopVimWithMe()<CR>", { noremap = true })
 
--- :TSContextToggle
-vim.api.nvim_set_keymap("n", "<leader>c", "<cmd>TSContextToggle<CR>", { noremap = true })
+-- :TSContextToggle (disabled: treesitter-context not yet compatible with 0.12)
+-- vim.api.nvim_set_keymap("n", "<leader>c", "<cmd>TSContextToggle<CR>", { noremap = true })
 
 -- nmap <silent> <c-k> :wincmd k<CR>
 -- nmap <silent> <c-j> :wincmd j<CR>

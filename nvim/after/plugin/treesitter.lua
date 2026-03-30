@@ -13,11 +13,20 @@ require'nvim-treesitter.configs'.setup {
     -- `false` will disable the whole extension
     enable = true,
 
-    -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
-    -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
-    -- Using this option may slow down your editor, and you may see some duplicate highlights.
-    -- Instead of true it can also be a list of languages
+    -- Disable treesitter for markdown: nightly 0.12 has a bug in
+    -- languagetree.lua injection handling that crashes on :range() nil.
+    -- Remove this once the nightly fixes it.
+    disable = { "markdown", "markdown_inline" },
+
     additional_vim_regex_highlighting = false,
   },
 }
+
+-- Also override the 0.12 default that enables treesitter highlighting for markdown
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "markdown",
+  callback = function(args)
+    vim.treesitter.stop(args.buf)
+  end,
+})
 
