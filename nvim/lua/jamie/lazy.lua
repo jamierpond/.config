@@ -217,6 +217,7 @@ lazy.setup({
   -- Treesitter
   {
     'nvim-treesitter/nvim-treesitter',
+    branch = 'main',
     build = ':TSUpdate',
     config = function()
       require('nvim-treesitter.install').prefer_git = true
