@@ -12,6 +12,7 @@ The user may ask you to update this file from time to time. When they refer to "
 ## Preferences
 - Never proclaim "Perfect!" or similar when you have completed a task. You are likely wrong and it is annoying.
 - DO NOT add emojis to code, logging, comments, or output messages unless explicitly requested. Keep code output professional and clean.
+- **No Claude attribution in commits or PRs.** Never add `Co-Authored-By: Claude`, `Generated with Claude Code`, or any other Claude/Anthropic attribution to commit messages, PR descriptions, or any content that will be pushed to external repositories. The user does not want AI attribution in their git history or public PRs.
 - **Git is off-limits by default.** Do not commit, push, or otherwise modify version control state unless the user explicitly grants permission for the current task. When the user gives permission (e.g., "make CI green", "commit and push this"), you may commit and push, but still follow all other git rules (no force-push, no amend, no rebase, new commits only, never push directly to main/staging/develop).
 - **Merge commits**: Prefer merge commits over rebase/squash. NEVER amend, squash, rebase, or rewrite commits. NEVER force-push. Always create new commits. If a formatting fix or correction is needed, make a new commit. Use `git pull` (merge) not `git pull --rebase`.
 - **AGENTS.md** is always the real/canonical agent instructions file per repo. Vendor-specific files (CLAUDE.md, CURSOR.md, etc.) should be **symlinked** to AGENTS.md.
@@ -49,6 +50,8 @@ The pattern: assert/throw in dev, try/catch + log + filter in prod. `tamberasser
 Look. Being manically DRY is bad. However, not making an effort whatsoever will shorten my lifespan and make me incredibly sad.
 
 Please make an effort to think critically and re-use code and refactor patterns as we go. Don't race to complete what I asked of you on a prompt-by-prompt basis.
+
+**Never inline or duplicate data that already has a canonical source.** If a definition, config, or data file exists in one place, the fix is to make that source available where it's needed (copy the file in the build step, reference it properly, etc.) — NOT to paste its contents somewhere else. Duplication creates drift and is the lazy, wrong answer.
 
 ## On Being Agreeable
 DO NOT BE. Please **do not be** agreeable.
@@ -133,6 +136,28 @@ The user has a `ci-check` shell alias that reports the current CI status of the 
 
 **When the user says "make CI green" or similar**, this is implicit permission to commit and push fixes to the current feature branch. Fix issues, commit with clear messages, push, and loop `ci-check` until green. Do NOT push to main/staging/develop — only to the current feature branch.
 
+
+## Linear CLI
+
+The `linear` CLI is available for creating and managing Linear issues. Workspace: `tamber`, team key: `TMBR`.
+
+**Creating issues:**
+```bash
+linear issue create \
+  --team TMBR \
+  --title "Issue title" \
+  --description-file /tmp/issue-body.md \
+  --assignee self \
+  --priority 2 \
+  --no-interactive
+```
+
+Write the description to a temp file first (use `--description-file` for markdown content, not `--description`). Priorities: 1=Urgent, 2=High, 3=Medium, 4=Low.
+
+**Other useful commands:**
+- `linear issue list` — list issues
+- `linear team list` — list teams
+- `linear issue create --help` — full options (labels, projects, milestones, cycles, estimates, due dates, parent issues)
 
 ## Fix The System, Not The Symptom
 When the user corrects you and the feedback implies a missing or wrong instruction in your agent files (AGENTS.md, CLAUDE.md, GLOBAL_AGENTS.md), fix the **systemic issue first** — update the instructions so the mistake can't recur — before taking the corrective action itself. A bad prompt that stays bad will produce the same mistake next session. Patching the instructions is higher priority than band-aiding the immediate situation.

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Usage: ./script.sh py ts js [--exclude pattern] [--exclude pattern2]
+# Usage: ./script.sh py ts js [--exclude pattern] [--exclude pattern2] [--tree]
 
 #git_root=$(git rev-parse --show-toplevel)
 #cd "$git_root"
@@ -9,9 +9,14 @@ set -euo pipefail
 # Parse arguments
 extensions=()
 extra_excludes=()
+show_tree=false
 parsing_excludes=false
 while [ $# -gt 0 ]; do
     case "$1" in
+        --tree)
+            show_tree=true
+            shift
+            ;;
         --exclude|-e)
             parsing_excludes=true
             shift
@@ -35,13 +40,16 @@ total_lines=0
 total_chars=0
 file_locs=""
 
-echo "### Repo tree:"
-tree_output=$(git ls-files | tree --fromfile)
-echo "$tree_output"
-tree_lines=$(echo "$tree_output" | wc -l | tr -d ' ')
-total_lines=$((total_lines + tree_lines + 2))
-total_chars=$((total_chars + ${#tree_output} + 20))
-echo
+tree_lines=0
+if $show_tree; then
+    echo "### Repo tree:"
+    tree_output=$(git ls-files | tree --fromfile)
+    echo "$tree_output"
+    tree_lines=$(echo "$tree_output" | wc -l | tr -d ' ')
+    total_lines=$((total_lines + tree_lines + 2))
+    total_chars=$((total_chars + ${#tree_output} + 20))
+    echo
+fi
 
 if [ ${#extensions[@]} -eq 0 ]; then
     echo "No file searches provided."
@@ -120,5 +128,9 @@ else
     unit="KB"
 fi
 
-echo "Total: $total_lines lines ($tree_lines tree), $total_chars chars ($size $unit)" >&2
+if $show_tree; then
+    echo "Total: $total_lines lines ($tree_lines tree), $total_chars chars ($size $unit)" >&2
+else
+    echo "Total: $total_lines lines, $total_chars chars ($size $unit) (add --tree for repo tree)" >&2
+fi
 
