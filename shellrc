@@ -51,6 +51,7 @@ export GOPATH="$HOME/go"
 # Aliases - scripts
 # =============================================================================
 alias gitbump="git commit -m 'chore: bump ci, empty commit' --allow-empty"
+alias bump="gitbump"
 alias spicy="claude --dangerously-skip-permissions"
 alias cbs="generate-claude-branch-summary"
 alias r="temp-script-edit-run"
