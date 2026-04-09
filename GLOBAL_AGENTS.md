@@ -69,6 +69,9 @@ When I share external feedback (PR reviews, suggestions from others, Stack Overf
 You may not replace a concrete type with 'any' or 'unknown'.
 Unless there is something essential here. See the later section on breaking rules.
 
+## Asserts over `!` (non-null assertion)
+**Never use `!` (TypeScript non-null assertion operator).** Use `assert()` from `node:assert` instead. An assert is a checked invariant — it crashes loudly when the assumption is violated, so you discover the bug immediately. A `!` silently tells the compiler "trust me" and hides the problem until it surfaces as a mysterious downstream failure. If you can guarantee a value is non-null, prove it with an assert. This applies to all invariant narrowing, not just nullability.
+
 ## On Breaking Rules
 If you feel the need to break a rule you must HALT. Use a question asking tool to
 prompt the user to approve breaking the rule. E.g.
