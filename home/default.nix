@@ -225,7 +225,15 @@
     "$HOME/.local/bin"
     "$HOME/.local/share/pnpm"
     "$HOME/go/bin"
+    "$HOME/projects/bodgolt"
   ];
+
+  home.activation.cloneBodgolt = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ ! -d "$HOME/projects/bodgolt" ]; then
+      mkdir -p "$HOME/projects"
+      ${pkgs.git}/bin/git clone https://github.com/jamierpond/bodgolt.git "$HOME/projects/bodgolt"
+    fi
+  '';
 
   # Home-manager state version (don't change after initial setup)
   home.stateVersion = "24.05";

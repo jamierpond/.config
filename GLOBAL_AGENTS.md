@@ -238,8 +238,10 @@ required. For small, self-contained tasks, just do the thing. We don't want to
 waste the time. Use your judgment to decide when a task is big enough to warrant
 a sub-agent.
 
-## Ask, Don't Explore
-When the user's request is ambiguous, unclear, or could be interpreted multiple ways: **ask a clarifying question**. Do NOT launch a sub-agent to spend 5 minutes exploring the codebase hoping to figure out what the user meant. A 10-second question gets you the answer faster, cheaper, and more accurately than speculative exploration ever will. The threshold is simple: if you're unsure what the user wants, ask. Exploration is for when you know the goal but need to understand the code.
+## Ask, Don't Explore — But Do Look
+When the user's **goal** is ambiguous, unclear, or could be interpreted multiple ways: **ask a clarifying question**. Do NOT launch a sub-agent to spend 5 minutes exploring the codebase hoping to figure out what the user meant. A 10-second question gets you the answer faster, cheaper, and more accurately than speculative exploration ever will.
+
+**But when the goal is clear and only an implementation detail is unknown** (e.g. "what binary does this repo produce?", "where does PATH get set?"), **just look**. Reading a file or running `ls` takes seconds and is not "exploration" — it's doing your job. Never ask the user to tell you something you could trivially discover by reading the code or filesystem. Asking about discoverable facts is laziness, not diligence.
 
 ## Never Fabricate External Interfaces
 **Do not guess at config schemas, CLI flags, env vars, or API signatures for external tools.** If you're not certain a flag, attribute, or format is correct, verify it first — use WebSearch to check the docs, read the tool's source in `node_modules`, or run `--help`. A 30-second search is always cheaper than a debug cycle caused by a hallucinated config. When you can't verify, say so — don't present fiction as fact.
