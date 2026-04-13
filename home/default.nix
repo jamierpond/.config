@@ -215,19 +215,7 @@
 #     # mcpServers = { };    # Add MCP servers if needed
 #   };
 
-  # Session variables and PATH
-  home.sessionVariables = {
-    PNPM_HOME = "$HOME/.local/share/pnpm";
-    GOPATH = "$HOME/go";
-  };
-  home.sessionPath = [
-    "/opt/homebrew/bin"  # Homebrew on ARM Mac
-    "$HOME/.local/bin"
-    "$HOME/.local/share/pnpm"
-    "$HOME/go/bin"
-    "$HOME/projects/bodgolt"
-  ];
-
+  # Clone bodgolt if not present
   home.activation.cloneBodgolt = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ ! -d "$HOME/projects/bodgolt" ]; then
       mkdir -p "$HOME/projects"
