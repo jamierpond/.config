@@ -28,6 +28,17 @@ nvim --headless -c 'quit' 2>&1
 
 If there are errors, they'll be printed to stderr. Fix them before considering the task done.
 
+# Experiments Live In The Repo, Not `/tmp/`
+
+Do NOT stash experimental scripts, scratch files, or WIP code in `/tmp/` (or `~/tmp`, `/var/tmp`, etc.). Put them in the working repo — preferably under an `./experiments/` directory, e.g. `./experiments/some-new-approach.py`. A dedicated dir keeps experiments grouped and easy to find/clean up, rather than scattered at the repo root.
+
+Reasons:
+- The human needs to be able to see and monitor what you're doing. Hidden files in `/tmp/` are invisible to the editor, file tree, and git status.
+- WIP code is often useful content that may end up committed or referenced later. `/tmp/` gets wiped on reboot.
+- The `.gitignore` allowlist pattern means unrelated scratch files won't accidentally get committed anyway — they'll be ignored until explicitly allowlisted.
+
+If you genuinely need a throwaway file (e.g. piping a large blob to a temp location for a one-shot command), that's fine — but experiments, prototypes, and anything you might reference again belong in the repo.
+
 # Gitignore — Allowlist Pattern
 
 This repo uses an **allowlist** `.gitignore`: everything is ignored by default (`/*`), then specific files/dirs are included with `!` prefix (e.g. `!bin/`, `!tmux/`, `!nvim/`). If you create a new top-level config dir or file, you must add a `!dirname/` entry to `.gitignore` or it will be silently ignored.
