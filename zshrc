@@ -11,9 +11,15 @@ source "$this_dir/shellrc"
 # =============================================================================
 # Zsh-specific: Nix/home-manager integration
 # =============================================================================
-if [[ -f "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" ]]; then
-  source "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh"
-fi
+for _hm_vars in \
+  "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" \
+  "/etc/profiles/per-user/$USER/etc/profile.d/hm-session-vars.sh"; do
+  if [[ -f "$_hm_vars" ]]; then
+    source "$_hm_vars"
+    break
+  fi
+done
+unset _hm_vars
 
 # =============================================================================
 # Zsh-specific: Modules (prompt, vi-mode, completion)

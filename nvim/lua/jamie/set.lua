@@ -29,6 +29,13 @@ vim.opt.updatetime = 50
 vim.opt.textwidth = 80
 vim.opt.colorcolumn = "80"
 
+-- 0.12: popup menu border + global floating window borders
+vim.opt.pumborder = "rounded"
+vim.opt.winborder = "rounded"
+
+-- 0.12: per-project config (.nvim.lua / .nvimrc) with parent dir search
+vim.opt.exrc = true
+
 -- Auto-refresh files when they change externally (like JetBrains)
 vim.opt.autoread = true
 vim.api.nvim_create_autocmd({"FocusGained", "BufEnter", "CursorHold", "CursorHoldI"}, {

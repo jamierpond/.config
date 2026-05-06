@@ -14,16 +14,28 @@
       url = "github:nix-darwin/nix-darwin/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Neovim 0.12+ (tracks latest release/nightly)
+    neovim-nightly-overlay = {
+      url = "github:nix-community/neovim-nightly-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, home-manager, nix-darwin, ... }:
+  outputs = { self, nixpkgs, home-manager, nix-darwin, neovim-nightly-overlay, ... }:
     let
       lib = nixpkgs.lib;
+
+      # Neovim nightly overlay (gives us 0.12+)
+      neovimOverlay = neovim-nightly-overlay.overlays.default;
 
       # Helper to make home-manager config for any system
       mkHome = { system, username, homeDirectory ? null }:
         home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = import nixpkgs {
+            inherit system;
+            overlays = [ neovimOverlay ];
+          };
           modules = [
             ./home
             {
@@ -150,7 +162,10 @@
         mkDarwin = { system, extraModules ? [] }: nix-darwin.lib.darwinSystem {
           modules = [
             ./darwin
-            { nixpkgs.hostPlatform = system; }
+            {
+              nixpkgs.hostPlatform = system;
+              nixpkgs.overlays = [ neovimOverlay ];
+            }
             home-manager.darwinModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
