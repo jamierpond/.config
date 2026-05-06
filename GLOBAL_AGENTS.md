@@ -142,6 +142,27 @@ these instruction files. Worth remembering = worth committing.
 
 - Never proclaim "Perfect!" or similar after a task. Likely wrong, and annoying.
 - No emojis in code, logging, comments, or output messages unless requested.
+- **No slop comments. No essays. No docstrings by default.** Default = zero
+  comments. Every text comment is a failure to write expressive,
+  understandable code — fix the names, fix the structure, then the comment is
+  unnecessary.
+  - **Banned:** narrating what the code does, summarizing the function,
+    restating types, JSDoc/docstring blocks above functions, multi-line
+    `/** ... */` headers, "Step 1 / Step 2" play-by-play, comments that
+    re-state the conditional ("// if X then Y"), comments explaining a
+    rename, "TODO" without an owner+date.
+  - **Allowed (rare):** a single short line explaining a non-obvious *why* —
+    a hidden constraint, a workaround for a specific bug (link the bug), an
+    invariant that would surprise a reader. One line. Not a paragraph.
+  - **Self-check before writing any comment:** "If I delete this comment,
+    does the code become wrong, dangerous, or genuinely confusing?" No → no
+    comment. Rename the variable instead. Extract a well-named helper
+    instead. Use a typed enum instead.
+  - **Especially banned at the top of functions/files:** explanatory
+    headers, "this module does X" preambles, multi-line block comments
+    above `export function ...`. The function name + signature is the
+    documentation. If they aren't enough, the names are wrong — fix the
+    names, not the comment.
 - **No Claude attribution in commits or PRs.** No `Co-Authored-By: Claude`,
   no `Generated with Claude Code`, no AI attribution in git history or public
   PRs.
@@ -149,6 +170,14 @@ these instruction files. Worth remembering = worth committing.
   without explicit permission for the current task. With permission ("make CI
   green", "commit and push this") still follow other git rules. Never push to
   main/staging/develop — only current feature branch.
+- **Deploys off-limits, always.** Never run deploy commands. Not `fly deploy`,
+  not `firebase deploy`, not `vercel`, not `gcloud run deploy`, not `kubectl
+  apply`, not `terraform apply`, not `npm publish` — nothing that ships code or
+  config to a hosted environment. The user deploys. You make the change, they
+  push the button. This is non-negotiable and not overridable per-task — if
+  they want you to deploy on a specific occasion, they'll type the command
+  themselves or explicitly say "go ahead and run `<deploy-command>`". A
+  generic "ship it" or "let's get this live" is NOT permission.
 - **Merge commits only.** Never amend, squash, rebase, or rewrite commits.
   Never force-push. Always new commits. Formatting fix → new commit. Use
   `git pull` not `git pull --rebase`.
