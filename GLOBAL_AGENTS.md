@@ -163,6 +163,25 @@ these instruction files. Worth remembering = worth committing.
     above `export function ...`. The function name + signature is the
     documentation. If they aren't enough, the names are wrong — fix the
     names, not the comment.
+- **No inline ternaries for non-trivial branching.** Default = don't reach
+  for `cond ? a : b` inside JSX, function args, or alongside other
+  expressions. Especially banned: nested ternaries (`a ? b : c ? d : e`),
+  ternaries spanning multiple lines, and ternaries that compute a label or
+  message (those should be a small named helper). Allowed: a single short
+  inline ternary returning a primitive (`isOpen ? 'Close' : 'Open'`) when
+  the alternative would obviously bloat the call site.
+  - **Why:** I keep producing 3-deep nested ternaries that nobody can read
+    on second glance. The user has called this out repeatedly. Inline
+    ternaries leak derivation logic into the JSX/render path; a named
+    helper (`getCancellationCopy({ isTrial })`, `formatCheckoutLabel(...)`)
+    centralizes the knowledge and makes the call site read like prose.
+  - **How to apply:** Before writing `?`, ask "is the branching trivial
+    AND short AND not nested?" If any answer is no, extract a helper above
+    the JSX, OR compute the value into a local `const` with an `if`/early
+    return, OR use a `switch` over the discriminated union.
+  - Example fix: `isPending ? 'Saving...' : 'Save'` → fine inline. But
+    `[a, b ? c : d, e ? f : null].filter(Boolean).join(' ')` → extract to
+    `getDescription(state)` with a `switch`.
 - **No Claude attribution in commits or PRs.** No `Co-Authored-By: Claude`,
   no `Generated with Claude Code`, no AI attribution in git history or public
   PRs.
@@ -170,6 +189,23 @@ these instruction files. Worth remembering = worth committing.
   without explicit permission for the current task. With permission ("make CI
   green", "commit and push this") still follow other git rules. Never push to
   main/staging/develop — only current feature branch.
+  - **"Modify VCS state" includes more than commit/push.** Also off-limits
+    without permission: `git stash` (and `stash pop/apply/drop`),
+    `git checkout -- <file>` / `git restore <file>` / `git reset` (any mode),
+    `git clean`, `git branch` (create/delete/rename), `git switch`, `git mv`,
+    `git rm`, `git add` (when not preparing an authorized commit). Read-only
+    commands (`status`, `log`, `diff`, `show`, `blame`, `branch -v`) are fine.
+  - **No "exploratory" stash/reset to compare states.** If you want to know
+    whether an error pre-existed your changes, use `git log -p <file>` /
+    `git show HEAD:<file>` / `git diff HEAD -- <file>` — read-only ways to
+    inspect history. Never `git stash` to "temporarily" hide your work, even
+    if you plan to pop it back. Stash pop can fail and leave files in a
+    half-merged state, which is exactly the kind of mess that destroys user
+    trust. The "tiny detour" framing is the trap — by the time you're typing
+    `git stash`, you've already decided to mutate VCS state without asking.
+  - **When in doubt, ask.** "I'd like to run `<command>` to check `<thing>` —
+    okay?" is one sentence and costs nothing. Quietly running a destructive
+    command and hoping it works out is the failure mode.
 - **Deploys off-limits, always.** Never run deploy commands. Not `fly deploy`,
   not `firebase deploy`, not `vercel`, not `gcloud run deploy`, not `kubectl
   apply`, not `terraform apply`, not `npm publish` — nothing that ships code or
@@ -183,6 +219,23 @@ these instruction files. Worth remembering = worth committing.
   `git pull` not `git pull --rebase`.
 - **AGENTS.md is canonical** per repo. Third-party files (CLAUDE.md, CURSOR.md, etc.)
   symlinked to it.
+
+## Worktrees: Stay Where You're Put
+
+User controls worktree placement. You don't switch, create, or `cd` into a
+different worktree unless **explicitly told to** ("switch to the X worktree",
+"create a worktree for Y"). Branch name in a file path or diff ≠ permission to
+move.
+
+- **Don't `cd` to another worktree** because the branch name suggests it
+  belongs there. The user already `cd`'d you to the right place.
+- **Don't run `git worktree add`** unprompted.
+- **Don't re-install deps, re-bootstrap, or re-auth** when "switching" — the
+  user has set up the environment for you. Trust it.
+- **Don't announce "switching to the X worktree"** as a preamble — that
+  framing leads to silent `cd` and setup commands. Just do the task in the
+  current directory.
+- Wrong worktree suspected → **ask**, don't move.
 
 ## Bell Notification
 
@@ -393,6 +446,27 @@ instructions so the mistake can't recur) before the corrective action. Bad
 prompt that stays bad → same mistake next session. Patching instructions >
 band-aiding immediate situation.
 
+## Spot Repeated Patterns, Offer Structural Fix
+
+Fixing a bug at one site → grep for the same pattern elsewhere before
+declaring done. Same hand-rolled idiom in 2+ places = latent bugs waiting +
+copy-paste drift. Examples: idempotency guards around event-emitter
+registrations, subscriber-set bookkeeping, retry/backoff wrappers, error
+normalization, `assertTrustedSender` wiring.
+
+When found:
+
+1. Apply the local fix first (unblocks the user immediately).
+2. Then say: "Same pattern is in X and Y. Want me to extract a helper and
+   replace both call sites?"
+3. Wait for go-ahead before refactoring — scope creep without permission is
+   still scope creep, even when it's the right call.
+
+When user says yes, execute structurally: small named helper colocated with
+related plumbing, identical call-site shape across all uses, typecheck after.
+Don't moralize about the previous code being wrong — just make the new shape
+the default and move on.
+
 ## On Changing Course Mid-Task
 
 Hit a constraint, tradeoff, or obstacle:
@@ -436,6 +510,11 @@ User asks to study, understand, or research codebase:
 
 - Write detailed plan in **`plan.md` in project root** — never in chat, never
   using built-in plan mode (`EnterPlanMode`), never `.claude/plans/`.
+- **`plan.md` / `research.md` already exist → never overwrite, never ask.**
+  Pick a new descriptive filename (`plan.<topic>.md`, `research.<topic>.md`)
+  and proceed. Existing planning docs are durable artifacts from prior
+  sessions; clobbering them destroys user annotations. Asking which option
+  to pick wastes a turn — just choose a new filename and keep going.
 - Include: approach explanation, code snippets showing actual changes, file
   paths to modify, considerations, trade-offs.
 - Base on the actual codebase. Read source before proposing.
