@@ -3,3 +3,4 @@ os:
 gui:
   splitDiff: "never"
   useHunkModeInStagingView: false
+promptToReturnFromSubprocess: false
