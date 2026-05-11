@@ -150,7 +150,20 @@ lazy.setup({
   -- Disabled nvim-compe as it's not compatible with Neovim 0.11.0
   -- {"hrsh7th/nvim-compe"},
 
-  {"sindrets/diffview.nvim"},
+  {
+    "sindrets/diffview.nvim",
+    cmd = { "DiffviewOpen", "DiffviewClose", "DiffviewFileHistory", "DiffviewToggleFiles", "DiffviewRefresh" },
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+      require("diffview").setup({
+        view = {
+          default = { layout = "diff1_plain" },
+          merge_tool = { layout = "diff1_plain" },
+          file_history = { layout = "diff1_plain" },
+        },
+      })
+    end,
+  },
 
   -- install with yarn or npm
   {

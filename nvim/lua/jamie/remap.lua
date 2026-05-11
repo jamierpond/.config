@@ -81,6 +81,11 @@ vim.cmd([[command! Kan !killall node]])
 
 vim.cmd([[command! Repo !gh repo view --web]])
 
+vim.cmd([[command! PR DiffviewOpen origin/HEAD...HEAD --imply-local]])
+vim.cmd([[command! -nargs=1 PRbase DiffviewOpen origin/<args>...HEAD --imply-local]])
+vim.cmd([[command! PRclose DiffviewClose]])
+vim.api.nvim_set_keymap("n", "<leader>gd", "<cmd>PR<CR>", { noremap = true, silent = true })
+
 vim.cmd([[command! Dogtown !say "dogtown?"]])
 
 vim.api.nvim_set_keymap("n", "<leader>d", "<cmd>Copilot toggle<CR>", { noremap = true })
