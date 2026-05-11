@@ -151,17 +151,10 @@ lazy.setup({
   -- {"hrsh7th/nvim-compe"},
 
   {
-    "sindrets/diffview.nvim",
-    cmd = { "DiffviewOpen", "DiffviewClose", "DiffviewFileHistory", "DiffviewToggleFiles", "DiffviewRefresh" },
-    dependencies = { "nvim-lua/plenary.nvim" },
+    "axkirillov/unified.nvim",
+    cmd = { "Unified" },
     config = function()
-      require("diffview").setup({
-        view = {
-          default = { layout = "diff1_plain" },
-          merge_tool = { layout = "diff1_plain" },
-          file_history = { layout = "diff1_plain" },
-        },
-      })
+      require("unified").setup()
     end,
   },
 

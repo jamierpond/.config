@@ -81,9 +81,21 @@ vim.cmd([[command! Kan !killall node]])
 
 vim.cmd([[command! Repo !gh repo view --web]])
 
-vim.cmd([[command! PR DiffviewOpen origin/HEAD...HEAD --imply-local]])
-vim.cmd([[command! -nargs=1 PRbase DiffviewOpen origin/<args>...HEAD --imply-local]])
-vim.cmd([[command! PRclose DiffviewClose]])
+function pr_diff(arg)
+  local base = arg
+  if base == nil or base == "" then
+    local pr_base = vim.fn.system("gh pr view --json baseRefName -q .baseRefName 2>/dev/null"):gsub("%s+", "")
+    if pr_base ~= "" then
+      base = pr_base
+    else
+      local default = vim.fn.system("gh repo view --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null"):gsub("%s+", "")
+      base = default ~= "" and default or "main"
+    end
+  end
+  vim.cmd("Unified origin/" .. base)
+end
+
+vim.cmd([[command! -nargs=? PR lua pr_diff(<q-args>)]])
 vim.api.nvim_set_keymap("n", "<leader>gd", "<cmd>PR<CR>", { noremap = true, silent = true })
 
 vim.cmd([[command! Dogtown !say "dogtown?"]])
