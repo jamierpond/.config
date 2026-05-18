@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# Create a git worktree as a sibling dir of the current repo.
+#
+# Layout:  $HOME/projects/<repo>/   (main checkout)
+#          $HOME/projects/<repo>-<slug>/   (worktree)
+#
+# Tmux sessionizer scans $HOME/projects at maxdepth 1, so worktrees show up
+# as standalone projects automatically.
+#
+# Usage:
+#   wt <slug> [base-branch]
+#
+# Env:
+#   WT_BRANCH_PREFIX   branch name prefix (default: jp/)
+#   WT_DEFAULT_BASE    fallback base branch (default: develop)
+#
+# Behavior:
+#   - Creates branch <prefix><slug> off origin/<base> (falls back to local <base>).
+#   - If branch already exists, checks it out into the new worktree instead.
+#   - Symlinks any .env* and .envrc files from the main repo into the worktree.
+#   - If running inside tmux and tmux-sessionizer is on PATH, switches to the
+#     new session at the end.
+
+set -euo pipefail
+
+if [[ $# -lt 1 ]]; then
+  echo "usage: wt <slug> [base-branch]" >&2
+  echo "  creates worktree at ../<repo>-<slug>, branch ${WT_BRANCH_PREFIX:-jp/}<slug>" >&2
+  exit 1
+fi
+
+slug="$1"
+base="${2:-${WT_DEFAULT_BASE:-develop}}"
+prefix="${WT_BRANCH_PREFIX:-jp/}"
+
+repo_root="$(git rev-parse --show-toplevel)"
+repo_name="$(basename "$repo_root")"
+slug_safe="${slug//\//-}"
+wt_path="$(dirname "$repo_root")/${repo_name}-${slug_safe}"
+branch="${prefix}${slug}"
+
+if [[ -e "$wt_path" ]]; then
+  echo "error: $wt_path already exists" >&2
+  exit 1
+fi
+
+if git -C "$repo_root" show-ref --verify --quiet "refs/heads/$branch"; then
+  echo "branch $branch exists; checking out into worktree"
+  git -C "$repo_root" worktree add "$wt_path" "$branch"
+else
+  git -C "$repo_root" fetch origin "$base" --quiet || true
+  if git -C "$repo_root" show-ref --verify --quiet "refs/remotes/origin/$base"; then
+    git -C "$repo_root" worktree add --no-track -b "$branch" "$wt_path" "origin/$base"
+  else
+    git -C "$repo_root" worktree add --no-track -b "$branch" "$wt_path" "$base"
+  fi
+fi
+
+shopt -s nullglob
+for env in "$repo_root"/.env* "$repo_root"/.envrc; do
+  [[ -f "$env" ]] || continue
+  name="$(basename "$env")"
+  ln -sf "$env" "$wt_path/$name"
+  echo "linked: $name"
+done
+
+echo "ready:  $wt_path"
+echo "branch: $branch"
+
+if [[ -n "${TMUX:-}" ]] && command -v tmux-sessionizer >/dev/null 2>&1; then
+  tmux-sessionizer "$wt_path"
+fi

@@ -25,6 +25,7 @@ export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/.nix-profile/bin:$PATH"
 export PATH="$PATH:/usr/local/go/bin"
 export PATH="$PATH:$HOME/go/bin"
+export PATH="$PATH:$HOME/projects/bodgolt"
 export PATH="$PATH:$HOME/.cargo/bin"
 export PATH="$PATH:/snap/bin"
 
@@ -50,6 +51,8 @@ export GOPATH="$HOME/go"
 # =============================================================================
 # Aliases - scripts
 # =============================================================================
+alias gitbump="git commit -m 'chore: bump ci, empty commit' --allow-empty"
+alias bump="gitbump"
 alias spicy="claude --dangerously-skip-permissions"
 alias cbs="generate-claude-branch-summary"
 alias r="temp-script-edit-run"
@@ -125,6 +128,8 @@ alias smur="git submodule update --init --recursive"
 alias gtree="git ls-files | tree --fromfile"
 alias cf="git --no-pager diff --name-only"
 alias grape="git grep"
+alias wtl="git worktree list"
+alias wtp="git worktree prune"
 
 # =============================================================================
 # Aliases - GPU (Linux)

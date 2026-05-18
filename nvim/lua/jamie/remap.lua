@@ -18,8 +18,8 @@ vim.api.nvim_set_keymap("n", "N", "Nzzzv", {})
 vim.api.nvim_set_keymap("n", "<leader>vwm", "<cmd>lua require('vim-with-me').StartVimWithMe()<CR>", { noremap = true })
 vim.api.nvim_set_keymap("n", "<leader>svwm", "<cmd>lua require('vim-with-me').StopVimWithMe()<CR>", { noremap = true })
 
--- :TSContextToggle
-vim.api.nvim_set_keymap("n", "<leader>c", "<cmd>TSContextToggle<CR>", { noremap = true })
+-- :TSContextToggle (disabled: treesitter-context not yet compatible with 0.12)
+-- vim.api.nvim_set_keymap("n", "<leader>c", "<cmd>TSContextToggle<CR>", { noremap = true })
 
 -- nmap <silent> <c-k> :wincmd k<CR>
 -- nmap <silent> <c-j> :wincmd j<CR>
@@ -80,6 +80,23 @@ vim.cmd([[command! Kat !killall tmux]])
 vim.cmd([[command! Kan !killall node]])
 
 vim.cmd([[command! Repo !gh repo view --web]])
+
+function pr_diff(arg)
+  local base = arg
+  if base == nil or base == "" then
+    local pr_base = vim.fn.system("gh pr view --json baseRefName -q .baseRefName 2>/dev/null"):gsub("%s+", "")
+    if pr_base ~= "" then
+      base = pr_base
+    else
+      local default = vim.fn.system("gh repo view --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null"):gsub("%s+", "")
+      base = default ~= "" and default or "main"
+    end
+  end
+  vim.cmd("Unified origin/" .. base)
+end
+
+vim.cmd([[command! -nargs=? PR lua pr_diff(<q-args>)]])
+vim.api.nvim_set_keymap("n", "<leader>gd", "<cmd>PR<CR>", { noremap = true, silent = true })
 
 vim.cmd([[command! Dogtown !say "dogtown?"]])
 

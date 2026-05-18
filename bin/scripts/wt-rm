@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Remove a git worktree (and optionally its branch).
+#
+# Usage:
+#   wt-rm                # removes the current worktree
+#   wt-rm <path>         # removes the worktree at <path>
+#
+# Refuses to remove the main worktree. Prompts before deleting the branch.
+
+set -euo pipefail
+
+target="${1:-$PWD}"
+target="$(cd "$target" && pwd)"
+
+repo_root="$(git -C "$target" rev-parse --show-toplevel)"
+common_dir="$(cd "$target" && git rev-parse --git-common-dir)"
+main_repo="$(cd "$common_dir/.." && pwd)"
+
+if [[ "$repo_root" == "$main_repo" ]]; then
+  echo "error: refusing to remove the main worktree at $main_repo" >&2
+  exit 1
+fi
+
+branch="$(git -C "$target" rev-parse --abbrev-ref HEAD)"
+
+if [[ "$PWD" == "$target"* ]]; then
+  cd "$main_repo"
+fi
+
+git -C "$main_repo" worktree remove "$target"
+echo "removed worktree: $target"
+
+if [[ "$branch" != "HEAD" ]]; then
+  read -r -p "delete branch '$branch' too? [y/N] " ans
+  if [[ "$ans" =~ ^[Yy]$ ]]; then
+    git -C "$main_repo" branch -D "$branch"
+    echo "deleted branch: $branch"
+  fi
+fi

@@ -1,3 +1,14 @@
+-- Monkey-patch get_node_text to handle nil range (nightly 0.12 bug).
+-- Remove once nvim-treesitter or nightly fixes the invalidated node issue.
+local original_get_node_text = vim.treesitter.get_node_text
+vim.treesitter.get_node_text = function(node, source, opts)
+  local ok, result = pcall(original_get_node_text, node, source, opts)
+  if ok then
+    return result
+  end
+  return ""
+end
+
 require'nvim-treesitter.configs'.setup {
   -- A list of parser names, or "all"
   ensure_installed = { "vimdoc", "javascript", "cpp", "typescript", "c", "lua", "rust", "yaml" },
@@ -13,10 +24,6 @@ require'nvim-treesitter.configs'.setup {
     -- `false` will disable the whole extension
     enable = true,
 
-    -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
-    -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
-    -- Using this option may slow down your editor, and you may see some duplicate highlights.
-    -- Instead of true it can also be a list of languages
     additional_vim_regex_highlighting = false,
   },
 }

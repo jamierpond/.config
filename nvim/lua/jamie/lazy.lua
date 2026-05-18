@@ -150,7 +150,13 @@ lazy.setup({
   -- Disabled nvim-compe as it's not compatible with Neovim 0.11.0
   -- {"hrsh7th/nvim-compe"},
 
-  {"sindrets/diffview.nvim"},
+  {
+    "axkirillov/unified.nvim",
+    cmd = { "Unified" },
+    config = function()
+      require("unified").setup()
+    end,
+  },
 
   -- install with yarn or npm
   {
@@ -217,6 +223,7 @@ lazy.setup({
   -- Treesitter
   {
     'nvim-treesitter/nvim-treesitter',
+    branch = 'main',
     build = ':TSUpdate',
     config = function()
       require('nvim-treesitter.install').prefer_git = true
@@ -225,24 +232,22 @@ lazy.setup({
   "nvim-treesitter/playground",
   "theprimeagen/harpoon",
   "theprimeagen/refactoring.nvim",
-  "mbbill/undotree",
+  -- undotree is built-in since nvim 0.12
   "tpope/vim-fugitive",
-  -- Uncomment and use this config to enable treesitter-context with proper background handling
-  {
-    "nvim-treesitter/nvim-treesitter-context",
-    config = function()
-      require("treesitter-context").setup({
-        enable = true,
-        max_lines = 4,
-        -- Fix for background color issue:
-        highlight = {
-          -- Use your editor's background color or set to 'NONE' for transparency
-          ["treesitter-context-line"] = { link = "CursorLine" },
-          ["treesitter-context-background"] = { link = "Normal" },
-        },
-      })
-    end,
-  },
+  -- TODO: re-enable once nvim-treesitter-context supports 0.12 (get_parser returns nil)
+  -- {
+  --   "nvim-treesitter/nvim-treesitter-context",
+  --   config = function()
+  --     require("treesitter-context").setup({
+  --       enable = true,
+  --       max_lines = 4,
+  --       highlight = {
+  --         ["treesitter-context-line"] = { link = "CursorLine" },
+  --         ["treesitter-context-background"] = { link = "Normal" },
+  --       },
+  --     })
+  --   end,
+  -- },
 
 
   {
@@ -368,11 +373,7 @@ lazy.setup({
       end,
   },
 
-  -- Comment plugin
-  {
-    'numToStr/Comment.nvim',
-    config = "require('Comment').setup()"
-  },
+  -- Comment plugin removed: gc/gcc is built-in since nvim 0.10
 
   -- yapi (local plugin)
   {

@@ -36,6 +36,7 @@
     git-lfs
     git-secret
     gh
+    graphite-cli   # gt - stacked git changes
     lazygit
     neovim
     tmux
@@ -61,6 +62,9 @@
     (lib.setPrio 10 gotools)  # goimports, godoc, etc. (low prio to avoid /bin/play conflict with sox)
     delve            # Go debugger
 
+    # .NET — removed: dotnet-sdk_10 pulls in Swift/LLVM source builds on macOS.
+    # Install manually: brew install dotnet-sdk, or use a flake devShell per-project.
+
     # Rust
     rustup           # manages rust toolchains, provides cargo
 
@@ -75,10 +79,13 @@
     pkg-config
     protobuf         # protoc
 
-    # C/C++ toolchain (no gcc — Apple clang handles macOS frameworks; gcc is in devShells if needed)
-    llvm
-    lld              # fast linker
+    # C/C++ toolchain — clang-tools for LSP/formatting on all platforms
     clang-tools      # clangd, clang-format, etc. (no cc conflict)
+  ] ++ lib.optionals stdenv.isLinux [
+    # llvm/lld on Linux only — on macOS they shadow Apple's dsymutil/linker and break Swift builds
+    llvm
+    lld
+  ] ++ [
 
     # ==========================================================================
     # Document typesetting
@@ -137,6 +144,7 @@
       init.defaultBranch = "main";
       credential.helper = "${pkgs.gh}/bin/gh auth git-credential";
       push.autoSetupRemote = true;
+      pull.rebase = false;
     };
   };
 
@@ -200,24 +208,20 @@
     nix-direnv.enable = true;  # faster nix integration
   };
 
-  # Claude Code
-  programs.claude-code = {
-    enable = true;
-    # settings = { };      # Add settings if needed
-    # mcpServers = { };    # Add MCP servers if needed
-  };
+#   # Claude Code
+#   programs.claude-code = {
+#     enable = true;
+#     # settings = { };      # Add settings if needed
+#     # mcpServers = { };    # Add MCP servers if needed
+#   };
 
-  # Session variables and PATH
-  home.sessionVariables = {
-    PNPM_HOME = "$HOME/.local/share/pnpm";
-    GOPATH = "$HOME/go";
-  };
-  home.sessionPath = [
-    "/opt/homebrew/bin"  # Homebrew on ARM Mac
-    "$HOME/.local/bin"
-    "$HOME/.local/share/pnpm"
-    "$HOME/go/bin"
-  ];
+  # Clone bodgolt if not present
+  home.activation.cloneBodgolt = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ ! -d "$HOME/projects/bodgolt" ]; then
+      mkdir -p "$HOME/projects"
+      ${pkgs.git}/bin/git clone https://github.com/jamierpond/bodgolt.git "$HOME/projects/bodgolt"
+    fi
+  '';
 
   # Home-manager state version (don't change after initial setup)
   home.stateVersion = "24.05";

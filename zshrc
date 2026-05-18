@@ -11,9 +11,15 @@ source "$this_dir/shellrc"
 # =============================================================================
 # Zsh-specific: Nix/home-manager integration
 # =============================================================================
-if [[ -f "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" ]]; then
-  source "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh"
-fi
+for _hm_vars in \
+  "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" \
+  "/etc/profiles/per-user/$USER/etc/profile.d/hm-session-vars.sh"; do
+  if [[ -f "$_hm_vars" ]]; then
+    source "$_hm_vars"
+    break
+  fi
+done
+unset _hm_vars
 
 # =============================================================================
 # Zsh-specific: Modules (prompt, vi-mode, completion)
@@ -34,18 +40,20 @@ setopt APPEND_HISTORY
 unsetopt SHARE_HISTORY
 
 # =============================================================================
-# Zsh-specific: macOS SDK (cached for speed)
+# Zsh-specific: macOS SDK — always use Xcode's real SDK, never Nix's
+# Nix ships an incomplete Apple SDK (missing libresolv, etc.) that breaks
+# CGO linking, Swift builds, and native compilation. Bypass xcrun entirely
+# since it can return Nix's SDK path when Nix is active.
 # =============================================================================
 if [[ "$(uname)" == "Darwin" ]]; then
-  _sdkroot_cache="$HOME/.cache/sdkroot"
-  if [[ -f "$_sdkroot_cache" ]]; then
-    export SDKROOT=$(<"$_sdkroot_cache")
-  else
-    mkdir -p ~/.cache
-    export SDKROOT=$(xcrun --show-sdk-path)
-    echo "$SDKROOT" > "$_sdkroot_cache"
+  _xcode_sdk="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+  _clt_sdk="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
+  if [[ -d "$_xcode_sdk" ]]; then
+    export SDKROOT="$_xcode_sdk"
+  elif [[ -d "$_clt_sdk" ]]; then
+    export SDKROOT="$_clt_sdk"
   fi
-  unset _sdkroot_cache
+  unset _xcode_sdk _clt_sdk
 fi
 
 # =============================================================================
