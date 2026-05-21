@@ -7,6 +7,7 @@ set -euo pipefail
 skip_above=""
 only_additions=false
 only_removals=false
+no_comments=false
 excludes=()
 ref1=""
 ref2=""
@@ -24,6 +25,7 @@ Options:
   -a, --only-additions   Only show added lines (+ lines)
   -r, --only-removals    Only show removed lines (- lines)
   -e, --exclude PATTERNS Exclude files matching PATTERNS (space-separated, must be last)
+  -nc, --no-comments     Strip comment lines from diff (cpp, ts/tsx, js/jsx, py)
   -h, --help             Show this help message
 
 Examples:
@@ -79,6 +81,10 @@ while [ $# -gt 0 ]; do
             ;;
         -r|--only-removals)
             only_removals=true
+            shift
+            ;;
+        -nc|--no-comments)
+            no_comments=true
             shift
             ;;
         -e|--exclude)
@@ -166,12 +172,43 @@ fi
 
 # Filter additions/removals if requested
 if $only_additions; then
-    echo "$diff_output" | grep -E '^(diff|index|---|\+\+\+|@@|[+]|[^-])' | grep -v '^--$'
+    diff_output=$(echo "$diff_output" | grep -E '^(diff|index|---|\+\+\+|@@|[+]|[^-])' | grep -v '^--$')
 elif $only_removals; then
-    echo "$diff_output" | grep -E '^(diff|index|---|\+\+\+|@@|[-]|[^+])' | grep -v '^++$'
-else
-    echo "$diff_output"
+    diff_output=$(echo "$diff_output" | grep -E '^(diff|index|---|\+\+\+|@@|[-]|[^+])' | grep -v '^++$')
 fi
+
+if $no_comments; then
+    diff_output=$(echo "$diff_output" | awk '
+        function ltrim(s) { sub(/^[ \t]+/, "", s); return s }
+        /^diff --git/ {
+            n = split($0, parts, " ")
+            f = parts[n]
+            sub(/^b\//, "", f)
+            ext = ""
+            if (f ~ /\.(c|cc|cpp|cxx|h|hpp|hh|ts|tsx|js|jsx|mjs|cjs)$/) ext = "c"
+            else if (f ~ /\.py$/) ext = "py"
+            print; next
+        }
+        /^(index |--- |\+\+\+ |@@)/ { print; next }
+        /^[+-]/ {
+            content = substr($0, 2)
+            t = ltrim(content)
+            if (ext == "c") {
+                if (t ~ /^\/\// || t ~ /^\/\*/ || t ~ /^\*\// || t ~ /^\*([ \t]|$)/) next
+            } else if (ext == "py") {
+                if (t ~ /^#/) next
+            }
+            print; next
+        }
+        { print }
+    ')
+fi
+
+if $no_comments; then
+    echo "# warning - all comments have been removed"
+    echo ""
+fi
+echo "$diff_output"
 
 # Print summary to stderr at the end
 {
