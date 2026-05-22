@@ -178,30 +178,12 @@ elif $only_removals; then
 fi
 
 if $no_comments; then
-    diff_output=$(echo "$diff_output" | awk '
-        function ltrim(s) { sub(/^[ \t]+/, "", s); return s }
-        /^diff --git/ {
-            n = split($0, parts, " ")
-            f = parts[n]
-            sub(/^b\//, "", f)
-            ext = ""
-            if (f ~ /\.(c|cc|cpp|cxx|h|hpp|hh|ts|tsx|js|jsx|mjs|cjs)$/) ext = "c"
-            else if (f ~ /\.py$/) ext = "py"
-            print; next
-        }
-        /^(index |--- |\+\+\+ |@@)/ { print; next }
-        /^[+-]/ {
-            content = substr($0, 2)
-            t = ltrim(content)
-            if (ext == "c") {
-                if (t ~ /^\/\// || t ~ /^\/\*/ || t ~ /^\*\// || t ~ /^\*([ \t]|$)/) next
-            } else if (ext == "py") {
-                if (t ~ /^#/) next
-            }
-            print; next
-        }
-        { print }
-    ')
+    stripper="$(dirname "$0")/diff-strip-comments.py"
+    if [ -x "$stripper" ]; then
+        diff_output=$(echo "$diff_output" | "$stripper")
+    else
+        diff_output=$(echo "$diff_output" | python3 "$stripper")
+    fi
 fi
 
 if $no_comments; then
