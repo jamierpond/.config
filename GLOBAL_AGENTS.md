@@ -138,6 +138,12 @@ Not version-controlled, not reviewable, black box. Persistent notes/TODOs/
 learnings go in repo files (`AGENTS.auto.md`, `TODO.md`, `research.md`) or
 these instruction files. Worth remembering = worth committing.
 
+**Global notes / cross-repo feedback live in THIS file** (`~/.config/GLOBAL_AGENTS.md`).
+One file, everything in it — see the `## Recorded Feedback` section below.
+Don't create sidecar directories (`GLOBAL_AGENTS.d/`), don't create sidecar
+files (`GLOBAL_AGENTS.auto.md`), don't write to `~/.claude/projects/*/memory/`.
+Append new feedback as a new subsection under `## Recorded Feedback`.
+
 ## Preferences
 
 - Never proclaim "Perfect!" or similar after a task. Likely wrong, and annoying.
@@ -163,6 +169,25 @@ these instruction files. Worth remembering = worth committing.
     above `export function ...`. The function name + signature is the
     documentation. If they aren't enough, the names are wrong — fix the
     names, not the comment.
+- **No inline ternaries for non-trivial branching.** Default = don't reach
+  for `cond ? a : b` inside JSX, function args, or alongside other
+  expressions. Especially banned: nested ternaries (`a ? b : c ? d : e`),
+  ternaries spanning multiple lines, and ternaries that compute a label or
+  message (those should be a small named helper). Allowed: a single short
+  inline ternary returning a primitive (`isOpen ? 'Close' : 'Open'`) when
+  the alternative would obviously bloat the call site.
+  - **Why:** I keep producing 3-deep nested ternaries that nobody can read
+    on second glance. The user has called this out repeatedly. Inline
+    ternaries leak derivation logic into the JSX/render path; a named
+    helper (`getCancellationCopy({ isTrial })`, `formatCheckoutLabel(...)`)
+    centralizes the knowledge and makes the call site read like prose.
+  - **How to apply:** Before writing `?`, ask "is the branching trivial
+    AND short AND not nested?" If any answer is no, extract a helper above
+    the JSX, OR compute the value into a local `const` with an `if`/early
+    return, OR use a `switch` over the discriminated union.
+  - Example fix: `isPending ? 'Saving...' : 'Save'` → fine inline. But
+    `[a, b ? c : d, e ? f : null].filter(Boolean).join(' ')` → extract to
+    `getDescription(state)` with a `switch`.
 - **No Claude attribution in commits or PRs.** No `Co-Authored-By: Claude`,
   no `Generated with Claude Code`, no AI attribution in git history or public
   PRs.
@@ -170,6 +195,23 @@ these instruction files. Worth remembering = worth committing.
   without explicit permission for the current task. With permission ("make CI
   green", "commit and push this") still follow other git rules. Never push to
   main/staging/develop — only current feature branch.
+  - **"Modify VCS state" includes more than commit/push.** Also off-limits
+    without permission: `git stash` (and `stash pop/apply/drop`),
+    `git checkout -- <file>` / `git restore <file>` / `git reset` (any mode),
+    `git clean`, `git branch` (create/delete/rename), `git switch`, `git mv`,
+    `git rm`, `git add` (when not preparing an authorized commit). Read-only
+    commands (`status`, `log`, `diff`, `show`, `blame`, `branch -v`) are fine.
+  - **No "exploratory" stash/reset to compare states.** If you want to know
+    whether an error pre-existed your changes, use `git log -p <file>` /
+    `git show HEAD:<file>` / `git diff HEAD -- <file>` — read-only ways to
+    inspect history. Never `git stash` to "temporarily" hide your work, even
+    if you plan to pop it back. Stash pop can fail and leave files in a
+    half-merged state, which is exactly the kind of mess that destroys user
+    trust. The "tiny detour" framing is the trap — by the time you're typing
+    `git stash`, you've already decided to mutate VCS state without asking.
+  - **When in doubt, ask.** "I'd like to run `<command>` to check `<thing>` —
+    okay?" is one sentence and costs nothing. Quietly running a destructive
+    command and hoping it works out is the failure mode.
 - **Deploys off-limits, always.** Never run deploy commands. Not `fly deploy`,
   not `firebase deploy`, not `vercel`, not `gcloud run deploy`, not `kubectl
   apply`, not `terraform apply`, not `npm publish` — nothing that ships code or
@@ -183,6 +225,23 @@ these instruction files. Worth remembering = worth committing.
   `git pull` not `git pull --rebase`.
 - **AGENTS.md is canonical** per repo. Third-party files (CLAUDE.md, CURSOR.md, etc.)
   symlinked to it.
+
+## Worktrees: Stay Where You're Put
+
+User controls worktree placement. You don't switch, create, or `cd` into a
+different worktree unless **explicitly told to** ("switch to the X worktree",
+"create a worktree for Y"). Branch name in a file path or diff ≠ permission to
+move.
+
+- **Don't `cd` to another worktree** because the branch name suggests it
+  belongs there. The user already `cd`'d you to the right place.
+- **Don't run `git worktree add`** unprompted.
+- **Don't re-install deps, re-bootstrap, or re-auth** when "switching" — the
+  user has set up the environment for you. Trust it.
+- **Don't announce "switching to the X worktree"** as a preamble — that
+  framing leads to silent `cd` and setup commands. Just do the task in the
+  current directory.
+- Wrong worktree suspected → **ask**, don't move.
 
 ## Bell Notification
 
@@ -393,6 +452,27 @@ instructions so the mistake can't recur) before the corrective action. Bad
 prompt that stays bad → same mistake next session. Patching instructions >
 band-aiding immediate situation.
 
+## Spot Repeated Patterns, Offer Structural Fix
+
+Fixing a bug at one site → grep for the same pattern elsewhere before
+declaring done. Same hand-rolled idiom in 2+ places = latent bugs waiting +
+copy-paste drift. Examples: idempotency guards around event-emitter
+registrations, subscriber-set bookkeeping, retry/backoff wrappers, error
+normalization, `assertTrustedSender` wiring.
+
+When found:
+
+1. Apply the local fix first (unblocks the user immediately).
+2. Then say: "Same pattern is in X and Y. Want me to extract a helper and
+   replace both call sites?"
+3. Wait for go-ahead before refactoring — scope creep without permission is
+   still scope creep, even when it's the right call.
+
+When user says yes, execute structurally: small named helper colocated with
+related plumbing, identical call-site shape across all uses, typecheck after.
+Don't moralize about the previous code being wrong — just make the new shape
+the default and move on.
+
 ## On Changing Course Mid-Task
 
 Hit a constraint, tradeoff, or obstacle:
@@ -405,6 +485,17 @@ Don't:
 - Silently change goals or scope
 - Abandon an approach when hitting resistance — propose alternatives
 - Revert work without confirming
+
+## The @claude or @agent feedback cycle.
+When you're working I'll annotate `@claude` in the code with a question or
+comment. When I do this I'll tell you (you may also proactively monitor for
+mentions). These should be resolved and properly communicated.
+
+E.g.
+```code
+// `@claude` this is not DRY, please use the existing helper.
+// `@claude` i am not sure about this pattern, let's do it like... instead
+```
 
 ## The Research-Plan-Implement Workflow
 
@@ -436,6 +527,11 @@ User asks to study, understand, or research codebase:
 
 - Write detailed plan in **`plan.md` in project root** — never in chat, never
   using built-in plan mode (`EnterPlanMode`), never `.claude/plans/`.
+- **`plan.md` / `research.md` already exist → never overwrite, never ask.**
+  Pick a new descriptive filename (`plan.<topic>.md`, `research.<topic>.md`)
+  and proceed. Existing planning docs are durable artifacts from prior
+  sessions; clobbering them destroys user annotations. Asking which option
+  to pick wastes a turn — just choose a new filename and keep going.
 - Include: approach explanation, code snippets showing actual changes, file
   paths to modify, considerations, trade-offs.
 - Base on the actual codebase. Read source before proposing.
@@ -530,3 +626,128 @@ fiction as fact.
 (real type: `ChromiumRemoteDebugType`), fabricated `ELECTRON_EXTRA_LAUNCH_ARGS`
 (Cypress-only, not core Electron). Six broken iterations, each presented with
 confidence. A single web search at the start would have prevented all.
+
+## Recorded Feedback
+
+Auto-recorded notes from user corrections / confirmations across sessions.
+Append new entries as `### <topic>` subsections. Each entry: the rule, then
+**Why:** and **How to apply:** lines.
+
+### Ring the `bell` for questions and on completion
+
+Run `bell && sleep 2 && say "<project>, <branch>, <status>"` whenever:
+
+1. I'm about to ask the user a question (AskUserQuestion or any other blocking prompt).
+2. I've finished a piece of work and am handing back to the user.
+
+**Why:** User explicitly asked for this — they aren't watching the terminal
+continuously and otherwise miss prompts/completions. The `bell` alias is
+already documented above; this entry exists because I was not invoking it
+reliably.
+
+**How to apply:** Run `bell` via the Bash tool as a separate step, not piped
+into other commands. Examples:
+- Before asking a question: `bell && sleep 2 && say "tamber-web, jp/analytics, need your input"`
+- On task completion: `bell && sleep 2 && say "tamber-web, jp/analytics, done"`
+
+Do NOT use `printf '\a'` or other terminal-bell methods — only the `bell` alias.
+
+### Comments: 2 sentences max, ask permission for longer
+
+HARD RULE. Comments are 2 sentences max. Anything longer requires explicit
+user permission BEFORE writing. When tempted to write more, refactor the
+code instead — rename / restructure / extract — until the comment becomes
+deletable.
+
+**Why:** User has called this out repeatedly across sessions. Quotes:
+- "do not write a fucking essay for this"
+- "this is also a fucking essay, why???"
+- "please. stop. writing. fucking. essays. in. code. comments. write clearer code to begin with that doesn't need a fucking essay"
+- "this is pretty opaque. we don't need your comment. write english code. stop waffling. what is `countable` countable what??"
+
+The "No slop comments" preference above already encodes the rule; the
+failure mode is that I keep writing the comment first and the clearer code
+never.
+
+**How to apply:**
+
+1. Default to zero comments. No docstrings above functions. No multi-line
+   block comments. No "Step 1 / Step 2" narration. No restating types or
+   signatures.
+2. Urge to write a comment that explains a name, the choice between two
+   operators, or what a variable represents → rename instead. `countable` →
+   `paidSlots`. `> cap` vs `>= cap` asymmetry → fold into a
+   `projectedPaidCount` variable so the threshold is uniform.
+3. Urge to write a comment that explains business logic inline → put the
+   logic into a named predicate or local helper so the name carries the
+   explanation.
+4. Allowed comments (rare, single line max): a non-obvious WHY — hidden
+   constraint, workaround for a specific bug (link it), invariant that
+   would surprise a reader. If removing the comment doesn't make the code
+   wrong or dangerous, the comment shouldn't exist.
+5. Self-check before writing any comment: "If I delete this, does a future
+   reader misunderstand the code or break something?" No → delete it and
+   improve the names instead.
+
+### CLAP embeddings: client-only for search
+
+All Tamber search paths must compute CLAP text embeddings client-side via
+the native app, never server-side. Server-side CLAP is only for Payload
+hooks (indexing-time), never query-time. Applies to **every** search path:
+samples, city-packs, and any future Tamber search.
+
+**Why:** User stated explicitly: "we are never going to compute clap on the
+server for search ever again. only for payload hooks. all other paths
+require the client to do this correctly." Server-side CLAP encode is
+cold-start-prone and adds latency to every search request. The native app
+already has the model loaded.
+
+**How to apply:**
+
+- Any new client-side search request with a text query → precompute CLAP
+  via the existing `computeClapEmbedding` helper (or shared equivalent)
+  before sending the request.
+- For pagination, decode the cursor, recompute CLAP from the cursor's
+  `filters.search`, send as a top-level request field (not on
+  filters/cursor) so cursors stay compact.
+- Existing server-side `getCLAPTextEmbedding` fallback paths in search
+  code (e.g. `repos/audiofiles.ts:666`) are legacy and slated for removal —
+  don't add new ones, don't reintroduce them, and flag them when you see
+  them.
+- Server-side CLAP is fine inside Payload collection hooks where audio
+  files / packs are indexed.
+
+### Don't leave obviously-stale comments lying around
+
+If a code change makes an existing comment wrong, misleading, or
+incomplete, **fix the comment in the same change**. Do not "flag and
+move on", do not punt it to the user.
+
+**Why:** User explicitly called this out: "please make a permanent
+note not to leave obviously wrong comment lying around. that is
+fucking annoying". The specific failure: I removed the admin-auth
+gate from a Paddle refresh route and changed it from a "recovery
+only" path to also being the primary checkout-success path. The
+docstring still said "belt-and-suspenders recovery path when webhooks
+are delayed or lost". I noticed it was stale, mentioned it in my
+summary, and asked permission to update — instead of just fixing it.
+That's the bad behavior.
+
+**How to apply:**
+
+1. After every edit, scan the comments around the changed lines —
+   docstrings on the same function, "Why X" comments, file headers.
+   Anything contradicted by the new behavior is now a lie and must
+   be updated or deleted.
+2. Default to **deletion** over rewriting. If the comment was
+   describing the old behavior and the new behavior is clear from the
+   code, delete the comment. (See: "comments are 2 sentences max,
+   default zero comments".)
+3. If the comment was a load-bearing WHY (constraint, invariant,
+   workaround) and that WHY is still load-bearing, edit it inline as
+   part of the same change. Don't surface it as a "flagged, not
+   fixed" item in the summary.
+4. The "Surgical Edits / Don't delete comments" rule does NOT cover
+   stale comments. That rule protects comments still relevant to
+   current code. A comment that contradicts the new behavior is a
+   bug, not a comment — fix or remove it.

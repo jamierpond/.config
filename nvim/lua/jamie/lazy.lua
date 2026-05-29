@@ -150,7 +150,13 @@ lazy.setup({
   -- Disabled nvim-compe as it's not compatible with Neovim 0.11.0
   -- {"hrsh7th/nvim-compe"},
 
-  {"sindrets/diffview.nvim"},
+  {
+    "axkirillov/unified.nvim",
+    cmd = { "Unified" },
+    config = function()
+      require("unified").setup()
+    end,
+  },
 
   -- install with yarn or npm
   {

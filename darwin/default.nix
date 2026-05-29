@@ -146,6 +146,8 @@
       StandardErrorPath = "/tmp/colima.stderr.log";
       EnvironmentVariables = {
         PATH = "${pkgs.lib.makeBinPath [ pkgs.docker pkgs.docker-compose ]}:/usr/bin:/bin:/usr/sbin:/sbin";
+        HOME = "/Users/jamiepond";
+        XDG_CONFIG_HOME = "/Users/jamiepond/.config";
       };
     };
   };

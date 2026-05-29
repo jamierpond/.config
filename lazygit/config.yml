@@ -1,2 +1,6 @@
 os:
   editPreset: "nvim"
+gui:
+  splitDiff: "never"
+  useHunkModeInStagingView: false
+promptToReturnFromSubprocess: false
