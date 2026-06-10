@@ -157,7 +157,13 @@ alias win="ssh-win -tt Owner@windows"
 # =============================================================================
 alias ta="tmux attach"
 alias t="tmux"
-alias tmux='tmux -f ~/.config/tmux/tmux.conf'
+# On Windows, tmux is psmux, which reads ~/.psmux.conf (linked from
+# windows/psmux.conf by setup.ps1). Forcing the Linux conf onto it loses
+# default-shell and new panes fall back to PowerShell.
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*) ;;
+  *) alias tmux='tmux -f ~/.config/tmux/tmux.conf' ;;
+esac
 alias tks="tmux kill-server"
 
 # =============================================================================

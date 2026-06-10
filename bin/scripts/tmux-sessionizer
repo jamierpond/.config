@@ -32,8 +32,9 @@ if [[ -z $TMUX ]] && ! tmux ls &> /dev/null; then
 fi
 
 if ! tmux has-session -t="$selected_name" 2> /dev/null; then
-    # env -u: psmux refuses nested new-session unless PSMUX_SESSION is unset
-    env -u PSMUX_SESSION tmux new-session -d -s "$selected_name" -c "$selected"
+    # env -u: psmux refuses nested new-session unless PSMUX_SESSION and
+    # PSMUX_ACTIVE (added in psmux 3.3.x) are both unset
+    env -u PSMUX_SESSION -u PSMUX_ACTIVE tmux new-session -d -s "$selected_name" -c "$selected"
 fi
 
 if [[ -z $TMUX ]]; then
