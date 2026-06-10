@@ -7,6 +7,10 @@
         {
             "Name": "extras",
             "Source": "https://github.com/ScoopInstaller/Extras"
+        },
+        {
+            "Name": "psmux",
+            "Source": "https://github.com/psmux/scoop-psmux"
         }
     ],
     "apps": [
@@ -31,6 +35,7 @@
         { "Name": "ninja",       "Source": "main"   },
         { "Name": "nodejs",      "Source": "main"   },
         { "Name": "protobuf",    "Source": "extras" },
+        { "Name": "psmux",       "Source": "psmux"  },
         { "Name": "ripgrep",     "Source": "main"   },
         { "Name": "rustup",      "Source": "main"   },
         { "Name": "sd",          "Source": "main"   },

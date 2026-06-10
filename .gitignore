@@ -77,4 +77,5 @@ bin/scripts/quick-url-github-repos.txt
 # Override *.conf for nix config (must come after *.conf)
 !nix/nix.conf
 !btop/btop.conf
+!windows/psmux.conf
 !justfile

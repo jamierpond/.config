@@ -225,6 +225,19 @@ if (Test-Path $kbdMgrDir) {
 }
 
 # =============================================================================
+# psmux config (hard link — works without admin)
+# =============================================================================
+
+$psmuxSrc = "$DotfilesDir\windows\psmux.conf"
+$psmuxTarget = "$env:USERPROFILE\.psmux.conf"
+if (Test-Path $psmuxSrc) {
+    Write-Info "Linking psmux config..."
+    if (Test-Path $psmuxTarget) { Remove-Item $psmuxTarget -Force }
+    New-Item -ItemType HardLink -Path $psmuxTarget -Target $psmuxSrc | Out-Null
+    Write-Info "  Linked: $psmuxTarget -> $psmuxSrc"
+}
+
+# =============================================================================
 # Dotfiles auto-sync (scheduled task: logon + daily)
 # =============================================================================
 
@@ -334,6 +347,7 @@ Write-Host "  - Lazygit config: ~/.config/lazygit/ (auto-detected)"
 Write-Host "  - Terminal:       symlinked from ~/.config/windows/terminal-settings.json"
 Write-Host "  - Keyboard Mgr:   symlinked from ~/.config/windows/powertoys/keyboard-manager.json"
 Write-Host "  - Auto-sync:      DotfilesSync task pulls/pushes configs at logon + daily"
+Write-Host "  - psmux (tmux):   config linked from ~/.config/windows/psmux.conf"
 Write-Host "  - sshd:           running, auto-start on boot"
 if ($ServerMode) {
     Write-Host "  - Power:          never sleep, lid close does nothing (server mode)"
