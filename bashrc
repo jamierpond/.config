@@ -21,6 +21,7 @@ shopt -s histappend
 # Bash-specific: Aliases
 # =============================================================================
 alias so="source ~/.bashrc"
+alias cls="clear"
 
 # =============================================================================
 # Bash-specific: Prompt (robbyrussell style, matches zsh)
