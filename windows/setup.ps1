@@ -225,6 +225,21 @@ if (Test-Path $kbdMgrDir) {
 }
 
 # =============================================================================
+# Dotfiles auto-sync (scheduled task: logon + daily)
+# =============================================================================
+
+Write-Info "Registering dotfiles auto-sync..."
+$syncScript = "$DotfilesDir\windows\sync.ps1"
+$syncCmd = "powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$syncScript`""
+
+# Daily at noon via schtasks (works without admin, unlike Register-ScheduledTask in some sessions)
+schtasks /create /tn "DotfilesSync" /tr $syncCmd /sc daily /st 12:00 /f | Out-Null
+
+# At logon via HKCU Run key (no admin needed)
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -Name "DotfilesSync" -Value $syncCmd
+Write-Info "  DotfilesSync runs at logon and daily at noon"
+
+# =============================================================================
 # Clone project repos
 # =============================================================================
 
@@ -318,6 +333,7 @@ Write-Host "  - Neovim config:  ~/.config/nvim/ (auto-detected by nvim)"
 Write-Host "  - Lazygit config: ~/.config/lazygit/ (auto-detected)"
 Write-Host "  - Terminal:       symlinked from ~/.config/windows/terminal-settings.json"
 Write-Host "  - Keyboard Mgr:   symlinked from ~/.config/windows/powertoys/keyboard-manager.json"
+Write-Host "  - Auto-sync:      DotfilesSync task pulls/pushes configs at logon + daily"
 Write-Host "  - sshd:           running, auto-start on boot"
 if ($ServerMode) {
     Write-Host "  - Power:          never sleep, lid close does nothing (server mode)"
