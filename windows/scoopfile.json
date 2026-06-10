@@ -11,10 +11,15 @@
         {
             "Name": "psmux",
             "Source": "https://github.com/psmux/scoop-psmux"
+        },
+        {
+            "Name": "nerd-fonts",
+            "Source": "https://github.com/matthewjberger/scoop-nerd-fonts"
         }
     ],
     "apps": [
         { "Name": "7zip",        "Source": "main"   },
+        { "Name": "alacritty",   "Source": "extras" },
         { "Name": "bat",         "Source": "main"   },
         { "Name": "btop",        "Source": "main"   },
         { "Name": "cmake",       "Source": "main"   },
@@ -36,6 +41,7 @@
         { "Name": "nodejs",      "Source": "main"   },
         { "Name": "protobuf",    "Source": "extras" },
         { "Name": "psmux",       "Source": "psmux"  },
+        { "Name": "JetBrainsMono-NF", "Source": "nerd-fonts" },
         { "Name": "ripgrep",     "Source": "main"   },
         { "Name": "rustup",      "Source": "main"   },
         { "Name": "sd",          "Source": "main"   },

@@ -233,6 +233,16 @@ $psmuxTarget = "$env:USERPROFILE\.psmux.conf"
 Write-Info "psmux config stub written: $psmuxTarget sources windows/psmux.conf"
 
 # =============================================================================
+# Alacritty config (import stub — survives file replacement, no admin needed)
+# =============================================================================
+
+$alacrittyDir = "$env:APPDATA\alacritty"
+New-Item -ItemType Directory -Path $alacrittyDir -Force | Out-Null
+$alacrittySrc = "$DotfilesDir\windows\alacritty.toml" -replace '\\', '/'
+"[general]`nimport = [`"$alacrittySrc`"]" | Set-Content "$alacrittyDir\alacritty.toml"
+Write-Info "Alacritty config stub written: imports windows/alacritty.toml"
+
+# =============================================================================
 # Dotfiles auto-sync (scheduled task: logon + daily)
 # =============================================================================
 
