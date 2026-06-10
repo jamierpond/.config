@@ -233,6 +233,15 @@ $psmuxTarget = "$env:USERPROFILE\.psmux.conf"
 Write-Info "psmux config stub written: $psmuxTarget sources windows/psmux.conf"
 
 # =============================================================================
+# PowerShell profile (dot-source stub — survives file replacement, no admin needed)
+# =============================================================================
+
+$psProfileDir = Split-Path $PROFILE
+New-Item -ItemType Directory -Path $psProfileDir -Force | Out-Null
+". `"$DotfilesDir\windows\powershell-profile.ps1`"" | Set-Content $PROFILE
+Write-Info "PowerShell profile stub written: $PROFILE sources windows/powershell-profile.ps1"
+
+# =============================================================================
 # Alacritty config (import stub — survives file replacement, no admin needed)
 # =============================================================================
 
