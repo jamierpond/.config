@@ -29,6 +29,7 @@ $ProjectsDir  = "$env:USERPROFILE\projects"
 $ScoopFile    = "$DotfilesDir\windows\scoopfile.json"
 $GitConfigSrc = "$DotfilesDir\windows\gitconfig"
 $TerminalSrc  = "$DotfilesDir\windows\terminal-settings.json"
+$KbdMgrSrc    = "$DotfilesDir\windows\powertoys\keyboard-manager.json"
 
 $Repos = @(
     @{ Name = "yapi"; Url = "https://github.com/jamierpond/yapi.git" }
@@ -197,6 +198,33 @@ if ($terminalDir) {
 }
 
 # =============================================================================
+# PowerToys Keyboard Manager settings (symlink)
+# =============================================================================
+
+$kbdMgrDir = "$env:LOCALAPPDATA\Microsoft\PowerToys\Keyboard Manager"
+if (Test-Path $kbdMgrDir) {
+    $kbdMgrTarget = Join-Path $kbdMgrDir "default.json"
+    if (Test-Path $KbdMgrSrc) {
+        Write-Info "Symlinking PowerToys Keyboard Manager settings..."
+        if (Test-Path $kbdMgrTarget) {
+            # Back up existing if it's not already a symlink
+            $item = Get-Item $kbdMgrTarget
+            if ($item.LinkType -ne "SymbolicLink") {
+                $backupPath = "$kbdMgrTarget.bak"
+                Move-Item $kbdMgrTarget $backupPath -Force
+                Write-Info "  Backed up existing settings to $backupPath"
+            } else {
+                Remove-Item $kbdMgrTarget -Force
+            }
+        }
+        New-Item -ItemType SymbolicLink -Path $kbdMgrTarget -Target $KbdMgrSrc -Force | Out-Null
+        Write-Info "  Linked: $kbdMgrTarget -> $KbdMgrSrc"
+    }
+} else {
+    Write-Warn "PowerToys not found — skipping Keyboard Manager symlink"
+}
+
+# =============================================================================
 # Clone project repos
 # =============================================================================
 
@@ -289,6 +317,7 @@ Write-Host "  - Git config:     ~/.config/windows/gitconfig (included via ~/.git
 Write-Host "  - Neovim config:  ~/.config/nvim/ (auto-detected by nvim)"
 Write-Host "  - Lazygit config: ~/.config/lazygit/ (auto-detected)"
 Write-Host "  - Terminal:       symlinked from ~/.config/windows/terminal-settings.json"
+Write-Host "  - Keyboard Mgr:   symlinked from ~/.config/windows/powertoys/keyboard-manager.json"
 Write-Host "  - sshd:           running, auto-start on boot"
 if ($ServerMode) {
     Write-Host "  - Power:          never sleep, lid close does nothing (server mode)"
