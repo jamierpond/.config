@@ -28,6 +28,9 @@ export PATH="$PATH:$HOME/go/bin"
 export PATH="$PATH:$HOME/projects/bodgolt"
 export PATH="$PATH:$HOME/.cargo/bin"
 export PATH="$PATH:/snap/bin"
+# vite-plus shims (node/npm/npx/vpx/vpr) must win over Homebrew, so prepend
+export PATH="$HOME/.vite-plus/bin:$PATH"
+
 
 # Pyenv
 export PYENV_ROOT="$HOME/.pyenv"
@@ -43,7 +46,7 @@ export XDG_CONFIG_HOME="$HOME/.config"
 export VIRTUAL_ENV="venv"
 export UV_PROJECT_ENVIRONMENT="venv"
 export VCPKG_ROOT="$HOME/vcpkg"
-export DO_NOT_TRACK=1
+# export DO_NOT_TRACK=1
 export MANPATH="$HOME/.local/share/man:$MANPATH"
 export PNPM_HOME="$HOME/.local/share/pnpm"
 export GOPATH="$HOME/go"

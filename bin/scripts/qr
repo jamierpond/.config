@@ -1,0 +1,55 @@
+#!/bin/zsh
+# qr - render a scannable QR code in the terminal
+#
+# Usage:
+#   qr                  # pick a preset or type a URL/text via fzf
+#   qr <text|url ...>   # encode the given argument(s) directly
+#   qr 3000             # shorthand: QR for http://<lan-ip>:3000
+#
+# Presets point at this machine's LAN IP (not localhost) so a phone on the
+# same network can actually open local dev servers.
+
+# Best-effort LAN IP so QR targets are reachable from your phone.
+lan_ip() {
+  if command -v ipconfig >/dev/null 2>&1; then
+    ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null
+  else
+    hostname -I 2>/dev/null | awk '{print $1}'
+  fi
+}
+
+IP=$(lan_ip)
+IP=${IP:-localhost}
+
+render() {
+  local data="$1"
+  [ -z "$data" ] && exit 0
+  echo
+  qrencode -t ANSIUTF8 -m 2 -- "$data"
+  echo "  $data"
+}
+
+# Direct mode: bare port number -> local dev URL, anything else verbatim.
+if [ $# -gt 0 ]; then
+  if [[ "$*" =~ '^[0-9]+$' ]]; then
+    render "http://$IP:$*"
+  else
+    render "$*"
+  fi
+  exit 0
+fi
+
+# Interactive: common dev-server ports on the LAN, plus free-typed input.
+presets=(
+  "http://$IP:3000"
+  "http://$IP:5173"
+  "http://$IP:8000"
+  "http://$IP:8080"
+)
+
+choice=$(printf '%s\n' "${presets[@]}" | \
+  fzf --reverse --prompt "QR target: " \
+      --header "enter to pick · or type any URL/text" \
+      --print-query | tail -1)
+
+render "$choice"
