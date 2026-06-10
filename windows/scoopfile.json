@@ -39,6 +39,7 @@
         { "Name": "lazygit",     "Source": "extras" },
         { "Name": "ninja",       "Source": "main"   },
         { "Name": "nodejs",      "Source": "main"   },
+        { "Name": "pnpm",        "Source": "main"   },
         { "Name": "protobuf",    "Source": "extras" },
         { "Name": "psmux",       "Source": "psmux"  },
         { "Name": "JetBrainsMono-NF", "Source": "nerd-fonts" },
