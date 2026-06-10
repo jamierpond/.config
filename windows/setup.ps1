@@ -225,17 +225,12 @@ if (Test-Path $kbdMgrDir) {
 }
 
 # =============================================================================
-# psmux config (hard link — works without admin)
+# psmux config (source-file stub — survives file replacement, no admin needed)
 # =============================================================================
 
-$psmuxSrc = "$DotfilesDir\windows\psmux.conf"
 $psmuxTarget = "$env:USERPROFILE\.psmux.conf"
-if (Test-Path $psmuxSrc) {
-    Write-Info "Linking psmux config..."
-    if (Test-Path $psmuxTarget) { Remove-Item $psmuxTarget -Force }
-    New-Item -ItemType HardLink -Path $psmuxTarget -Target $psmuxSrc | Out-Null
-    Write-Info "  Linked: $psmuxTarget -> $psmuxSrc"
-}
+"source-file ~/.config/windows/psmux.conf" | Set-Content $psmuxTarget -NoNewline
+Write-Info "psmux config stub written: $psmuxTarget sources windows/psmux.conf"
 
 # =============================================================================
 # Dotfiles auto-sync (scheduled task: logon + daily)

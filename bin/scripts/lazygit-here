@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Open lazygit for the repo containing cwd, falling back to the dotfiles repo.
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  exec lazygit
+else
+  exec lazygit -p "$HOME/.config"
+fi
