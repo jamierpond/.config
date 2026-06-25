@@ -6,7 +6,7 @@ cpu: 4
 # NOTE: value can only be increased after virtual machine has been created.
 #
 # Default: 100
-disk: 30
+disk: 100
 
 # Size of the memory in GiB to be allocated to the virtual machine.
 # Default: 2
@@ -16,21 +16,13 @@ memory: 8
 #
 # NOTE: value cannot be changed after virtual machine is created.
 # Default: host
-arch: x86_64
+arch: aarch64
 
 # Container runtime to be used (docker, containerd).
 #
 # NOTE: value cannot be changed after virtual machine is created.
 # Default: docker
 runtime: docker
-
-# AI model runner (docker, ramalama).
-# Both require krunkit VM type for GPU access.
-# docker: Uses Docker Model Runner.
-# ramalama: Uses Ramalama.
-#
-# Default: docker
-modelRunner: docker
 
 # Set custom hostname for the virtual machine.
 # Default: colima
@@ -95,7 +87,7 @@ network:
   # dns: [8.8.8.8, 1.1.1.1]
   #
   # Default: []
-  dns: null
+  dns: []
   
   # DNS hostnames to resolve to custom targets using the internal resolver.
   # This setting has no effect if a custom DNS resolver list is supplied above.
@@ -114,15 +106,6 @@ network:
   #
   # Default: false
   hostAddresses: false
-  
-  # Custom gateway address for the virtual machine.
-  # The last octet needs to be 2.
-  #
-  # EXAMPLE
-  # gatewayAddress: 192.168.10.2
-  #
-  # Default: 192.168.5.2
-  gatewayAddress: 192.168.5.2
 
 # ===================================================================== #
 # ADVANCED CONFIGURATION
@@ -151,20 +134,18 @@ forwardAgent: false
 # Default: {}
 docker: {}
 
-# Virtual Machine type (krunkit, qemu, vz)
+# Virtual Machine type (qemu, vz)
 # NOTE: this is macOS 13 only. For Linux and macOS <13.0, qemu is always used.
 #
-# vz is macOS virtualization framework and requires macOS 13.
-# krunkit runs super‑light VMs on macOS/ARM64 with a focus on GPU access. It is experimental.
+# vz is macOS virtualization framework and requires macOS 13
 #
 # NOTE: value cannot be changed after virtual machine is created.
 # Default: qemu
 vmType: vz
 
-# Port forwarder for the virtual machine (ssh, grpc, none).
+# Port forwarder for the virtual machine (ssh, grpc).
 # ssh is more stable but supports only TCP.
 # grpc supports both TCP and UDP, but is experimental.
-# none disables port forwarding.
 #
 # Default: ssh
 portForwarder: ssh
@@ -220,18 +201,8 @@ cpuType: ""
 #       echo provisioning as $USER...
 #       touch ~/.provision
 #
-# EXAMPLE - script executed after VM boot, before container runtimes start
-# provision:
-#   - mode: after-boot
-#     script: echo "VM is up, containers not yet started"
-#
-# EXAMPLE - script executed after VM and container runtimes are ready
-# provision:
-#   - mode: ready
-#     script: echo "everything is ready"
-#
 # Default: []
-provision: null
+provision: []
 
 # Modify ~/.ssh/config automatically to include a SSH config for the virtual machine.
 # SSH config will still be generated in $COLIMA_HOME/ssh_config regardless.
