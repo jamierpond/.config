@@ -26,6 +26,11 @@ vim.opt.isfname:append("@-@")
 
 vim.opt.updatetime = 50
 
+-- copilot.vim defaults to `npx @github/copilot-language-server`, which fails on
+-- Windows (scoop's npx is a .ps1/.cmd shim nvim can't spawn). Use the bundled
+-- language server via plain node instead.
+vim.g.copilot_npx_command = 0
+
 vim.opt.textwidth = 80
 vim.opt.colorcolumn = "80"
 
