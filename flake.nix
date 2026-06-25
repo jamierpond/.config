@@ -16,10 +16,10 @@
     };
 
     # Neovim 0.12+ (tracks latest release/nightly)
-    neovim-nightly-overlay = {
-      url = "github:nix-community/neovim-nightly-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # Do NOT make its nixpkgs follow ours: the nix-community Cachix only has
+    # binaries built against the overlay's own pinned nixpkgs. Overriding it
+    # forces a source build (which pulls a broken crates.io cargo-vendor step).
+    neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
   };
 
   outputs = { self, nixpkgs, home-manager, nix-darwin, neovim-nightly-overlay, ... }:
@@ -29,12 +29,37 @@
       # Neovim nightly overlay (gives us 0.12+)
       neovimOverlay = neovim-nightly-overlay.overlays.default;
 
+      # crates.io now 403s the default "python-requests" User-Agent that
+      # nixpkgs' fetch-cargo-vendor-util sends, breaking any fetchCargoVendor
+      # build (e.g. neovim's bundled tree-sitter). Send an allowed UA instead.
+      cratesUserAgentOverlay = final: prev: {
+        pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+          (pyfinal: pyprev: {
+            requests = pyprev.requests.overridePythonAttrs (old: {
+              postPatch = (old.postPatch or "") + ''
+                patched=0
+                for f in src/requests/utils.py requests/utils.py; do
+                  if [ -e "$f" ]; then
+                    substituteInPlace "$f" \
+                      --replace-fail 'name="python-requests"' 'name="cargo"'
+                    patched=1
+                  fi
+                done
+                [ "$patched" = 1 ] || { echo "requests utils.py not found for UA patch"; exit 1; }
+              '';
+            });
+          })
+        ];
+      };
+
+      overlays = [ neovimOverlay cratesUserAgentOverlay ];
+
       # Helper to make home-manager config for any system
       mkHome = { system, username, homeDirectory ? null }:
         home-manager.lib.homeManagerConfiguration {
           pkgs = import nixpkgs {
             inherit system;
-            overlays = [ neovimOverlay ];
+            inherit overlays;
           };
           modules = [
             ./home
@@ -164,7 +189,7 @@
             ./darwin
             {
               nixpkgs.hostPlatform = system;
-              nixpkgs.overlays = [ neovimOverlay ];
+              nixpkgs.overlays = overlays;
             }
             home-manager.darwinModules.home-manager
             {
