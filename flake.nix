@@ -15,10 +15,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Neovim 0.12+ (tracks latest release/nightly)
-    # Do NOT make its nixpkgs follow ours: the nix-community Cachix only has
-    # binaries built against the overlay's own pinned nixpkgs. Overriding it
-    # forces a source build (which pulls a broken crates.io cargo-vendor step).
+    # Neovim 0.12+ (tracks latest nightly).
+    # Consumed via its prebuilt `packages.<system>.default` (see neovimOverlay
+    # below), so its nixpkgs must NOT follow ours — the nix-community Cachix only
+    # has binaries built against the overlay's own pinned nixpkgs.
     neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
   };
 
@@ -26,33 +26,16 @@
     let
       lib = nixpkgs.lib;
 
-      # Neovim nightly overlay (gives us 0.12+)
-      neovimOverlay = neovim-nightly-overlay.overlays.default;
-
-      # crates.io now 403s the default "python-requests" User-Agent that
-      # nixpkgs' fetch-cargo-vendor-util sends, breaking any fetchCargoVendor
-      # build (e.g. neovim's bundled tree-sitter). Send an allowed UA instead.
-      cratesUserAgentOverlay = final: prev: {
-        pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
-          (pyfinal: pyprev: {
-            requests = pyprev.requests.overridePythonAttrs (old: {
-              postPatch = (old.postPatch or "") + ''
-                patched=0
-                for f in src/requests/utils.py requests/utils.py; do
-                  if [ -e "$f" ]; then
-                    substituteInPlace "$f" \
-                      --replace-fail 'name="python-requests"' 'name="cargo"'
-                    patched=1
-                  fi
-                done
-                [ "$patched" = 1 ] || { echo "requests utils.py not found for UA patch"; exit 1; }
-              '';
-            });
-          })
-        ];
+      # Inject the overlay's PREBUILT neovim (cached in nix-community Cachix) as
+      # pkgs.neovim. Using neovim-nightly-overlay.overlays.default instead would
+      # re-derive neovim against our nixpkgs — a guaranteed cache miss that forces
+      # a source build of bundled tree-sitter (whose cargo-vendor step 403s on
+      # crates.io's User-Agent block).
+      neovimOverlay = final: prev: {
+        neovim = neovim-nightly-overlay.packages.${prev.stdenv.hostPlatform.system}.default;
       };
 
-      overlays = [ neovimOverlay cratesUserAgentOverlay ];
+      overlays = [ neovimOverlay ];
 
       # Helper to make home-manager config for any system
       mkHome = { system, username, homeDirectory ? null }:

@@ -25,9 +25,10 @@ vim.diagnostic.config({
   underline = true,
   update_in_insert = false,
   severity_sort = true,
-  -- 0.12: diagnostic jump opens float automatically
   jump = {
-    float = true,
+    on_jump = function(_, bufnr)
+      vim.diagnostic.open_float({ bufnr = bufnr })
+    end,
   },
 })
 
