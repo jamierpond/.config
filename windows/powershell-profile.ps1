@@ -177,3 +177,45 @@ if (Get-Command psmux -ErrorAction SilentlyContinue) {
 # =============================================================================
 Set-Alias g gemini
 function m { make @args }
+function spicy { claude --dangerously-skip-permissions @args }   # matches shellrc alias
+
+# =============================================================================
+# Aliases ported from shellrc / zshrc - the portable ones (pure commands).
+# Skipped: bash scripts in bin/scripts (cbs/r/mf/re/pport/sz/co/e/cl/gls/pt/rp/
+# gde/gd/...), macOS-only (osascript/ableton/qutebrowser/bw*/ddd/brew), and
+# Linux-only (nvidia gpu/pgpu/kgpu, ranger, lsblk, snap). jd/c/z are covered by
+# zoxide above.
+# =============================================================================
+
+# docker
+function dockernuke { docker kill (docker ps -q) }
+function dn         { dockernuke @args }
+
+# python / pip
+function pipi { pip install -r requirements.txt @args }
+
+# tar
+function tarls { tar -tvf @args }
+function tls   { tar -tvf @args }
+function untar { tar -xvf @args }
+
+# just + fzf: pick a recipe and run it (shellrc `jf`)
+function jf {
+    $r = just --list | Select-Object -Skip 1 | fzf
+    if ($r) { just (($r -split '\s+' | Where-Object { $_ })[0]) }
+}
+
+# misc
+function d2h { param([long]$n) '{0:x}' -f $n }   # dec -> hex (shellrc d2h/dec2hex)
+Set-Alias dec2hex d2h
+function ka  { param([string]$n) Stop-Process -Name $n }          # killall
+function kaf { param([string]$n) Stop-Process -Name $n -Force }   # killall -9
+function o   { crush @args }
+function a   { yapi @args }
+function gtree { git ls-files }   # no `tree --fromfile` on Windows; flat list
+
+# ssh / remote hosts
+function ssh-win { $env:TERM = 'xterm'; ssh @args }
+function mm  { ssh -tt jamie@pondhq-mini @args }
+function mi  { ssh -tt jamiepond@pondhq-server @args }
+function win { $env:TERM = 'xterm'; ssh -tt Owner@windows @args }
