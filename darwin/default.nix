@@ -150,6 +150,8 @@
       "aerospace"          # tiling window manager (config: ~/.config/aerospace/aerospace.toml)
       "karabiner-elements" # keyboard customiser (ships a DriverKit system extension — cask-only)
       "font-jetbrains-mono" # JetBrains Mono font
+      "1password"          # password manager
+      "1password-cli"      # `op` CLI (needed by tamber gen-config; enable in 1Password → Settings → Developer)
     ];
   };
 
