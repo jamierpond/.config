@@ -152,6 +152,7 @@
       "font-jetbrains-mono" # JetBrains Mono font
       "1password"          # password manager
       "1password-cli"      # `op` CLI (needed by tamber gen-config; enable in 1Password → Settings → Developer)
+      "google-cloud-sdk"   # `gcloud` CLI (tamber build-app / upload-and-publish → GCS). Auth: gcloud auth login
     ];
   };
 

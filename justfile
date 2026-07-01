@@ -96,6 +96,12 @@ darwin-activate:
 # Build and activate darwin config
 darwin-switch: darwin-build darwin-activate
 
+# Switch to tamby (ARM Mac Mini) config
+tamby:
+    @if [ "{{ system }}" != "Darwin" ]; then echo "tamby is macOS only"; exit 1; fi
+    nix build .#darwinConfigurations.tamby.system
+    sudo ./result/sw/bin/darwin-rebuild switch --flake .#tamby
+
 # Build and activate darwin config with verbose output
 darwin-switch-debug:
     @if [ "{{ system }}" != "Darwin" ]; then echo "darwin-switch-debug is macOS only"; exit 1; fi
