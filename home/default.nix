@@ -138,6 +138,7 @@
   # Git config
   programs.git = {
     enable = true;
+    lfs.enable = true;
     settings = {
       user.name = "Jamie Pond";
       user.email = "jamiepond259@gmail.com";
