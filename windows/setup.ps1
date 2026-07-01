@@ -248,6 +248,18 @@ New-Item -ItemType Directory -Path $psProfileDir -Force | Out-Null
 Write-Info "PowerShell profile stub written: $PROFILE sources windows/powershell-profile.ps1"
 
 # =============================================================================
+# Git Bash profile (source stub - survives file replacement, no admin needed)
+# Written LF-only, no BOM: bash fails on CRLF/BOM in rc files.
+# =============================================================================
+
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+$bashrc        = "# Load dotfiles bash config (stub written by ~/.config/windows/setup.ps1)`n[ -f ~/.config/bashrc ] && source ~/.config/bashrc`n"
+$bashProfile   = "# Login shells: load ~/.bashrc (stub written by ~/.config/windows/setup.ps1)`n[ -f ~/.bashrc ] && source ~/.bashrc`n"
+[System.IO.File]::WriteAllText("$env:USERPROFILE\.bashrc", ($bashrc -replace "`r",''), $utf8NoBom)
+[System.IO.File]::WriteAllText("$env:USERPROFILE\.bash_profile", ($bashProfile -replace "`r",''), $utf8NoBom)
+Write-Info "Git Bash stubs written: ~/.bashrc + ~/.bash_profile source ~/.config/bashrc"
+
+# =============================================================================
 # Alacritty config (import stub - survives file replacement, no admin needed)
 # =============================================================================
 
