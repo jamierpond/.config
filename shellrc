@@ -28,6 +28,14 @@ export PATH="$PATH:$HOME/go/bin"
 export PATH="$PATH:$HOME/projects/bodgolt"
 export PATH="$PATH:$HOME/.cargo/bin"
 export PATH="$PATH:/snap/bin"
+# Homebrew (macOS/ARM at /opt/homebrew; Intel's /usr/local is already on PATH).
+# Appended (low priority) so nix + vite-plus tools win over brew-installed ones.
+# Provides brew-cask CLIs like `aerospace`.
+if [ -x /opt/homebrew/bin/brew ]; then
+  export HOMEBREW_PREFIX="/opt/homebrew"
+  export PATH="$PATH:/opt/homebrew/bin:/opt/homebrew/sbin"
+  export MANPATH="${MANPATH:-}:/opt/homebrew/share/man"
+fi
 # vite-plus shims (node/npm/npx/vpx/vpr) must win over Homebrew, so prepend
 export PATH="$HOME/.vite-plus/bin:$PATH"
 

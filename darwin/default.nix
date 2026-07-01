@@ -56,10 +56,15 @@
       NSWindowResizeTime = 0.001; # Instant window resize
     };
 
-    universalaccess = {
-      reduceMotion = true; # System-wide reduce motion
-      reduceTransparency = true; # Less compositing overhead
-    };
+    # NOTE: Disabled — writing com.apple.universalaccess is TCC-protected and
+    # aborts `darwin-rebuild` activation ("Could not write domain
+    # com.apple.universalaccess; exiting") unless the activating terminal has
+    # Full Disk Access. To re-enable: grant your terminal Full Disk Access
+    # (System Settings > Privacy & Security > Full Disk Access), then uncomment.
+    # universalaccess = {
+    #   reduceMotion = true; # System-wide reduce motion
+    #   reduceTransparency = true; # Less compositing overhead
+    # };
 
     # Defaults not covered by typed nix-darwin options
     CustomUserPreferences = {
@@ -126,14 +131,26 @@
   #   remapCapsLockToEscape = true;
   # };
 
-  # Homebrew integration (for GUI apps not in nixpkgs)
-  # homebrew = {
-  #   enable = true;
-  #   casks = [
-  #     "iterm2"
-  #     "raycast"
-  #   ];
-  # };
+  # Homebrew integration (for GUI apps / drivers not available in nixpkgs).
+  # Requires Homebrew to be pre-installed (/opt/homebrew). nix-darwin generates
+  # a Brewfile and runs `brew bundle` on activation.
+  homebrew = {
+    enable = true;
+    onActivation = {
+      autoUpdate = true;
+      upgrade = true;
+      cleanup = "none"; # never uninstall brew packages not listed here
+    };
+    # NOTE: Homebrew 6+ refuses casks from third-party taps until trusted.
+    # One-time per machine (nix-darwin can't do it): brew trust nikitabobko/tap
+    taps = [
+      "nikitabobko/tap" # AeroSpace
+    ];
+    casks = [
+      "aerospace"          # tiling window manager (config: ~/.config/aerospace/aerospace.toml)
+      "karabiner-elements" # keyboard customiser (ships a DriverKit system extension — cask-only)
+    ];
+  };
 
   # Colima — lightweight Docker runtime (replaces Docker Desktop)
   launchd.user.agents.colima = {
