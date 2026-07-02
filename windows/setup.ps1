@@ -179,6 +179,47 @@ if (-not (Get-Command tailscale -ErrorAction SilentlyContinue)) {
     winget install --id tailscale.tailscale --accept-source-agreements --accept-package-agreements
 }
 
+# 1Password desktop app - GUI installer (like Tailscale), so winget not scoop.
+# It's what enables the CLI's biometric integration (Windows Hello unlock, the
+# recommended `op` sign-in below) plus browser autofill. No CLI shim to probe,
+# so check winget's list with an exact (-e) id match on the desktop app (its id,
+# AgileBits.1Password, is distinct from the CLI's AgileBits.1Password.CLI).
+$op1pInstalled = winget list --id AgileBits.1Password -e --accept-source-agreements 2>$null | Select-String -SimpleMatch "AgileBits.1Password"
+if (-not $op1pInstalled) {
+    Write-Info "Installing 1Password desktop app via winget..."
+    winget install --id AgileBits.1Password --accept-source-agreements --accept-package-agreements
+} else {
+    Write-Info "1Password desktop app already installed"
+}
+
+# =============================================================================
+# 1Password CLI sign-in
+# =============================================================================
+#
+# `op` (installed via scoop, above) is REQUIRED to build the native Tamber app:
+# apps/native/CMakeLists.txt runs `op run` at cmake-configure time to materialize
+# the op/<env>.env secrets into apps/vite/.env.local. Installing the binary is
+# automated; signing in is not (it's interactive and tied to the account), so we
+# verify auth and print the exact steps if it's not ready yet.
+
+if (Get-Command op -ErrorAction SilentlyContinue) {
+    # `op account list` is non-interactive and exits non-zero when no account is
+    # configured / signed in. Swallow output; we only care about success.
+    op account list *> $null
+    if ($?) {
+        Write-Info "1Password CLI signed in"
+    } else {
+        Write-Warn "1Password CLI (op) is installed but not signed in."
+        Write-Warn "  It's required to build the native app (secrets export at cmake time)."
+        Write-Warn "  Recommended: 1Password app > Settings > Developer >"
+        Write-Warn "    'Integrate with 1Password CLI' (Touch ID / Windows Hello unlock)."
+        Write-Warn "  Or sign in manually:  op signin"
+        Write-Warn "  You need access to the Tamber-dev (and Tamber-prod) vaults."
+    }
+} else {
+    Write-Warn "1Password CLI (op) not found on PATH after install - open a new shell and re-run, or 'scoop install 1password-cli'."
+}
+
 # =============================================================================
 # Git config
 # =============================================================================
@@ -285,6 +326,18 @@ Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -Na
 Write-Info "  DotfilesSync runs at logon and daily at noon"
 
 # =============================================================================
+# Debloat: disable Windows 'fun'/engagement features (per-user, no admin)
+# =============================================================================
+
+$debloatScript = "$DotfilesDir\windows\debloat.ps1"
+if (Test-Path $debloatScript) {
+    Write-Info "Running debloat (Start menu/lock screen/widgets/search cleanup)..."
+    & $debloatScript
+} else {
+    Write-Warn "debloat.ps1 not found at $debloatScript - skipping"
+}
+
+# =============================================================================
 # Clone project repos
 # =============================================================================
 
@@ -378,6 +431,7 @@ Write-Host "  - Neovim config:  ~/.config/nvim/ (auto-detected by nvim)"
 Write-Host "  - Lazygit config: ~/.config/lazygit/ (auto-detected)"
 Write-Host "  - Terminal:       symlinked from ~/.config/windows/terminal-settings.json"
 Write-Host "  - Keyboard Mgr:   symlinked from ~/.config/windows/powertoys/keyboard-manager.json"
+Write-Host "  - 1Password:      desktop app + CLI (op) - needed for native app builds"
 Write-Host "  - Auto-sync:      DotfilesSync task pulls/pushes configs at logon + daily"
 Write-Host "  - psmux (tmux):   config linked from ~/.config/windows/psmux.conf"
 Write-Host "  - sshd:           running, auto-start on boot"
