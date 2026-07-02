@@ -10,6 +10,10 @@ vim.opt.smartindent = true
 
 vim.opt.wrap = false
 
+-- No mouse: keep native terminal text-selection and avoid TUIs leaving the
+-- terminal in SGR mouse-report mode (scroll then spews escape codes at the prompt).
+vim.opt.mouse = ""
+
 vim.opt.swapfile = false
 vim.opt.backup = false
 vim.opt.undodir = os.getenv("HOME") .. "/.vim/undodir"
