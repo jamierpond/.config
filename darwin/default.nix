@@ -50,6 +50,7 @@
       InitialKeyRepeat = 15;
       KeyRepeat = 2;
       "com.apple.sound.beep.feedback" = 0; # Disable UI sound effects
+      "com.apple.sound.beep.volume" = 0.0; # Mute the alert/invalid-action beep entirely
       # Kill animations
       NSAutomaticWindowAnimationsEnabled = false; # No window open/close animations
       NSScrollAnimationEnabled = false; # No smooth scrolling
