@@ -80,8 +80,16 @@
     pkg-config
     protobuf         # protoc
 
-    # C/C++ toolchain — clang-tools for LSP/formatting on all platforms
-    clang-tools      # clangd, clang-format, etc. (no cc conflict)
+    # C/C++ toolchain. On macOS only clang-format is taken from clang-tools:
+    # Apple ships clangd (/usr/bin/clangd, matched to the Xcode SDK), and the
+    # Nix clangd injects Nix libc++/libSystem headers on top of -isysroot,
+    # producing bogus diagnostics in SDK-based projects.
+    (if stdenv.isDarwin then
+      runCommand "clang-format-only" { } ''
+        mkdir -p $out/bin
+        ln -s ${clang-tools}/bin/clang-format $out/bin/clang-format
+      ''
+    else clang-tools)
   ] ++ lib.optionals stdenv.isLinux [
     # llvm/lld on Linux only — on macOS they shadow Apple's dsymutil/linker and break Swift builds
     llvm
