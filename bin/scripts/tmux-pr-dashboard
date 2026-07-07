@@ -200,6 +200,75 @@ cmd_goto() {
     sessionize "$wtpath"
 }
 
+# Pretty, single-request preview for the highlighted PR (rose-pine palette).
+cmd_preview() {
+    local url="$1"
+    [ -n "$url" ] || return 0
+    gh pr view "$url" --json \
+        title,state,isDraft,author,headRefName,baseRefName,additions,deletions,reviewDecision,latestReviews,reviewRequests,labels,statusCheckRollup,body \
+        2>/dev/null | jq -r '
+        def rst: "[0m";
+        def bold: "[1m" + . + rst;
+        def tc($r;$g;$b): "[38;2;\($r);\($g);\($b)m" + . + rst;
+        def muted: tc(110;106;134);
+        def subtle: tc(144;140;170);
+        def foam:  tc(156;207;216);
+        def iris:  tc(196;167;231);
+        def green: "[32m" + . + rst;
+        def red:   "[31m" + . + rst;
+        def yellow:"[33m" + . + rst;
+        def grey:  "[90m" + . + rst;
+        def rpad($n): (. + (" " * 60))[0:$n];
+        def trunc($n): if length > $n then .[0:($n-1)] + "…" else . end;
+        def dur($a;$b): if ($a != null and $b != null)
+            then ((($b|fromdateiso8601) - ($a|fromdateiso8601))|floor) as $s
+                 | if $s >= 60 then "\(($s/60)|floor)m\($s%60)s" else "\($s)s" end
+            else "" end;
+        . as $pr
+        | [ $pr.statusCheckRollup[]? ] as $checks
+        | ($checks | map(
+            if .__typename=="CheckRun"
+              then (if .status!="COMPLETED" then "RUNNING" else (.conclusion // "") end)
+              else (.state // "") end)) as $states
+        | ($states | map(select(.=="SUCCESS")) | length) as $npass
+        | ($states | map(. as $s | select(["FAILURE","ERROR","TIMED_OUT","CANCELLED","STARTUP_FAILURE","ACTION_REQUIRED"] | index($s))) | length) as $nfail
+        | ($states | map(. as $s | select(["RUNNING","PENDING","EXPECTED","QUEUED","IN_PROGRESS"] | index($s))) | length) as $nrun
+        | ($checks | map(
+            . as $c
+            | (if $c.__typename=="CheckRun" then (.name // "?") else (.context // "?") end) as $nm
+            | (if $c.__typename=="CheckRun" then (if $c.status!="COMPLETED" then "RUNNING" else (.conclusion // "") end) else (.state // "") end) as $st
+            | (if $st=="SUCCESS" then ("✓"|green)
+               elif (["FAILURE","ERROR","TIMED_OUT","CANCELLED","STARTUP_FAILURE","ACTION_REQUIRED"]|index($st)) then ("✗"|red)
+               elif (["RUNNING","PENDING","EXPECTED","QUEUED","IN_PROGRESS"]|index($st)) then ("●"|yellow)
+               else ("○"|grey) end) as $g
+            | "  " + $g + " " + ($nm|trunc(30)|rpad(31)) + (dur($c.startedAt;$c.completedAt)|muted)
+          )) as $checklines
+        | ( [ ($pr.latestReviews // [])[]
+              | ((if .state=="APPROVED" then "✓" elif .state=="CHANGES_REQUESTED" then "✗" else "•" end)
+                 + " @" + (.author.login // "?"))
+              | (if startswith("✓") then green elif startswith("✗") then red else subtle end) ]
+            + [ ($pr.reviewRequests // [])[]
+              | ("⋯ @" + (.requestedReviewer.login // .requestedReviewer.name // "?")) | muted ]
+          ) as $revs
+        | ($pr.labels // [] | map(.name) | join(", ")) as $labels
+        | ( ($pr.body // "") | gsub("\r";"") | split("\n") | .[0:20] | map("  " + .) | join("\n") ) as $body
+        | ( [ ($pr.title | bold),
+              ( [ (if $pr.isDraft then ("draft"|grey) else ($pr.state|ascii_downcase|foam) end),
+                  ((($pr.headRefName // "?")|foam) + ("→"|muted) + (($pr.baseRefName // "?")|subtle)),
+                  (("+\($pr.additions)"|green) + " " + ("-\($pr.deletions)"|red)) ] | join("   ") ),
+              "" ]
+            + (if ($checks|length) > 0
+                 then [ (("Checks"|muted) + "   " + ("\($npass) ok"|green)
+                         + (if $nfail>0 then "   " + ("\($nfail) fail"|red) else "" end)
+                         + (if $nrun>0 then "   " + ("\($nrun) running"|yellow) else "" end)) ]
+                      + $checklines + [""]
+                 else [] end)
+            + [ ("Reviews"|muted) + "  " + (if ($revs|length)>0 then ($revs|join("   ")) else ("none"|grey) end) ]
+            + (if ($labels|length)>0 then [ ("Labels"|muted) + "   " + $labels ] else [] end)
+            + (if ($body|length)>0 then [ "", ($body|subtle) ] else [] end)
+          ) | join("\n")'
+}
+
 # Regenerate the list, stream it to stdout (for fzf reload) and atomically
 # refresh the cache so the next launch can show it instantly.
 cmd_list() {
@@ -216,6 +285,7 @@ cmd_list() {
 case "${1:-}" in
     open)   open_url "${2:-}"; exit 0 ;;
     goto)   cmd_goto "${2:-}" "${3:-}" "${4:-}"; exit 0 ;;
+    preview) cmd_preview "${2:-}"; exit 0 ;;
     switch) [ -n "${2:-}" ] && tmux switch-client -t "$2" 2>/dev/null || true; exit 0 ;;
     copy)   printf '%s' "${2:-}" | copy_clip; exit 0 ;;
     list)   cmd_list; exit 0 ;;
@@ -232,7 +302,7 @@ esac
     --pointer='▶' \
     --prompt='PR ' \
     --header='enter checkout+session · o browser · ctrl-s session · ctrl-y copy · ctrl-r refresh' \
-    --preview="gh pr checks {2} 2>/dev/null; echo; gh pr view {2} 2>/dev/null" \
+    --preview="$SELF preview {2}" \
     --preview-window='down,55%,wrap,border-top' \
     --bind="start:reload($SELF list)" \
     --bind="enter:execute($SELF goto {4} {5} {6})+abort" \
