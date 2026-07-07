@@ -35,6 +35,7 @@
     git
     git-lfs
     git-secret
+    gnupg            # gpg — commit signing, git-secret backend
     gh
     graphite-cli   # gt - stacked git changes
     lazygit

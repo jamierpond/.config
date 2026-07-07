@@ -12,7 +12,8 @@
 #
 # Env:
 #   WT_BRANCH_PREFIX   branch name prefix (default: jp/)
-#   WT_DEFAULT_BASE    fallback base branch (default: develop)
+#   WT_DEFAULT_BASE    fallback base branch (default: the repo's default
+#                      branch, detected from origin/HEAD)
 #
 # Behavior:
 #   - Creates branch <prefix><slug> off origin/<base> (falls back to local <base>).
@@ -30,10 +31,23 @@ if [[ $# -lt 1 ]]; then
 fi
 
 slug="$1"
-base="${2:-${WT_DEFAULT_BASE:-develop}}"
 prefix="${WT_BRANCH_PREFIX:-jp/}"
 
 repo_root="$(git rev-parse --show-toplevel)"
+
+default_base() {
+  local head
+  # origin/HEAD if set locally, else ask the remote, else current branch
+  if head="$(git -C "$repo_root" symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null)"; then
+    echo "${head#origin/}"
+  elif head="$(git -C "$repo_root" ls-remote --symref origin HEAD 2>/dev/null | awk '/^ref:/ {sub("refs/heads/", "", $2); print $2; exit}')" && [[ -n "$head" ]]; then
+    echo "$head"
+  else
+    git -C "$repo_root" rev-parse --abbrev-ref HEAD
+  fi
+}
+
+base="${2:-${WT_DEFAULT_BASE:-$(default_base)}}"
 repo_name="$(basename "$repo_root")"
 slug_safe="${slug//\//-}"
 wt_path="$(dirname "$repo_root")/${repo_name}-${slug_safe}"
