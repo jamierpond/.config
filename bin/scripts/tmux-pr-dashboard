@@ -13,7 +13,7 @@
 #            using one dedicated worktree per PR — switching if it's already
 #            checked out, else adding a sibling worktree (cloning the repo
 #            into ~/projects/<name> first if it isn't on disk).
-#   o        open the PR in your browser
+#   ctrl-o   open the PR in your browser
 #   ctrl-s   just switch to that repo's existing tmux session (no checkout)
 #   ctrl-y   copy the PR url to the clipboard
 #   ctrl-x   close the PR (asks for y/N confirmation first)
@@ -401,12 +401,12 @@ mkdir -p "$(dirname "$CACHE")" 2>/dev/null || true
     --no-info \
     --pointer='▶' \
     --prompt='PR ' \
-    --header='enter worktree+session · o browser · ctrl-s session · ctrl-y copy · ctrl-x close · ctrl-r refresh' \
+    --header='enter worktree+session · ctrl-o browser · ctrl-s session · ctrl-y copy · ctrl-x close · ctrl-r refresh' \
     --preview="$SELF preview {2}" \
     --preview-window='down,55%,wrap,border-top' \
     --bind="start:execute-silent($SELF refresh)" \
     --bind="enter:execute($SELF goto {4} {5} {6})+abort" \
-    --bind="o:execute-silent($SELF open {2})+abort" \
+    --bind="ctrl-o:execute-silent($SELF open {2})+abort" \
     --bind="ctrl-s:execute-silent($SELF switch {3})+abort" \
     --bind="ctrl-y:execute-silent($SELF copy {2})" \
     --bind="ctrl-x:execute($SELF close {2})+execute-silent($SELF refresh)" \
