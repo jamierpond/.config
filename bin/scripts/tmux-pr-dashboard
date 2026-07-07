@@ -1,0 +1,140 @@
+#!/usr/bin/env bash
+# tmux-pr-dashboard — a shipping dashboard for your open PRs.
+#
+# Lists every open PR you authored across all repos (newest first), showing:
+#   CI status (● green/red/yellow, ○ = no checks), age, repo, title,
+#   review state / requested reviewers, and which tmux session (if any) that
+#   repo is currently checked out in — so you can jump straight back to it.
+#
+# Bound to `prefix + P` (see tmux/tmux.conf). Requires: gh (authed), jq, fzf.
+#
+# Keys inside the picker:
+#   enter    open the PR in your browser
+#   ctrl-s   switch to the tmux session for that repo (if one is open)
+#   ctrl-y   copy the PR url to the clipboard
+#   ctrl-r   refresh the list
+#
+# Runs on macOS/Linux (tmux). On Windows/psmux it simply isn't bound.
+set -euo pipefail
+
+SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+
+open_url() {
+    local url="$1"
+    [ -n "$url" ] || return 0
+    if command -v open >/dev/null 2>&1; then
+        open "$url" >/dev/null 2>&1
+    elif command -v xdg-open >/dev/null 2>&1; then
+        xdg-open "$url" >/dev/null 2>&1
+    elif command -v powershell.exe >/dev/null 2>&1; then
+        powershell.exe -NoProfile Start-Process "$url" >/dev/null 2>&1
+    fi
+}
+
+copy_clip() {
+    if command -v pbcopy >/dev/null 2>&1; then pbcopy
+    elif command -v xclip >/dev/null 2>&1; then xclip -selection clipboard
+    elif command -v clip.exe >/dev/null 2>&1; then clip.exe
+    else cat >/dev/null; fi
+}
+
+# Map "owner/repo" (lowercased) -> tmux session name, derived from the git
+# remote of each session's pane paths. First session wins per repo.
+session_map() {
+    command -v tmux >/dev/null 2>&1 || return 0
+    tmux list-panes -a -F '#{session_name}	#{pane_current_path}' 2>/dev/null \
+        | sort -u \
+        | while IFS='	' read -r sess path; do
+            [ -d "$path" ] || continue
+            top=$(git -C "$path" rev-parse --show-toplevel 2>/dev/null) || continue
+            url=$(git -C "$top" remote get-url origin 2>/dev/null) || continue
+            slug=$(printf '%s' "$url" \
+                | sed -E 's#^(git@|ssh://git@|https?://)[^/:]+[:/]+##; s#\.git$##' \
+                | tr '[:upper:]' '[:lower:]')
+            [ -n "$slug" ] && printf '%s	%s\n' "$slug" "$sess"
+        done
+}
+
+build_list() {
+    local me q map_json
+    me=$(gh api user --jq .login 2>/dev/null) || { echo "gh not authenticated" >&2; return 0; }
+    [ -n "$me" ] || return 0
+    q="author:$me state:open type:pr"
+
+    map_json=$(session_map | jq -R -s '
+        split("\n") | map(select(length>0) | split("\t"))
+        | reduce .[] as $r ({}; if has($r[0]) then . else .[$r[0]] = $r[1] end)')
+
+    gh api graphql -f query='
+      query($q:String!) {
+        search(query:$q, type:ISSUE, first:100) {
+          nodes { ... on PullRequest {
+            number title url createdAt isDraft
+            repository { nameWithOwner }
+            reviewDecision
+            reviewRequests(first:10){ nodes { requestedReviewer {
+              ... on User { login } ... on Team { name } } } }
+            commits(last:1){ nodes { commit { statusCheckRollup { state } } } }
+          } }
+        }
+      }' -f q="$q" \
+    | jq -r --argjson sessions "$map_json" '
+        def esc($x): "[" + $x + "m";
+        def rst: "[0m";
+        def col($x): esc($x) + . + rst;
+        def rpad($n): (. + (" " * 200))[0:$n];
+        def trunc($n): if (length > $n) then (.[0:($n-1)] + "…") else . end;
+        [ .data.search.nodes[] | select(.url != null) ]
+        | sort_by(.createdAt) | reverse | .[]
+        | . as $pr
+        | ($pr.commits.nodes[0].commit.statusCheckRollup.state // "NONE") as $ci
+        | ( if   $ci=="SUCCESS"                     then ("●"|col("32"))
+            elif ($ci=="FAILURE" or $ci=="ERROR")   then ("●"|col("31"))
+            elif ($ci=="PENDING" or $ci=="EXPECTED") then ("●"|col("33"))
+            else ("○"|col("90")) end ) as $dot
+        | (now - ($pr.createdAt|fromdateiso8601)) as $secs
+        | ( if   ($secs/86400) >= 14 then "\(($secs/604800)|floor)w"
+            elif ($secs/86400) >= 1  then "\(($secs/86400)|floor)d"
+            elif ($secs/3600)  >= 1  then "\(($secs/3600)|floor)h"
+            else "\(($secs/60)|floor)m" end ) as $age
+        | $pr.repository.nameWithOwner as $repo
+        | ($sessions[($repo|ascii_downcase)] // "") as $sess
+        | ($repo | sub(".*/";"")) as $reponame
+        | ( [ $pr.reviewRequests.nodes[].requestedReviewer
+              | ("@" + (.login // .name // "?")) ] | join(" ") ) as $requested
+        | ( if   $pr.reviewDecision=="APPROVED"          then "✓ "
+            elif $pr.reviewDecision=="CHANGES_REQUESTED" then "✗ "
+            else "" end ) as $revmark
+        | ( if ($pr.isDraft // false) then "◌ " else "" end ) as $draft
+        | ( [ $dot,
+              ($age|rpad(4)),
+              ($reponame|trunc(18)|rpad(18)),
+              (($draft + $pr.title)|trunc(40)|rpad(40)),
+              (($revmark + $requested)|trunc(18)|rpad(18)),
+              (if $sess=="" then ("—"|col("90")) else ($sess|col("36")) end)
+            ] | join("  ") ) as $display
+        | [ $display, $pr.url, $sess ] | @tsv'
+}
+
+case "${1:-}" in
+    open)   open_url "${2:-}"; exit 0 ;;
+    switch) [ -n "${2:-}" ] && tmux switch-client -t "$2" 2>/dev/null || true; exit 0 ;;
+    copy)   printf '%s' "${2:-}" | copy_clip; exit 0 ;;
+    list)   build_list; exit 0 ;;
+esac
+
+build_list | fzf \
+    --ansi \
+    --delimiter='\t' \
+    --with-nth=1 \
+    --reverse \
+    --no-info \
+    --pointer='▶' \
+    --prompt='PR ' \
+    --header='enter open · ctrl-s session · ctrl-y copy · ctrl-r refresh' \
+    --preview="gh pr checks {2} 2>/dev/null; echo; gh pr view {2} 2>/dev/null" \
+    --preview-window='down,55%,wrap,border-top' \
+    --bind="enter:execute-silent($SELF open {2})+abort" \
+    --bind="ctrl-s:execute-silent($SELF switch {3})+abort" \
+    --bind="ctrl-y:execute-silent($SELF copy {2})" \
+    --bind="ctrl-r:reload($SELF list)"
