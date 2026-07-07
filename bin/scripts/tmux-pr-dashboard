@@ -9,10 +9,10 @@
 # Bound to `prefix + p` (see tmux/tmux.conf). Requires: gh (authed), jq, fzf.
 #
 # Keys inside the picker:
-#   enter    jump to the code: open a tmux session with this PR's branch
-#            checked out — switching if it's already checked out, else
-#            checking it out in place (clean repo) or in a sibling worktree
-#            (dirty repo), cloning into ~/projects/<name> if not on disk.
+#   enter    jump to the code: open a tmux session on this PR's branch,
+#            using one dedicated worktree per PR — switching if it's already
+#            checked out, else adding a sibling worktree (cloning the repo
+#            into ~/projects/<name> first if it isn't on disk).
 #   o        open the PR in your browser
 #   ctrl-s   just switch to that repo's existing tmux session (no checkout)
 #   ctrl-y   copy the PR url to the clipboard
@@ -23,6 +23,7 @@ set -euo pipefail
 
 SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/tmux-pr-dashboard.tsv"
+PREVIEW_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/tmux-pr-dashboard-previews"
 
 open_url() {
     local url="$1"
@@ -150,44 +151,38 @@ worktree_for_branch() {
 
 sessionize() { "$SESSIONIZER" "$1"; }
 
-# enter: land in a tmux session with this PR's code checked out.
-#   - already checked out somewhere -> switch to it
-#   - repo clean            -> checkout the PR branch in place
-#   - repo dirty            -> add a sibling worktree for the branch
-#   - repo not on disk      -> clone into ~/projects/<name>, then checkout
+# enter: land in a tmux session on this PR's branch — one worktree per PR.
+#   - branch already checked out somewhere -> switch to that session
+#   - otherwise -> add a dedicated sibling worktree for the branch (never
+#     touches the main checkout), mirroring the `wt` script's layout.
+#   - repo not on disk at all -> clone into ~/projects/<name> to base the
+#     worktree on, then add the worktree.
 cmd_goto() {
     local repo="$1" number="$2" headref="$3"
-    local name="${repo##*/}" main wt slug wtpath
+    local name="${repo##*/}" main wt slug wtpath env
     main="$(find_checkout "$repo")"
 
+    # Need a main clone to add worktrees onto; clone it if the repo isn't on disk.
     if [ -z "$main" ]; then
         main="$HOME/projects/$name"
         if [ ! -e "$main" ]; then
             echo "cloning $repo -> $main ..."
             gh repo clone "$repo" "$main" >/dev/null 2>&1 || { echo "clone failed" >&2; return 1; }
         fi
-        ( cd "$main" && gh pr checkout "$number" ) >/dev/null 2>&1 \
-            || git -C "$main" checkout "$headref" >/dev/null 2>&1 || true
-        sessionize "$main"; return 0
     fi
 
-    if [ -n "$headref" ]; then
-        wt="$(worktree_for_branch "$main" "$headref")"
-        [ -n "$wt" ] && { sessionize "$wt"; return 0; }
-    fi
+    [ -n "$headref" ] || headref="pr-$number"
 
-    git -C "$main" fetch origin --quiet >/dev/null 2>&1 || true
+    # Already checked out (in the main clone or an existing worktree)? Switch.
+    wt="$(worktree_for_branch "$main" "$headref")"
+    [ -n "$wt" ] && { sessionize "$wt"; return 0; }
 
-    if [ -z "$(git -C "$main" status --porcelain 2>/dev/null)" ]; then
-        ( cd "$main" && gh pr checkout "$number" ) >/dev/null 2>&1 \
-            || git -C "$main" checkout "$headref" >/dev/null 2>&1 || true
-        sessionize "$main"; return 0
-    fi
-
-    # dirty main checkout -> sibling worktree (mirrors the `wt` script layout)
+    # One worktree per PR, siblinged next to the main checkout (see `wt`).
     slug="${headref//\//-}"
     wtpath="$(dirname "$main")/${name}-${slug}"
     if [ ! -e "$wtpath" ]; then
+        echo "worktree $wtpath ($headref) ..."
+        git -C "$main" fetch origin --quiet >/dev/null 2>&1 || true
         if git -C "$main" show-ref --verify --quiet "refs/heads/$headref"; then
             git -C "$main" worktree add "$wtpath" "$headref" >/dev/null 2>&1
         elif git -C "$main" show-ref --verify --quiet "refs/remotes/origin/$headref"; then
@@ -196,12 +191,69 @@ cmd_goto() {
             git -C "$main" fetch origin "pull/$number/head" --quiet >/dev/null 2>&1 || true
             git -C "$main" worktree add "$wtpath" -b "$headref" FETCH_HEAD >/dev/null 2>&1
         fi
+        # mirror env/direnv files into the worktree (like `wt` does)
+        shopt -s nullglob
+        for env in "$main"/.env* "$main"/.envrc; do
+            [ -f "$env" ] && ln -sf "$env" "$wtpath/$(basename "$env")"
+        done
     fi
-    sessionize "$wtpath"
+
+    if [ -d "$wtpath" ]; then sessionize "$wtpath"
+    else echo "worktree add failed; opening main checkout" >&2; sessionize "$main"; fi
+}
+
+preview_key() { printf '%s' "$1" | tr -c 'A-Za-z0-9' '_'; }
+
+# 0 if $1 exists and is younger than $2 seconds (portable: BSD & GNU stat).
+_fresh() {
+    local m now
+    m="$(stat -f %m "$1" 2>/dev/null || stat -c %Y "$1" 2>/dev/null)" || return 1
+    now="$(date +%s)"
+    [ $(( now - m )) -lt "$2" ]
+}
+
+# Serve the preview for $url: from cache if present (instant), else render it
+# live and populate the cache. The background prefetch keeps the cache warm.
+cmd_preview() {
+    local url="$1" file out
+    [ -n "$url" ] || return 0
+    file="$PREVIEW_DIR/$(preview_key "$url")"
+    if [ -s "$file" ]; then cat "$file"; return 0; fi
+    out="$(render_preview "$url")"
+    printf '%s\n' "$out"
+    if [ -n "$out" ]; then
+        mkdir -p "$PREVIEW_DIR" 2>/dev/null || true
+        printf '%s\n' "$out" > "$file.$$" 2>/dev/null && mv -f "$file.$$" "$file" 2>/dev/null || rm -f "$file.$$"
+    fi
+}
+
+# Render a PR's preview to cache (used by the prefetch), unless a fresh copy
+# (< 60s old) already exists.
+cmd_preview_render() {
+    local url="$1" file
+    [ -n "$url" ] || return 0
+    file="$PREVIEW_DIR/$(preview_key "$url")"
+    _fresh "$file" 60 && return 0
+    mkdir -p "$PREVIEW_DIR" 2>/dev/null || true
+    local tmp="$file.$$" out
+    out="$(render_preview "$url")"
+    if [ -n "$out" ]; then printf '%s\n' "$out" > "$tmp" && mv -f "$tmp" "$file" 2>/dev/null || rm -f "$tmp"; fi
+}
+
+# Speculatively render every PR in the list cache into the preview cache, a few
+# at a time. A mkdir lock keeps concurrent dashboard refreshes from stampeding.
+cmd_prefetch() {
+    local lock="$PREVIEW_DIR/.lock"
+    mkdir -p "$PREVIEW_DIR" 2>/dev/null || true
+    mkdir "$lock" 2>/dev/null || return 0
+    trap 'rmdir "$lock" 2>/dev/null || true' EXIT
+    awk -F'\t' 'NF>=2 && $2!=""{print $2}' "$CACHE" 2>/dev/null \
+        | xargs -P 6 -I{} "$SELF" preview-render "{}" >/dev/null 2>&1 || true
+    rmdir "$lock" 2>/dev/null || true
 }
 
 # Pretty, single-request preview for the highlighted PR (rose-pine palette).
-cmd_preview() {
+render_preview() {
     local url="$1"
     [ -n "$url" ] || return 0
     gh pr view "$url" --json \
@@ -278,7 +330,10 @@ cmd_list() {
     local tmp="$CACHE.$$"
     mkdir -p "$(dirname "$CACHE")" 2>/dev/null || true
     if build_list | tee "$tmp"; then
-        if [ -s "$tmp" ]; then mv -f "$tmp" "$CACHE" 2>/dev/null || rm -f "$tmp"
+        if [ -s "$tmp" ]; then
+            mv -f "$tmp" "$CACHE" 2>/dev/null || rm -f "$tmp"
+            # warm the preview cache in the background so scrolling is instant
+            ( "$SELF" prefetch >/dev/null 2>&1 </dev/null & )
         else rm -f "$tmp"; fi
     else
         rm -f "$tmp"
@@ -289,14 +344,25 @@ case "${1:-}" in
     open)   open_url "${2:-}"; exit 0 ;;
     goto)   cmd_goto "${2:-}" "${3:-}" "${4:-}"; exit 0 ;;
     preview) cmd_preview "${2:-}"; exit 0 ;;
+    preview-render) cmd_preview_render "${2:-}"; exit 0 ;;
+    prefetch) cmd_prefetch; exit 0 ;;
     switch) [ -n "${2:-}" ] && tmux switch-client -t "$2" 2>/dev/null || true; exit 0 ;;
     copy)   printf '%s' "${2:-}" | copy_clip; exit 0 ;;
     list)   cmd_list; exit 0 ;;
 esac
 
-# Cache-first: show the last-known list instantly (blank on first ever run),
-# then fetch fresh data in the background via the `start` reload and swap it in.
-{ cat "$CACHE" 2>/dev/null || true; } | fzf \
+# Snappy open: if the list cache is fresh, show it with ZERO foreground network
+# and just refresh the cache in the background for next time. Only a stale or
+# missing cache does a blocking live reload on start.
+mkdir -p "$(dirname "$CACHE")" 2>/dev/null || true
+start_bind=()
+if _fresh "$CACHE" 90 && [ -s "$CACHE" ]; then
+    ( "$SELF" list >/dev/null 2>&1 </dev/null & )      # background refresh only
+else
+    start_bind=(--bind="start:reload($SELF list)")     # cold/stale: fetch now
+fi
+
+{ if [ -s "$CACHE" ]; then cat "$CACHE"; else printf 'loading PRs…\n'; fi; } | fzf \
     --ansi \
     --delimiter='\t' \
     --with-nth=1 \
@@ -304,10 +370,10 @@ esac
     --no-info \
     --pointer='▶' \
     --prompt='PR ' \
-    --header='enter checkout+session · o browser · ctrl-s session · ctrl-y copy · ctrl-r refresh' \
+    --header='enter worktree+session · o browser · ctrl-s session · ctrl-y copy · ctrl-r refresh' \
     --preview="$SELF preview {2}" \
     --preview-window='down,55%,wrap,border-top' \
-    --bind="start:reload($SELF list)" \
+    ${start_bind[@]+"${start_bind[@]}"} \
     --bind="enter:execute($SELF goto {4} {5} {6})+abort" \
     --bind="o:execute-silent($SELF open {2})+abort" \
     --bind="ctrl-s:execute-silent($SELF switch {3})+abort" \
