@@ -6,11 +6,15 @@
 #   review state / requested reviewers, and which tmux session (if any) that
 #   repo is currently checked out in — so you can jump straight back to it.
 #
-# Bound to `prefix + P` (see tmux/tmux.conf). Requires: gh (authed), jq, fzf.
+# Bound to `prefix + p` (see tmux/tmux.conf). Requires: gh (authed), jq, fzf.
 #
 # Keys inside the picker:
-#   enter    open the PR in your browser
-#   ctrl-s   switch to the tmux session for that repo (if one is open)
+#   enter    jump to the code: open a tmux session with this PR's branch
+#            checked out — switching if it's already checked out, else
+#            checking it out in place (clean repo) or in a sibling worktree
+#            (dirty repo), cloning into ~/projects/<name> if not on disk.
+#   o        open the PR in your browser
+#   ctrl-s   just switch to that repo's existing tmux session (no checkout)
 #   ctrl-y   copy the PR url to the clipboard
 #   ctrl-r   refresh the list
 #
@@ -18,6 +22,7 @@
 set -euo pipefail
 
 SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/tmux-pr-dashboard.tsv"
 
 open_url() {
     local url="$1"
@@ -56,11 +61,7 @@ session_map() {
 }
 
 build_list() {
-    local me q map_json
-    me=$(gh api user --jq .login 2>/dev/null) || { echo "gh not authenticated" >&2; return 0; }
-    [ -n "$me" ] || return 0
-    q="author:$me state:open type:pr"
-
+    local map_json
     map_json=$(session_map | jq -R -s '
         split("\n") | map(select(length>0) | split("\t"))
         | reduce .[] as $r ({}; if has($r[0]) then . else .[$r[0]] = $r[1] end)')
@@ -69,7 +70,7 @@ build_list() {
       query($q:String!) {
         search(query:$q, type:ISSUE, first:100) {
           nodes { ... on PullRequest {
-            number title url createdAt isDraft
+            number title url createdAt isDraft headRefName
             repository { nameWithOwner }
             reviewDecision
             reviewRequests(first:10){ nodes { requestedReviewer {
@@ -77,7 +78,7 @@ build_list() {
             commits(last:1){ nodes { commit { statusCheckRollup { state } } } }
           } }
         }
-      }' -f q="$q" \
+      }' -f q="author:@me state:open type:pr" \
     | jq -r --argjson sessions "$map_json" '
         def esc($x): "[" + $x + "m";
         def rst: "[0m";
@@ -113,17 +114,116 @@ build_list() {
               (($revmark + $requested)|trunc(18)|rpad(18)),
               (if $sess=="" then ("—"|col("90")) else ($sess|col("36")) end)
             ] | join("  ") ) as $display
-        | [ $display, $pr.url, $sess ] | @tsv'
+        | [ $display, $pr.url, $sess, $repo, ($pr.number|tostring), ($pr.headRefName // "") ] | @tsv'
+}
+
+SESSIONIZER="$(dirname "$SELF")/tmux-sessionizer"
+
+# owner/repo -> local main checkout path, "" if not on disk. Prefers the main
+# clone (basename == repo name) over any sibling worktree.
+find_checkout() {
+    local want name base d slug fallback=""
+    want="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+    name="${1##*/}"
+    shopt -s nullglob
+    for base in "$HOME/projects" "$HOME/projects/mayk-it" "$HOME/projects/TamberWorkspace" "$HOME"; do
+        [ -d "$base" ] || continue
+        for d in "$base"/*/; do
+            [ -e "${d}.git" ] || continue
+            slug="$(git -C "$d" remote get-url origin 2>/dev/null \
+                | sed -E 's#^(git@|ssh://git@|https?://)[^/:]+[:/]+##; s#\.git$##' \
+                | tr '[:upper:]' '[:lower:]')"
+            [ "$slug" = "$want" ] || continue
+            if [ "$(basename "$d")" = "$name" ]; then printf '%s' "${d%/}"; return 0; fi
+            [ -z "$fallback" ] && fallback="${d%/}"
+        done
+    done
+    printf '%s' "$fallback"
+}
+
+# path of the worktree that has $branch checked out, "" if none.
+worktree_for_branch() {
+    git -C "$1" worktree list --porcelain 2>/dev/null | awk -v want="refs/heads/$2" '
+        /^worktree /{p=substr($0,10)}
+        /^branch /{if ($2==want){print p; exit}}'
+}
+
+sessionize() { "$SESSIONIZER" "$1"; }
+
+# enter: land in a tmux session with this PR's code checked out.
+#   - already checked out somewhere -> switch to it
+#   - repo clean            -> checkout the PR branch in place
+#   - repo dirty            -> add a sibling worktree for the branch
+#   - repo not on disk      -> clone into ~/projects/<name>, then checkout
+cmd_goto() {
+    local repo="$1" number="$2" headref="$3"
+    local name="${repo##*/}" main wt slug wtpath
+    main="$(find_checkout "$repo")"
+
+    if [ -z "$main" ]; then
+        main="$HOME/projects/$name"
+        if [ ! -e "$main" ]; then
+            echo "cloning $repo -> $main ..."
+            gh repo clone "$repo" "$main" >/dev/null 2>&1 || { echo "clone failed" >&2; return 1; }
+        fi
+        ( cd "$main" && gh pr checkout "$number" ) >/dev/null 2>&1 \
+            || git -C "$main" checkout "$headref" >/dev/null 2>&1 || true
+        sessionize "$main"; return 0
+    fi
+
+    if [ -n "$headref" ]; then
+        wt="$(worktree_for_branch "$main" "$headref")"
+        [ -n "$wt" ] && { sessionize "$wt"; return 0; }
+    fi
+
+    git -C "$main" fetch origin --quiet >/dev/null 2>&1 || true
+
+    if [ -z "$(git -C "$main" status --porcelain 2>/dev/null)" ]; then
+        ( cd "$main" && gh pr checkout "$number" ) >/dev/null 2>&1 \
+            || git -C "$main" checkout "$headref" >/dev/null 2>&1 || true
+        sessionize "$main"; return 0
+    fi
+
+    # dirty main checkout -> sibling worktree (mirrors the `wt` script layout)
+    slug="${headref//\//-}"
+    wtpath="$(dirname "$main")/${name}-${slug}"
+    if [ ! -e "$wtpath" ]; then
+        if git -C "$main" show-ref --verify --quiet "refs/heads/$headref"; then
+            git -C "$main" worktree add "$wtpath" "$headref" >/dev/null 2>&1
+        elif git -C "$main" show-ref --verify --quiet "refs/remotes/origin/$headref"; then
+            git -C "$main" worktree add "$wtpath" -b "$headref" "origin/$headref" >/dev/null 2>&1
+        else
+            git -C "$main" fetch origin "pull/$number/head" --quiet >/dev/null 2>&1 || true
+            git -C "$main" worktree add "$wtpath" -b "$headref" FETCH_HEAD >/dev/null 2>&1
+        fi
+    fi
+    sessionize "$wtpath"
+}
+
+# Regenerate the list, stream it to stdout (for fzf reload) and atomically
+# refresh the cache so the next launch can show it instantly.
+cmd_list() {
+    local tmp="$CACHE.$$"
+    mkdir -p "$(dirname "$CACHE")" 2>/dev/null || true
+    if build_list | tee "$tmp"; then
+        if [ -s "$tmp" ]; then mv -f "$tmp" "$CACHE" 2>/dev/null || rm -f "$tmp"
+        else rm -f "$tmp"; fi
+    else
+        rm -f "$tmp"
+    fi
 }
 
 case "${1:-}" in
     open)   open_url "${2:-}"; exit 0 ;;
+    goto)   cmd_goto "${2:-}" "${3:-}" "${4:-}"; exit 0 ;;
     switch) [ -n "${2:-}" ] && tmux switch-client -t "$2" 2>/dev/null || true; exit 0 ;;
     copy)   printf '%s' "${2:-}" | copy_clip; exit 0 ;;
-    list)   build_list; exit 0 ;;
+    list)   cmd_list; exit 0 ;;
 esac
 
-build_list | fzf \
+# Cache-first: show the last-known list instantly (blank on first ever run),
+# then fetch fresh data in the background via the `start` reload and swap it in.
+{ cat "$CACHE" 2>/dev/null || true; } | fzf \
     --ansi \
     --delimiter='\t' \
     --with-nth=1 \
@@ -131,10 +231,12 @@ build_list | fzf \
     --no-info \
     --pointer='▶' \
     --prompt='PR ' \
-    --header='enter open · ctrl-s session · ctrl-y copy · ctrl-r refresh' \
+    --header='enter checkout+session · o browser · ctrl-s session · ctrl-y copy · ctrl-r refresh' \
     --preview="gh pr checks {2} 2>/dev/null; echo; gh pr view {2} 2>/dev/null" \
     --preview-window='down,55%,wrap,border-top' \
-    --bind="enter:execute-silent($SELF open {2})+abort" \
+    --bind="start:reload($SELF list)" \
+    --bind="enter:execute($SELF goto {4} {5} {6})+abort" \
+    --bind="o:execute-silent($SELF open {2})+abort" \
     --bind="ctrl-s:execute-silent($SELF switch {3})+abort" \
     --bind="ctrl-y:execute-silent($SELF copy {2})" \
     --bind="ctrl-r:reload($SELF list)"
