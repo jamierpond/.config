@@ -207,23 +207,26 @@ cmd_preview() {
     gh pr view "$url" --json \
         title,state,isDraft,author,headRefName,baseRefName,additions,deletions,reviewDecision,latestReviews,reviewRequests,labels,statusCheckRollup,body \
         2>/dev/null | jq -r '
-        def rst: "[0m";
-        def bold: "[1m" + . + rst;
-        def tc($r;$g;$b): "[38;2;\($r);\($g);\($b)m" + . + rst;
+        def rst: "[0m";
+        def bold: "[1m" + . + rst;
+        def tc($r;$g;$b): "[38;2;\($r);\($g);\($b)m" + . + rst;
         def muted: tc(110;106;134);
         def subtle: tc(144;140;170);
         def foam:  tc(156;207;216);
         def iris:  tc(196;167;231);
-        def green: "[32m" + . + rst;
-        def red:   "[31m" + . + rst;
-        def yellow:"[33m" + . + rst;
-        def grey:  "[90m" + . + rst;
+        def green: "[32m" + . + rst;
+        def red:   "[31m" + . + rst;
+        def yellow:"[33m" + . + rst;
+        def grey:  "[90m" + . + rst;
         def rpad($n): (. + (" " * 60))[0:$n];
         def trunc($n): if length > $n then .[0:($n-1)] + "…" else . end;
-        def dur($a;$b): if ($a != null and $b != null)
-            then ((($b|fromdateiso8601) - ($a|fromdateiso8601))|floor) as $s
-                 | if $s >= 60 then "\(($s/60)|floor)m\($s%60)s" else "\($s)s" end
-            else "" end;
+        def iszero($t): ($t == null) or ($t | startswith("0001-01-01"));
+        def dur($a;$b): if (iszero($a) or iszero($b)) then ""
+            else ((($b|fromdateiso8601) - ($a|fromdateiso8601))|floor) as $s
+                 | if $s < 0 then ""
+                   elif $s >= 60 then "\(($s/60)|floor)m\($s%60)s"
+                   else "\($s)s" end
+            end;
         . as $pr
         | [ $pr.statusCheckRollup[]? ] as $checks
         | ($checks | map(
