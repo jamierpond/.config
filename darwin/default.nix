@@ -147,6 +147,9 @@
     taps = [
       "nikitabobko/tap" # AeroSpace
     ];
+    brews = [
+      "bun"                # JavaScript runtime, bundler & package manager (oven-sh)
+    ];
     casks = [
       "aerospace"          # tiling window manager (config: ~/.config/aerospace/aerospace.toml)
       "karabiner-elements" # keyboard customiser (ships a DriverKit system extension — cask-only)
