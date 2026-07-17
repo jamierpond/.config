@@ -47,7 +47,12 @@ export PYENV_ROOT="$HOME/.pyenv"
 # =============================================================================
 # Environment variables
 # =============================================================================
-export EDITOR="${EDITOR:-nvim}"
+# Force nvim as the editor everywhere. Use an unconditional assignment (not
+# ${EDITOR:-nvim}) because the Nix-generated set-environment exports EDITOR=nano
+# at login, which a fallback would preserve.
+export EDITOR="nvim"
+export VISUAL="nvim"
+export GIT_EDITOR="nvim"
 export SCREENRC="$HOME/.config/screenrc"
 export HOMEBREW_NO_AUTO_UPDATE=1
 export XDG_CONFIG_HOME="$HOME/.config"
