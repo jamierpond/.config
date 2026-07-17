@@ -12,7 +12,9 @@
 # =============================================================================
 # Environment
 # =============================================================================
-$env:EDITOR = if ($env:EDITOR) { $env:EDITOR } else { "nvim" }
+$env:EDITOR = "nvim"
+$env:VISUAL = "nvim"
+$env:GIT_EDITOR = "nvim"
 if (Get-Command fd -ErrorAction SilentlyContinue) {
     $env:FZF_DEFAULT_COMMAND = 'fd --type f --hidden --exclude .git'
     $env:FZF_CTRL_T_COMMAND  = $env:FZF_DEFAULT_COMMAND

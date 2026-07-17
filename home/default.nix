@@ -4,6 +4,14 @@
   # Let home-manager manage itself
   programs.home-manager.enable = true;
 
+  # Default editor: nvim everywhere. Set at the Nix level so non-interactive
+  # shells and the generated set-environment get it too (overriding the
+  # nix-darwin default of nano).
+  home.sessionVariables = {
+    EDITOR = "nvim";
+    VISUAL = "nvim";
+  };
+
   # Packages to install
   home.packages = with pkgs; [
     # ==========================================================================
@@ -152,6 +160,7 @@
       user.name = "Jamie Pond";
       user.email = "jamiepond259@gmail.com";
       init.defaultBranch = "main";
+      core.editor = "nvim";
       credential.helper = "${pkgs.gh}/bin/gh auth git-credential";
       push.autoSetupRemote = true;
       pull.rebase = false;

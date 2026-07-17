@@ -1,0 +1,10 @@
+#!/bin/bash
+# Speak text through the *current system output device*.
+# Plain `say` uses its own speech-output device pref, which ignores the
+# system default and can land on a silent/stale device. Synthesizing to a
+# file and playing via afplay routes through the normal default path,
+# exactly like bell-sound.
+
+f="$(mktemp -t say-notify).aiff"
+say -o "$f" "$@" && afplay "$f"
+rm -f "$f"
