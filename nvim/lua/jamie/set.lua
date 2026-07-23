@@ -30,8 +30,8 @@ vim.opt.textwidth = 80
 vim.opt.colorcolumn = "80"
 
 -- 0.12: popup menu border + global floating window borders
-vim.opt.pumborder = "rounded"
-vim.opt.winborder = "rounded"
+pcall(function() vim.opt.pumborder = "rounded" end)
+pcall(function() vim.opt.winborder = "rounded" end)
 
 -- 0.12: per-project config (.nvim.lua / .nvimrc) with parent dir search
 vim.opt.exrc = true
