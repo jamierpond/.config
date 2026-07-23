@@ -28,6 +28,17 @@ export PATH="$PATH:$HOME/go/bin"
 export PATH="$PATH:$HOME/projects/bodgolt"
 export PATH="$PATH:$HOME/.cargo/bin"
 export PATH="$PATH:/snap/bin"
+# Homebrew (macOS/ARM at /opt/homebrew; Intel's /usr/local is already on PATH).
+# Appended (low priority) so nix + vite-plus tools win over brew-installed ones.
+# Provides brew-cask CLIs like `aerospace`.
+if [ -x /opt/homebrew/bin/brew ]; then
+  export HOMEBREW_PREFIX="/opt/homebrew"
+  export PATH="$PATH:/opt/homebrew/bin:/opt/homebrew/sbin"
+  export MANPATH="${MANPATH:-}:/opt/homebrew/share/man"
+fi
+# vite-plus shims (node/npm/npx/vpx/vpr) must win over Homebrew, so prepend
+export PATH="$HOME/.vite-plus/bin:$PATH"
+
 
 # Pyenv
 export PYENV_ROOT="$HOME/.pyenv"
@@ -36,14 +47,19 @@ export PYENV_ROOT="$HOME/.pyenv"
 # =============================================================================
 # Environment variables
 # =============================================================================
-export EDITOR="${EDITOR:-nvim}"
+# Force nvim as the editor everywhere. Use an unconditional assignment (not
+# ${EDITOR:-nvim}) because the Nix-generated set-environment exports EDITOR=nano
+# at login, which a fallback would preserve.
+export EDITOR="nvim"
+export VISUAL="nvim"
+export GIT_EDITOR="nvim"
 export SCREENRC="$HOME/.config/screenrc"
 export HOMEBREW_NO_AUTO_UPDATE=1
 export XDG_CONFIG_HOME="$HOME/.config"
 export VIRTUAL_ENV="venv"
 export UV_PROJECT_ENVIRONMENT="venv"
 export VCPKG_ROOT="$HOME/vcpkg"
-export DO_NOT_TRACK=1
+# export DO_NOT_TRACK=1
 export MANPATH="$HOME/.local/share/man:$MANPATH"
 export PNPM_HOME="$HOME/.local/share/pnpm"
 export GOPATH="$HOME/go"
@@ -52,6 +68,7 @@ export GOPATH="$HOME/go"
 # Aliases - scripts
 # =============================================================================
 alias gitbump="git commit -m 'chore: bump ci, empty commit' --allow-empty"
+alias jf='just $(just --list | tail -n +2 | fzf | awk '\''{ print $1 }'\'')'
 alias bump="gitbump"
 claude() { (unset DO_NOT_TRACK; command claude "$@"); }
 alias spicy="claude --dangerously-skip-permissions"
@@ -154,7 +171,13 @@ alias win="ssh-win -tt Owner@windows"
 # =============================================================================
 alias ta="tmux attach"
 alias t="tmux"
-alias tmux='tmux -f ~/.config/tmux/tmux.conf'
+# On Windows, tmux is psmux, which reads ~/.psmux.conf (linked from
+# windows/psmux.conf by setup.ps1). Forcing the Linux conf onto it loses
+# default-shell and new panes fall back to PowerShell.
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*) ;;
+  *) alias tmux='tmux -f ~/.config/tmux/tmux.conf' ;;
+esac
 alias tks="tmux kill-server"
 
 # =============================================================================

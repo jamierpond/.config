@@ -9,6 +9,14 @@ vim.treesitter.get_node_text = function(node, source, opts)
   return ""
 end
 
+if vim.fn.has('win32') == 1 then
+  if vim.fn.executable('clang') == 0 then
+    vim.env.PATH = vim.env.PATH
+      .. ';C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\Llvm\\x64\\bin'
+  end
+  require('nvim-treesitter.install').compilers = { 'clang' }
+end
+
 require'nvim-treesitter.configs'.setup {
   -- A list of parser names, or "all"
   ensure_installed = { "vimdoc", "javascript", "cpp", "typescript", "c", "lua", "rust", "yaml" },

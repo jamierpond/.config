@@ -1,3 +1,9 @@
+if vim.lsp.buf_get_clients == nil then
+    vim.lsp.buf_get_clients = function(bufnr)
+        return vim.lsp.get_clients({ bufnr = bufnr })
+    end
+end
+
 local mappings_utils = require('renamer.mappings.utils')
 require('renamer').setup {
     -- The popup title, shown if `border` is true

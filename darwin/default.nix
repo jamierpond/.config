@@ -50,16 +50,22 @@
       InitialKeyRepeat = 15;
       KeyRepeat = 2;
       "com.apple.sound.beep.feedback" = 0; # Disable UI sound effects
+      "com.apple.sound.beep.volume" = 0.0; # Mute the alert/invalid-action beep entirely
       # Kill animations
       NSAutomaticWindowAnimationsEnabled = false; # No window open/close animations
       NSScrollAnimationEnabled = false; # No smooth scrolling
       NSWindowResizeTime = 0.001; # Instant window resize
     };
 
-    universalaccess = {
-      reduceMotion = true; # System-wide reduce motion
-      reduceTransparency = true; # Less compositing overhead
-    };
+    # NOTE: Disabled — writing com.apple.universalaccess is TCC-protected and
+    # aborts `darwin-rebuild` activation ("Could not write domain
+    # com.apple.universalaccess; exiting") unless the activating terminal has
+    # Full Disk Access. To re-enable: grant your terminal Full Disk Access
+    # (System Settings > Privacy & Security > Full Disk Access), then uncomment.
+    # universalaccess = {
+    #   reduceMotion = true; # System-wide reduce motion
+    #   reduceTransparency = true; # Less compositing overhead
+    # };
 
     # Defaults not covered by typed nix-darwin options
     CustomUserPreferences = {
@@ -126,14 +132,34 @@
   #   remapCapsLockToEscape = true;
   # };
 
-  # Homebrew integration (for GUI apps not in nixpkgs)
-  # homebrew = {
-  #   enable = true;
-  #   casks = [
-  #     "iterm2"
-  #     "raycast"
-  #   ];
-  # };
+  # Homebrew integration (for GUI apps / drivers not available in nixpkgs).
+  # Requires Homebrew to be pre-installed (/opt/homebrew). nix-darwin generates
+  # a Brewfile and runs `brew bundle` on activation.
+  homebrew = {
+    enable = true;
+    onActivation = {
+      autoUpdate = true;
+      upgrade = true;
+      cleanup = "none"; # never uninstall brew packages not listed here
+    };
+    # NOTE: Homebrew 6+ refuses casks from third-party taps until trusted.
+    # One-time per machine (nix-darwin can't do it): brew trust nikitabobko/tap
+    taps = [
+      "nikitabobko/tap" # AeroSpace
+    ];
+    brews = [
+      "bun"                # JavaScript runtime, bundler & package manager (oven-sh)
+    ];
+    casks = [
+      "aerospace"          # tiling window manager (config: ~/.config/aerospace/aerospace.toml)
+      "karabiner-elements" # keyboard customiser (ships a DriverKit system extension — cask-only)
+      "font-jetbrains-mono" # JetBrains Mono font
+      "1password"          # password manager
+      "1password-cli"      # `op` CLI (needed by tamber gen-config; enable in 1Password → Settings → Developer)
+      "google-cloud-sdk"   # `gcloud` CLI (tamber build-app / upload-and-publish → GCS). Auth: gcloud auth login
+      "visual-studio-code" # VS Code editor
+    ];
+  };
 
   # Colima — lightweight Docker runtime (replaces Docker Desktop)
   launchd.user.agents.colima = {

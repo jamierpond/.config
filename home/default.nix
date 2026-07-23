@@ -4,6 +4,14 @@
   # Let home-manager manage itself
   programs.home-manager.enable = true;
 
+  # Default editor: nvim everywhere. Set at the Nix level so non-interactive
+  # shells and the generated set-environment get it too (overriding the
+  # nix-darwin default of nano).
+  home.sessionVariables = {
+    EDITOR = "nvim";
+    VISUAL = "nvim";
+  };
+
   # Packages to install
   home.packages = with pkgs; [
     # ==========================================================================
@@ -35,6 +43,7 @@
     git
     git-lfs
     git-secret
+    gnupg            # gpg — commit signing, git-secret backend
     gh
     graphite-cli   # gt - stacked git changes
     lazygit
@@ -79,8 +88,16 @@
     pkg-config
     protobuf         # protoc
 
-    # C/C++ toolchain — clang-tools for LSP/formatting on all platforms
-    clang-tools      # clangd, clang-format, etc. (no cc conflict)
+    # C/C++ toolchain. On macOS only clang-format is taken from clang-tools:
+    # Apple ships clangd (/usr/bin/clangd, matched to the Xcode SDK), and the
+    # Nix clangd injects Nix libc++/libSystem headers on top of -isysroot,
+    # producing bogus diagnostics in SDK-based projects.
+    (if stdenv.isDarwin then
+      runCommand "clang-format-only" { } ''
+        mkdir -p $out/bin
+        ln -s ${clang-tools}/bin/clang-format $out/bin/clang-format
+      ''
+    else clang-tools)
   ] ++ lib.optionals stdenv.isLinux [
     # llvm/lld on Linux only — on macOS they shadow Apple's dsymutil/linker and break Swift builds
     llvm
@@ -138,10 +155,12 @@
   # Git config
   programs.git = {
     enable = true;
+    lfs.enable = true;
     settings = {
       user.name = "Jamie Pond";
       user.email = "jamiepond259@gmail.com";
       init.defaultBranch = "main";
+      core.editor = "nvim";
       credential.helper = "${pkgs.gh}/bin/gh auth git-credential";
       push.autoSetupRemote = true;
       pull.rebase = false;

@@ -7,10 +7,20 @@
         {
             "Name": "extras",
             "Source": "https://github.com/ScoopInstaller/Extras"
+        },
+        {
+            "Name": "psmux",
+            "Source": "https://github.com/psmux/scoop-psmux"
+        },
+        {
+            "Name": "nerd-fonts",
+            "Source": "https://github.com/matthewjberger/scoop-nerd-fonts"
         }
     ],
     "apps": [
+        { "Name": "1password-cli", "Source": "main" },
         { "Name": "7zip",        "Source": "main"   },
+        { "Name": "alacritty",   "Source": "extras" },
         { "Name": "bat",         "Source": "main"   },
         { "Name": "btop",        "Source": "main"   },
         { "Name": "cmake",       "Source": "main"   },
@@ -25,12 +35,16 @@
         { "Name": "go",          "Source": "main"   },
         { "Name": "hyperfine",   "Source": "main"   },
         { "Name": "imagemagick", "Source": "main"   },
+        { "Name": "inno-setup",  "Source": "extras" },
         { "Name": "jq",          "Source": "main"   },
         { "Name": "just",        "Source": "main"   },
         { "Name": "lazygit",     "Source": "extras" },
         { "Name": "ninja",       "Source": "main"   },
         { "Name": "nodejs",      "Source": "main"   },
+        { "Name": "pnpm",        "Source": "main"   },
         { "Name": "protobuf",    "Source": "extras" },
+        { "Name": "psmux",       "Source": "psmux"  },
+        { "Name": "JetBrainsMono-NF", "Source": "nerd-fonts" },
         { "Name": "ripgrep",     "Source": "main"   },
         { "Name": "rustup",      "Source": "main"   },
         { "Name": "sd",          "Source": "main"   },

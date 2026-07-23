@@ -15,26 +15,34 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Neovim 0.12+ (tracks latest release/nightly)
-    neovim-nightly-overlay = {
-      url = "github:nix-community/neovim-nightly-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # Neovim 0.12+ (tracks latest nightly).
+    # Consumed via its prebuilt `packages.<system>.default` (see neovimOverlay
+    # below), so its nixpkgs must NOT follow ours — the nix-community Cachix only
+    # has binaries built against the overlay's own pinned nixpkgs.
+    neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
   };
 
   outputs = { self, nixpkgs, home-manager, nix-darwin, neovim-nightly-overlay, ... }:
     let
       lib = nixpkgs.lib;
 
-      # Neovim nightly overlay (gives us 0.12+)
-      neovimOverlay = neovim-nightly-overlay.overlays.default;
+      # Inject the overlay's PREBUILT neovim (cached in nix-community Cachix) as
+      # pkgs.neovim. Using neovim-nightly-overlay.overlays.default instead would
+      # re-derive neovim against our nixpkgs — a guaranteed cache miss that forces
+      # a source build of bundled tree-sitter (whose cargo-vendor step 403s on
+      # crates.io's User-Agent block).
+      neovimOverlay = final: prev: {
+        neovim = neovim-nightly-overlay.packages.${prev.stdenv.hostPlatform.system}.default;
+      };
+
+      overlays = [ neovimOverlay ];
 
       # Helper to make home-manager config for any system
       mkHome = { system, username, homeDirectory ? null }:
         home-manager.lib.homeManagerConfiguration {
           pkgs = import nixpkgs {
             inherit system;
-            overlays = [ neovimOverlay ];
+            inherit overlays;
           };
           modules = [
             ./home
@@ -164,7 +172,7 @@
             ./darwin
             {
               nixpkgs.hostPlatform = system;
-              nixpkgs.overlays = [ neovimOverlay ];
+              nixpkgs.overlays = overlays;
             }
             home-manager.darwinModules.home-manager
             {

@@ -1,0 +1,413 @@
+#!/usr/bin/env bash
+# tmux-pr-dashboard — a shipping dashboard for your open PRs.
+#
+# Lists every open PR you authored across all repos (newest first), showing:
+#   CI status (● green/red/yellow, ○ = no checks), age, repo, title,
+#   review state / requested reviewers, and which tmux session (if any) that
+#   repo is currently checked out in — so you can jump straight back to it.
+#
+# Bound to `prefix + p` (see tmux/tmux.conf). Requires: gh (authed), jq, fzf.
+#
+# Keys inside the picker:
+#   enter    jump to the code: open a tmux session on this PR's branch,
+#            using one dedicated worktree per PR — switching if it's already
+#            checked out, else adding a sibling worktree (cloning the repo
+#            into ~/projects/<name> first if it isn't on disk).
+#   ctrl-o   open the PR in your browser
+#   ctrl-s   just switch to that repo's existing tmux session (no checkout)
+#   ctrl-y   copy the PR url to the clipboard
+#   ctrl-x   close the PR (asks for y/N confirmation first)
+#   ctrl-r   refresh the list
+#
+# Runs on macOS/Linux (tmux). On Windows/psmux it simply isn't bound.
+set -euo pipefail
+
+SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/tmux-pr-dashboard.tsv"
+PREVIEW_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/tmux-pr-dashboard-previews"
+
+open_url() {
+    local url="$1"
+    [ -n "$url" ] || return 0
+    if command -v open >/dev/null 2>&1; then
+        open "$url" >/dev/null 2>&1
+    elif command -v xdg-open >/dev/null 2>&1; then
+        xdg-open "$url" >/dev/null 2>&1
+    elif command -v powershell.exe >/dev/null 2>&1; then
+        powershell.exe -NoProfile Start-Process "$url" >/dev/null 2>&1
+    fi
+}
+
+copy_clip() {
+    if command -v pbcopy >/dev/null 2>&1; then pbcopy
+    elif command -v xclip >/dev/null 2>&1; then xclip -selection clipboard
+    elif command -v clip.exe >/dev/null 2>&1; then clip.exe
+    else cat >/dev/null; fi
+}
+
+# Map "owner/repo" (lowercased) -> tmux session name, derived from the git
+# remote of each session's pane paths. First session wins per repo.
+session_map() {
+    command -v tmux >/dev/null 2>&1 || return 0
+    tmux list-panes -a -F '#{session_name}	#{pane_current_path}' 2>/dev/null \
+        | sort -u \
+        | while IFS='	' read -r sess path; do
+            [ -d "$path" ] || continue
+            top=$(git -C "$path" rev-parse --show-toplevel 2>/dev/null) || continue
+            url=$(git -C "$top" remote get-url origin 2>/dev/null) || continue
+            slug=$(printf '%s' "$url" \
+                | sed -E 's#^(git@|ssh://git@|https?://)[^/:]+[:/]+##; s#\.git$##' \
+                | tr '[:upper:]' '[:lower:]')
+            [ -n "$slug" ] && printf '%s	%s\n' "$slug" "$sess"
+        done
+}
+
+build_list() {
+    local map_json
+    map_json=$(session_map | jq -R -s '
+        split("\n") | map(select(length>0) | split("\t"))
+        | reduce .[] as $r ({}; if has($r[0]) then . else .[$r[0]] = $r[1] end)')
+
+    gh api graphql -f query='
+      query($q:String!) {
+        search(query:$q, type:ISSUE, first:100) {
+          nodes { ... on PullRequest {
+            number title url createdAt isDraft headRefName
+            repository { nameWithOwner }
+            reviewDecision
+            reviewRequests(first:10){ nodes { requestedReviewer {
+              ... on User { login } ... on Team { name } } } }
+            commits(last:1){ nodes { commit { committedDate pushedDate statusCheckRollup { state } } } }
+          } }
+        }
+      }' -f q="author:@me state:open type:pr" \
+    | jq -r --argjson sessions "$map_json" '
+        def esc($x): "[" + $x + "m";
+        def rst: "[0m";
+        def col($x): esc($x) + . + rst;
+        def rpad($n): (. + (" " * 200))[0:$n];
+        def trunc($n): if (length > $n) then (.[0:($n-1)] + "…") else . end;
+        def lastpush: (.commits.nodes[0].commit.pushedDate
+                       // .commits.nodes[0].commit.committedDate // .createdAt);
+        [ .data.search.nodes[] | select(.url != null) ]
+        | sort_by(lastpush) | reverse | .[]
+        | . as $pr
+        | ($pr | lastpush) as $pushed
+        | ($pr.commits.nodes[0].commit.statusCheckRollup.state // "NONE") as $ci
+        | ( if   $ci=="SUCCESS"                     then ("●"|col("32"))
+            elif ($ci=="FAILURE" or $ci=="ERROR")   then ("●"|col("31"))
+            elif ($ci=="PENDING" or $ci=="EXPECTED") then ("●"|col("33"))
+            else ("○"|col("90")) end ) as $dot
+        | (now - ($pushed|fromdateiso8601)) as $secs
+        | ( if   ($secs/86400) >= 14 then "\(($secs/604800)|floor)w"
+            elif ($secs/86400) >= 1  then "\(($secs/86400)|floor)d"
+            elif ($secs/3600)  >= 1  then "\(($secs/3600)|floor)h"
+            else "\(($secs/60)|floor)m" end ) as $age
+        | $pr.repository.nameWithOwner as $repo
+        | ($sessions[($repo|ascii_downcase)] // "") as $sess
+        | ($repo | sub(".*/";"")) as $reponame
+        | ( [ $pr.reviewRequests.nodes[].requestedReviewer
+              | ("@" + (.login // .name // "?")) ] | join(" ") ) as $requested
+        | ( if   $pr.reviewDecision=="APPROVED"          then "✓ "
+            elif $pr.reviewDecision=="CHANGES_REQUESTED" then "✗ "
+            else "" end ) as $revmark
+        | ( if ($pr.isDraft // false) then "◌ " else "" end ) as $draft
+        | ( [ $dot,
+              ($age|rpad(4)),
+              ($reponame|trunc(18)|rpad(18)),
+              (($draft + $pr.title)|trunc(40)|rpad(40)),
+              (($revmark + $requested)|trunc(18)|rpad(18)),
+              (if $sess=="" then ("—"|col("90")) else ($sess|col("36")) end)
+            ] | join("  ") ) as $display
+        | [ $display, $pr.url, $sess, $repo, ($pr.number|tostring), ($pr.headRefName // "") ] | @tsv'
+}
+
+SESSIONIZER="$(dirname "$SELF")/tmux-sessionizer"
+
+# owner/repo -> local main checkout path, "" if not on disk. Prefers the main
+# clone (basename == repo name) over any sibling worktree.
+find_checkout() {
+    local want name base d slug fallback=""
+    want="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+    name="${1##*/}"
+    shopt -s nullglob
+    for base in "$HOME/projects" "$HOME/projects/mayk-it" "$HOME/projects/TamberWorkspace" "$HOME"; do
+        [ -d "$base" ] || continue
+        for d in "$base"/*/; do
+            [ -e "${d}.git" ] || continue
+            slug="$(git -C "$d" remote get-url origin 2>/dev/null \
+                | sed -E 's#^(git@|ssh://git@|https?://)[^/:]+[:/]+##; s#\.git$##' \
+                | tr '[:upper:]' '[:lower:]')"
+            [ "$slug" = "$want" ] || continue
+            if [ "$(basename "$d")" = "$name" ]; then printf '%s' "${d%/}"; return 0; fi
+            [ -z "$fallback" ] && fallback="${d%/}"
+        done
+    done
+    printf '%s' "$fallback"
+}
+
+# path of the worktree that has $branch checked out, "" if none.
+worktree_for_branch() {
+    git -C "$1" worktree list --porcelain 2>/dev/null | awk -v want="refs/heads/$2" '
+        /^worktree /{p=substr($0,10)}
+        /^branch /{if ($2==want){print p; exit}}'
+}
+
+sessionize() { "$SESSIONIZER" "$1"; }
+
+# enter: land in a tmux session on this PR's branch — one worktree per PR.
+#   - branch already checked out somewhere -> switch to that session
+#   - otherwise -> add a dedicated sibling worktree for the branch (never
+#     touches the main checkout), mirroring the `wt` script's layout.
+#   - repo not on disk at all -> clone into ~/projects/<name> to base the
+#     worktree on, then add the worktree.
+cmd_goto() {
+    local repo="$1" number="$2" headref="$3"
+    local name="${repo##*/}" main wt slug wtpath env
+    main="$(find_checkout "$repo")"
+
+    # Need a main clone to add worktrees onto; clone it if the repo isn't on disk.
+    if [ -z "$main" ]; then
+        main="$HOME/projects/$name"
+        if [ ! -e "$main" ]; then
+            echo "cloning $repo -> $main ..."
+            gh repo clone "$repo" "$main" >/dev/null 2>&1 || { echo "clone failed" >&2; return 1; }
+        fi
+    fi
+
+    [ -n "$headref" ] || headref="pr-$number"
+
+    # Already checked out (in the main clone or an existing worktree)? Switch.
+    wt="$(worktree_for_branch "$main" "$headref")"
+    [ -n "$wt" ] && { sessionize "$wt"; return 0; }
+
+    # One worktree per PR, siblinged next to the main checkout (see `wt`).
+    slug="${headref//\//-}"
+    wtpath="$(dirname "$main")/${name}-${slug}"
+    if [ ! -e "$wtpath" ]; then
+        echo "worktree $wtpath ($headref) ..."
+        git -C "$main" fetch origin --quiet >/dev/null 2>&1 || true
+        if git -C "$main" show-ref --verify --quiet "refs/heads/$headref"; then
+            git -C "$main" worktree add "$wtpath" "$headref" >/dev/null 2>&1
+        elif git -C "$main" show-ref --verify --quiet "refs/remotes/origin/$headref"; then
+            git -C "$main" worktree add "$wtpath" -b "$headref" "origin/$headref" >/dev/null 2>&1
+        else
+            git -C "$main" fetch origin "pull/$number/head" --quiet >/dev/null 2>&1 || true
+            git -C "$main" worktree add "$wtpath" -b "$headref" FETCH_HEAD >/dev/null 2>&1
+        fi
+        # mirror env/direnv files into the worktree (like `wt` does)
+        shopt -s nullglob
+        for env in "$main"/.env* "$main"/.envrc; do
+            [ -f "$env" ] && ln -sf "$env" "$wtpath/$(basename "$env")"
+        done
+    fi
+
+    if [ -d "$wtpath" ]; then sessionize "$wtpath"
+    else echo "worktree add failed; opening main checkout" >&2; sessionize "$main"; fi
+}
+
+# Close the PR after an explicit y/N confirmation (runs in an fzf `execute`
+# context, so it has a tty for the prompt).
+cmd_close() {
+    local url="$1" ans
+    [ -n "$url" ] || return 0
+    printf 'Close %s ? [y/N] ' "$url"
+    read -r ans
+    case "$ans" in
+        y|Y|yes|YES)
+            if gh pr close "$url" 2>&1; then
+                rm -f "$PREVIEW_DIR/$(preview_key "$url")" 2>/dev/null || true
+                echo "closed."
+            fi
+            sleep 0.6 ;;
+        *) echo "aborted."; sleep 0.4 ;;
+    esac
+}
+
+preview_key() { printf '%s' "$1" | tr -c 'A-Za-z0-9' '_'; }
+
+# 0 if $1 exists and is younger than $2 seconds (portable: BSD & GNU stat).
+_fresh() {
+    local m now
+    m="$(stat -f %m "$1" 2>/dev/null || stat -c %Y "$1" 2>/dev/null)" || return 1
+    now="$(date +%s)"
+    [ $(( now - m )) -lt "$2" ]
+}
+
+# Serve the preview for $url: from cache if present (instant), else render it
+# live and populate the cache. The background prefetch keeps the cache warm.
+cmd_preview() {
+    local url="$1" file out
+    [ -n "$url" ] || return 0
+    file="$PREVIEW_DIR/$(preview_key "$url")"
+    if [ -s "$file" ]; then cat "$file"; return 0; fi
+    out="$(render_preview "$url")"
+    printf '%s\n' "$out"
+    if [ -n "$out" ]; then
+        mkdir -p "$PREVIEW_DIR" 2>/dev/null || true
+        printf '%s\n' "$out" > "$file.$$" 2>/dev/null && mv -f "$file.$$" "$file" 2>/dev/null || rm -f "$file.$$"
+    fi
+}
+
+# Render a PR's preview to cache (used by the prefetch), unless a fresh copy
+# (< 60s old) already exists.
+cmd_preview_render() {
+    local url="$1" file
+    [ -n "$url" ] || return 0
+    file="$PREVIEW_DIR/$(preview_key "$url")"
+    _fresh "$file" 60 && return 0
+    mkdir -p "$PREVIEW_DIR" 2>/dev/null || true
+    local tmp="$file.$$" out
+    out="$(render_preview "$url")"
+    if [ -n "$out" ]; then printf '%s\n' "$out" > "$tmp" && mv -f "$tmp" "$file" 2>/dev/null || rm -f "$tmp"; fi
+}
+
+# Speculatively render every PR in the list cache into the preview cache, a few
+# at a time. A mkdir lock keeps concurrent dashboard refreshes from stampeding.
+cmd_prefetch() {
+    local lock="$PREVIEW_DIR/.lock"
+    mkdir -p "$PREVIEW_DIR" 2>/dev/null || true
+    mkdir "$lock" 2>/dev/null || return 0
+    trap 'rmdir "$lock" 2>/dev/null || true' EXIT
+    awk -F'\t' 'NF>=2 && $2!=""{print $2}' "$CACHE" 2>/dev/null \
+        | xargs -P 6 -I{} "$SELF" preview-render "{}" >/dev/null 2>&1 || true
+    rmdir "$lock" 2>/dev/null || true
+}
+
+# Pretty, single-request preview for the highlighted PR (rose-pine palette).
+render_preview() {
+    local url="$1"
+    [ -n "$url" ] || return 0
+    gh pr view "$url" --json \
+        title,state,isDraft,author,headRefName,baseRefName,additions,deletions,reviewDecision,latestReviews,reviewRequests,labels,statusCheckRollup,body \
+        2>/dev/null | jq -r '
+        def rst: "[0m";
+        def bold: "[1m" + . + rst;
+        def tc($r;$g;$b): "[38;2;\($r);\($g);\($b)m" + . + rst;
+        def muted: tc(110;106;134);
+        def subtle: tc(144;140;170);
+        def foam:  tc(156;207;216);
+        def iris:  tc(196;167;231);
+        def green: "[32m" + . + rst;
+        def red:   "[31m" + . + rst;
+        def yellow:"[33m" + . + rst;
+        def grey:  "[90m" + . + rst;
+        def rpad($n): (. + (" " * 60))[0:$n];
+        def trunc($n): if length > $n then .[0:($n-1)] + "…" else . end;
+        def iszero($t): ($t == null) or ($t | startswith("0001-01-01"));
+        def dur($a;$b): if (iszero($a) or iszero($b)) then ""
+            else ((($b|fromdateiso8601) - ($a|fromdateiso8601))|floor) as $s
+                 | if $s < 0 then ""
+                   elif $s >= 60 then "\(($s/60)|floor)m\($s%60)s"
+                   else "\($s)s" end
+            end;
+        . as $pr
+        | [ $pr.statusCheckRollup[]? ] as $checks
+        | ($checks | map(
+            if .__typename=="CheckRun"
+              then (if .status!="COMPLETED" then "RUNNING" else (.conclusion // "") end)
+              else (.state // "") end)) as $states
+        | ($states | map(select(.=="SUCCESS")) | length) as $npass
+        | ($states | map(. as $s | select(["FAILURE","ERROR","TIMED_OUT","CANCELLED","STARTUP_FAILURE","ACTION_REQUIRED"] | index($s))) | length) as $nfail
+        | ($states | map(. as $s | select(["RUNNING","PENDING","EXPECTED","QUEUED","IN_PROGRESS"] | index($s))) | length) as $nrun
+        | ($checks | map(
+            . as $c
+            | (if $c.__typename=="CheckRun" then (.name // "?") else (.context // "?") end) as $nm
+            | (if $c.__typename=="CheckRun" then (if $c.status!="COMPLETED" then "RUNNING" else (.conclusion // "") end) else (.state // "") end) as $st
+            | (if $st=="SUCCESS" then ("✓"|green)
+               elif (["FAILURE","ERROR","TIMED_OUT","CANCELLED","STARTUP_FAILURE","ACTION_REQUIRED"]|index($st)) then ("✗"|red)
+               elif (["RUNNING","PENDING","EXPECTED","QUEUED","IN_PROGRESS"]|index($st)) then ("●"|yellow)
+               else ("○"|grey) end) as $g
+            | "  " + $g + " " + ($nm|trunc(30)|rpad(31)) + (dur($c.startedAt;$c.completedAt)|muted)
+          )) as $checklines
+        | ( [ ($pr.latestReviews // [])[]
+              | ((if .state=="APPROVED" then "✓" elif .state=="CHANGES_REQUESTED" then "✗" else "•" end)
+                 + " @" + (.author.login // "?"))
+              | (if startswith("✓") then green elif startswith("✗") then red else subtle end) ]
+            + [ ($pr.reviewRequests // [])[]
+              | ("⋯ @" + (.requestedReviewer.login // .requestedReviewer.name // "?")) | muted ]
+          ) as $revs
+        | ($pr.labels // [] | map(.name) | join(", ")) as $labels
+        | ( ($pr.body // "") | gsub("\r";"") | split("\n") | .[0:20] | map("  " + .) | join("\n") ) as $body
+        | ( [ ($pr.title | bold),
+              ( [ (if $pr.isDraft then ("draft"|grey) else ($pr.state|ascii_downcase|foam) end),
+                  ((($pr.headRefName // "?")|foam) + ("→"|muted) + (($pr.baseRefName // "?")|subtle)),
+                  (("+\($pr.additions)"|green) + " " + ("-\($pr.deletions)"|red)) ] | join("   ") ),
+              "" ]
+            + (if ($checks|length) > 0
+                 then [ (("Checks"|muted) + "   " + ("\($npass) ok"|green)
+                         + (if $nfail>0 then "   " + ("\($nfail) fail"|red) else "" end)
+                         + (if $nrun>0 then "   " + ("\($nrun) running"|yellow) else "" end)) ]
+                      + $checklines + [""]
+                 else [] end)
+            + [ ("Reviews"|muted) + "  " + (if ($revs|length)>0 then ($revs|join("   ")) else ("none"|grey) end) ]
+            + (if ($labels|length)>0 then [ ("Labels"|muted) + "   " + $labels ] else [] end)
+            + (if ($body|length)>0 then [ "", ($body|subtle) ] else [] end)
+          ) | join("\n")'
+}
+
+# Regenerate the list, stream it to stdout (for fzf reload) and atomically
+# refresh the cache so the next launch can show it instantly.
+cmd_list() {
+    local tmp="$CACHE.$$"
+    mkdir -p "$(dirname "$CACHE")" 2>/dev/null || true
+    if build_list | tee "$tmp"; then
+        if [ -s "$tmp" ]; then
+            mv -f "$tmp" "$CACHE" 2>/dev/null || rm -f "$tmp"
+            # warm the preview cache in the background so scrolling is instant
+            ( "$SELF" prefetch >/dev/null 2>&1 </dev/null & )
+        else rm -f "$tmp"; fi
+    else
+        rm -f "$tmp"
+    fi
+}
+
+# Non-blocking refresh: rebuild the list cache in the background, then (if fzf
+# is listening) push the fresh rows into the open view without blanking it.
+# Returns immediately so it can be used from an fzf execute-silent binding.
+cmd_refresh() {
+    local port="${FZF_PORT:-}"
+    ( "$SELF" list >/dev/null 2>&1
+      if [ -n "$port" ] && command -v curl >/dev/null 2>&1; then
+          curl -s -XPOST "localhost:$port" -d "reload(cat \"$CACHE\")" >/dev/null 2>&1 || true
+      fi
+    ) </dev/null >/dev/null 2>&1 &
+}
+
+case "${1:-}" in
+    open)   open_url "${2:-}"; exit 0 ;;
+    refresh) cmd_refresh; exit 0 ;;
+    goto)   cmd_goto "${2:-}" "${3:-}" "${4:-}"; exit 0 ;;
+    close)  cmd_close "${2:-}"; exit 0 ;;
+    preview) cmd_preview "${2:-}"; exit 0 ;;
+    preview-render) cmd_preview_render "${2:-}"; exit 0 ;;
+    prefetch) cmd_prefetch; exit 0 ;;
+    switch) [ -n "${2:-}" ] && tmux switch-client -t "$2" 2>/dev/null || true; exit 0 ;;
+    copy)   printf '%s' "${2:-}" | copy_clip; exit 0 ;;
+    list)   cmd_list; exit 0 ;;
+esac
+
+# Snappy open, no cold starts: show whatever is in the cache instantly (any
+# age; only the very first run has none), then refresh in the background and
+# stream the fresh rows into the open view via --listen — never blanking it.
+mkdir -p "$(dirname "$CACHE")" 2>/dev/null || true
+
+{ if [ -s "$CACHE" ]; then cat "$CACHE"; else printf 'loading PRs…\n'; fi; } | fzf \
+    --ansi \
+    --listen \
+    --delimiter='\t' \
+    --with-nth=1 \
+    --reverse \
+    --no-info \
+    --pointer='▶' \
+    --prompt='PR ' \
+    --header='enter worktree+session · ctrl-o browser · ctrl-s session · ctrl-y copy · ctrl-x close · ctrl-r refresh' \
+    --preview="$SELF preview {2}" \
+    --preview-window='down,55%,wrap,border-top' \
+    --bind="start:execute-silent($SELF refresh)" \
+    --bind="enter:execute($SELF goto {4} {5} {6})+abort" \
+    --bind="ctrl-o:execute-silent($SELF open {2})+abort" \
+    --bind="ctrl-s:execute-silent($SELF switch {3})+abort" \
+    --bind="ctrl-y:execute-silent($SELF copy {2})" \
+    --bind="ctrl-x:execute($SELF close {2})+execute-silent($SELF refresh)" \
+    --bind="ctrl-r:execute-silent($SELF refresh)"

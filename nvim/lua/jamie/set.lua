@@ -10,6 +10,10 @@ vim.opt.smartindent = true
 
 vim.opt.wrap = false
 
+-- No mouse: keep native terminal text-selection and avoid TUIs leaving the
+-- terminal in SGR mouse-report mode (scroll then spews escape codes at the prompt).
+vim.opt.mouse = ""
+
 vim.opt.swapfile = false
 vim.opt.backup = false
 vim.opt.undodir = os.getenv("HOME") .. "/.vim/undodir"
@@ -26,12 +30,21 @@ vim.opt.isfname:append("@-@")
 
 vim.opt.updatetime = 50
 
+-- copilot.vim defaults to `npx @github/copilot-language-server`, which fails on
+-- Windows (scoop's npx is a .ps1/.cmd shim nvim can't spawn). Use the bundled
+-- language server via plain node instead.
+vim.g.copilot_npx_command = 0
+
 vim.opt.textwidth = 80
 vim.opt.colorcolumn = "80"
 
 -- 0.12: popup menu border + global floating window borders
 pcall(function() vim.opt.pumborder = "rounded" end)
 pcall(function() vim.opt.winborder = "rounded" end)
+if vim.fn.has("nvim-0.12") == 1 then
+  vim.opt.pumborder = "rounded"
+end
+vim.opt.winborder = "rounded"
 
 -- 0.12: per-project config (.nvim.lua / .nvimrc) with parent dir search
 vim.opt.exrc = true

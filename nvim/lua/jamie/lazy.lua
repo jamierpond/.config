@@ -296,6 +296,7 @@ lazy.setup({
   -- xbase, it's a big one
   {
       'xbase-lab/xbase',
+      cond = function() return vim.fn.has('mac') == 1 end,  -- macOS/Xcode only; needs a rust toolchain (`rustup default stable`)
       build = 'make install',  -- Changed 'run' to 'build' for lazy.nvim
       dependencies = {         -- Changed 'requires' to 'dependencies' for lazy.nvim
           "neovim/nvim-lspconfig",
@@ -377,8 +378,13 @@ lazy.setup({
 
   -- yapi (local plugin)
   {
-    dir = "~/projects/yapi/integrations/nvim",
+    dir = vim.fn.expand("~/projects/yapi/integrations/nvim"),
     name = "yapi-nvim",
+    -- Local plugin: only load when the checkout actually exists (skips cleanly on
+    -- machines where yapi isn't cloned instead of hard-erroring on startup).
+    cond = function()
+      return vim.fn.isdirectory(vim.fn.expand("~/projects/yapi/integrations/nvim")) == 1
+    end,
     config = function()
       require("yapi_nvim").setup({
         pretty = false,  -- use pretty TUI watch mode

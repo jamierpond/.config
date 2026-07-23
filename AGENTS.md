@@ -1,10 +1,13 @@
 # Platform Info
 
+**This config MUST support Windows, macOS, and Linux.** Any script, config, or change should work across all three platforms (or degrade gracefully where a tool is platform-specific).
+
 This dotfiles config targets:
 - **ARM64 MacBook Pro** (Apple Silicon) - macOS with Homebrew
 - **Ubuntu x86_64** - Linux with Nix
+- **Windows 11 x86_64** - Windows with PowerShell (no Nix; packages managed via **scoop** — see `windows/scoopfile.json` and `windows/setup.ps1`)
 
-Package management uses **Nix** for cross-platform consistency. Scripts should handle both platforms and include appropriate PATH entries for Nix (`~/.nix-profile/bin`, `/nix/var/nix/profiles/default/bin`) and Homebrew (`/opt/homebrew/bin` for ARM Mac, `/usr/local/bin` for Intel).
+Package management uses **Nix** for cross-platform consistency on macOS/Linux. Scripts should handle all platforms and include appropriate PATH entries for Nix (`~/.nix-profile/bin`, `/nix/var/nix/profiles/default/bin`) and Homebrew (`/opt/homebrew/bin` for ARM Mac, `/usr/local/bin` for Intel). On Windows, prefer PowerShell-compatible scripts (or platform guards in shared scripts) and avoid assuming POSIX paths, symlinks, or a Unix shell.
 
 # Package Installation
 
