@@ -120,6 +120,8 @@ skip_files=()
 included_files=()
 file_stats=""
 total_lines=0
+total_adds=0
+total_dels=0
 included_lines=0
 
 while IFS=$'\t' read -r adds dels file; do
@@ -133,6 +135,8 @@ while IFS=$'\t' read -r adds dels file; do
 
     total=$((adds + dels))
     total_lines=$((total_lines + total))
+    total_adds=$((total_adds + adds))
+    total_dels=$((total_dels + dels))
 
     skip_reason=""
 
@@ -205,7 +209,7 @@ echo "$diff_output"
         fi
     done <<< "$(echo -n "$file_stats" | sort -t: -k1 -n)"
     echo "-----------------------------------"
-    printf "Total: %d lines changed\n" "$total_lines"
+    printf "Total: %d lines changed  (+%d -%d)\n" "$total_lines" "$total_adds" "$total_dels"
     if [ ${#skip_files[@]} -gt 0 ]; then
         printf "Showing: %d lines (%d files), Skipped: %d lines (%d files)\n" \
             "$included_lines" "${#included_files[@]}" \
