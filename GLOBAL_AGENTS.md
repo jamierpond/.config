@@ -1,3 +1,7 @@
+# Why use more word when less word do trick?
+
+Seriously. I mean it.
+
 ## Bell Notification
 
 User has `bell` zsh alias triggering system notification/sound. Use when
@@ -23,3 +27,6 @@ to git. This does not mean the code was 'accepted', just acknowledged.
 Generally when asked to write a file to disk, do so in the repo I'm working in.
 When writing memories, write it to a readme in the repo. Do not put proprietary
 knowledge in Anthropic's walled garden.
+
+
+
