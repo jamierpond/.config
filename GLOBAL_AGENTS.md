@@ -52,6 +52,21 @@ I monitor all your code and regulary commit your code to git. This way I can
 continually monitor your progress. Do not be surprised if the code is commited
 to git. This does not mean the code was 'accepted', just acknowledged.
 
+## Porting/moving code: 1:1, never "simplified"
+When porting or moving existing code, the result must be 1:1 with the
+original. No "simplification", no tweaked constants, no reordered logic or
+composite/mix steps, no dropped effects, no creative substitutions — I
+consider silent drift during a port a war crime. Hand-tuned code (shaders,
+animation, DSP) especially: every deviation changes the feel and is nearly
+invisible in review. If an adaptation is genuinely forced (missing input,
+different runtime), call it out explicitly as a deviation with the reason —
+never fold it in silently.
+
+Workflow: move files with `git mv` (or `mv`) and then fix what breaks —
+imports, paths, names. Never "move" code by retyping or regenerating it into
+a new file: the mechanical move guarantees the content starts 1:1 and keeps
+git history/diffs honest; retyping is where silent drift creeps in.
+
 # Writing memories
 Generally when asked to write a file to disk, do so in the repo I'm working in.
 When writing memories, write it to a readme in the repo. Do not put proprietary
