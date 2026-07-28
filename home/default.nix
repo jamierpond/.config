@@ -82,7 +82,9 @@
     # ==========================================================================
     just             # command runner (better make for project tasks)
     gnumake
-    cmake
+    # cmake comes from brew (darwin/default.nix): the Nix store's bundled
+    # MacOSXBundleInfo.plist.in is 0444 and cmake preserves template perms,
+    # so every generated macOS bundle Info.plist is born read-only.
     ninja            # fast build system
     bazel
     pkg-config

@@ -149,6 +149,7 @@
     ];
     brews = [
       "bun"                # JavaScript runtime, bundler & package manager (oven-sh)
+      "cmake"              # NOT nix cmake: its 0444 plist templates make bundle Info.plists read-only
     ];
     casks = [
       "aerospace"          # tiling window manager (config: ~/.config/aerospace/aerospace.toml)
