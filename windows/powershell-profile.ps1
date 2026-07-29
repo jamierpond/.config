@@ -15,6 +15,9 @@
 $env:EDITOR = "nvim"
 $env:VISUAL = "nvim"
 $env:GIT_EDITOR = "nvim"
+# lazygit reads %LOCALAPPDATA%\lazygit on Windows, not ~/.config; point it at
+# the repo config (state.yml stays in %LOCALAPPDATA%, out of git).
+$env:LG_CONFIG_FILE = "$env:USERPROFILE\.config\lazygit\config.yml"
 if (Get-Command fd -ErrorAction SilentlyContinue) {
     $env:FZF_DEFAULT_COMMAND = 'fd --type f --hidden --exclude .git'
     $env:FZF_CTRL_T_COMMAND  = $env:FZF_DEFAULT_COMMAND
@@ -43,14 +46,28 @@ function prompt {
         $git = " ${blue}git:($red$branch$blue)$dirty$reset"
     }
 
-    "$arrow➜ $cyan$cwd$reset$git "
+    # steady bar cursor at every prompt (insert mode), like zle-line-init
+    "$e[6 q$arrow➜ $cyan$cwd$reset$git "
 }
 
 # =============================================================================
 # PSReadLine - vi mode + cursor shapes (matches vi-mode.zsh) + fzf-like history
 # =============================================================================
 Set-PSReadLineOption -EditMode Vi
-try { Set-PSReadLineOption -ViModeIndicator Cursor } catch { }   # block/beam cursor per mode
+# DECSCUSR cursor shapes, matching vi-mode.zsh: steady bar (insert) / steady
+# block (normal). Steady variants -> no blinking.
+function OnViModeChange
+{
+    $e = [char]27
+    if ($args[0] -eq 'Command') { Write-Host -NoNewline "$e[2 q" }
+    else { Write-Host -NoNewline "$e[6 q" }
+}
+try
+{
+    Set-PSReadLineOption -ViModeIndicator Script `
+                         -ViModeChangeHandler $Function:OnViModeChange
+}
+catch { try { Set-PSReadLineOption -ViModeIndicator Cursor } catch { } }
 try { Set-PSReadLineOption -HistorySearchCursorMovesToEnd } catch { }
 # PredictionSource needs PSReadLine >= 2.1; this box has 2.0, so guard it.
 try { Set-PSReadLineOption -PredictionSource History } catch { }
@@ -103,7 +120,16 @@ if (Get-Command fzf -ErrorAction SilentlyContinue) {
 # Replaces the fzf dir-jump aliases (jd/c) from shellrc.
 # =============================================================================
 if (Get-Command zoxide -ErrorAction SilentlyContinue) {
-    Invoke-Expression (& { (zoxide init powershell | Out-String) })
+    # `zoxide init` spawns zoxide.exe (~70ms) on every shell. Cache its output
+    # and regenerate only when the binary is newer. Cache lives in LOCALAPPDATA
+    # so the generated file stays out of git. Dot-source (not Invoke-Expression)
+    # so the prompt hook still wraps the `prompt` defined above.
+    $zi = "$env:LOCALAPPDATA\zoxide-init.ps1"
+    $zexe = (Get-Command zoxide).Source
+    if (-not (Test-Path $zi) -or (Get-Item $zexe).LastWriteTime -gt (Get-Item $zi).LastWriteTime) {
+        zoxide init powershell | Out-String | Set-Content -Encoding UTF8 -Path $zi
+    }
+    . $zi
 }
 
 # =============================================================================
@@ -180,6 +206,7 @@ if (Get-Command psmux -ErrorAction SilentlyContinue) {
 Set-Alias g gemini
 function m { make @args }
 function spicy { claude --dangerously-skip-permissions @args }   # matches shellrc alias
+function dicy  { codex --dangerously-bypass-approvals-and-sandbox @args }   # matches shellrc alias
 
 # =============================================================================
 # Aliases ported from shellrc / zshrc - the portable ones (pure commands).

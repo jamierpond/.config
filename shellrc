@@ -72,6 +72,7 @@ alias jf='just $(just --list | tail -n +2 | fzf | awk '\''{ print $1 }'\'')'
 alias bump="gitbump"
 claude() { (unset DO_NOT_TRACK; command claude "$@"); }
 alias spicy="claude --dangerously-skip-permissions"
+alias dicy="codex --dangerously-bypass-approvals-and-sandbox"
 alias cbs="generate-claude-branch-summary"
 alias r="temp-script-edit-run"
 alias mf="makefile-target-fzf"

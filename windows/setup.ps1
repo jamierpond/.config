@@ -272,6 +272,29 @@ if (Test-Path $kbdMgrDir) {
 }
 
 # =============================================================================
+# Neovim config (junction - dir links don't need admin, unlike symlinks)
+# =============================================================================
+#
+# On Windows nvim reads %LOCALAPPDATA%\nvim, not ~/.config/nvim, so the repo
+# checkout alone isn't picked up.
+
+$nvimTarget = "$env:LOCALAPPDATA\nvim"
+$nvimSrc = "$DotfilesDir\nvim"
+if (Test-Path $nvimSrc) {
+    $nvimItem = if (Test-Path $nvimTarget) { Get-Item $nvimTarget -Force } else { $null }
+    if ($nvimItem -and $nvimItem.LinkType) {
+        Write-Info "Neovim config already linked: $nvimTarget"
+    } else {
+        if ($nvimItem) {
+            Move-Item $nvimTarget "$nvimTarget.bak" -Force
+            Write-Info "  Backed up existing nvim config to $nvimTarget.bak"
+        }
+        New-Item -ItemType Junction -Path $nvimTarget -Target $nvimSrc | Out-Null
+        Write-Info "Linked Neovim config: $nvimTarget -> $nvimSrc"
+    }
+}
+
+# =============================================================================
 # psmux config (source-file stub - survives file replacement, no admin needed)
 # =============================================================================
 
@@ -427,8 +450,8 @@ Write-Host ""
 Write-Host "What's set up:"
 Write-Host "  - Scoop packages: ~/.config/windows/scoopfile.json"
 Write-Host "  - Git config:     ~/.config/windows/gitconfig (included via ~/.gitconfig)"
-Write-Host "  - Neovim config:  ~/.config/nvim/ (auto-detected by nvim)"
-Write-Host "  - Lazygit config: ~/.config/lazygit/ (auto-detected)"
+Write-Host "  - Neovim config:  %LOCALAPPDATA%\nvim junction -> ~/.config/nvim/"
+Write-Host "  - Lazygit config: ~/.config/lazygit/ (via LG_CONFIG_FILE in PS profile)"
 Write-Host "  - Terminal:       symlinked from ~/.config/windows/terminal-settings.json"
 Write-Host "  - Keyboard Mgr:   symlinked from ~/.config/windows/powertoys/keyboard-manager.json"
 Write-Host "  - 1Password:      desktop app + CLI (op) - needed for native app builds"
