@@ -253,3 +253,8 @@ info:
     @echo ""
     @echo "Flake inputs:"
     @nix flake metadata 2>/dev/null | grep -A 100 "Inputs:" || echo "  (flake not initialized)"
+
+# Merge repo-managed Claude Code env into ~/.claude/settings.json (needs jq)
+claude-settings:
+    jq '.env = (.env // {}) + {"CLAUDE_CODE_SUBAGENT_MODEL":"opus"}' {{ env("HOME") }}/.claude/settings.json > {{ env("HOME") }}/.claude/settings.json.tmp && mv {{ env("HOME") }}/.claude/settings.json.tmp {{ env("HOME") }}/.claude/settings.json
+    @echo "CLAUDE_CODE_SUBAGENT_MODEL=opus set in ~/.claude/settings.json"

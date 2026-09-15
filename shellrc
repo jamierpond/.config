@@ -59,6 +59,9 @@ export XDG_CONFIG_HOME="$HOME/.config"
 export VIRTUAL_ENV="venv"
 export UV_PROJECT_ENVIRONMENT="venv"
 export VCPKG_ROOT="$HOME/vcpkg"
+# Claude Code: Fable orchestrates, subagents run on Opus (also set in
+# ~/.claude/settings.json env block via `just claude-settings`).
+export CLAUDE_CODE_SUBAGENT_MODEL="opus"
 # export DO_NOT_TRACK=1
 export MANPATH="$HOME/.local/share/man:$MANPATH"
 export PNPM_HOME="$HOME/.local/share/pnpm"

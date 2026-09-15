@@ -15,6 +15,8 @@
 $env:EDITOR = "nvim"
 $env:VISUAL = "nvim"
 $env:GIT_EDITOR = "nvim"
+# Claude Code: Fable orchestrates, subagents run on Opus.
+$env:CLAUDE_CODE_SUBAGENT_MODEL = "opus"
 # lazygit reads %LOCALAPPDATA%\lazygit on Windows, not ~/.config; point it at
 # the repo config (state.yml stays in %LOCALAPPDATA%, out of git).
 $env:LG_CONFIG_FILE = "$env:USERPROFILE\.config\lazygit\config.yml"
