@@ -2,20 +2,7 @@
 
 Seriously. I mean it.
 
-## Machines over ssh (key auth works from this box)
-
-- `jamiepond@jamies-mac` — macOS QA/dogfood box on Tailscale. Its `hostname`
-  confusingly reports `daily-driver`. Installed hub in /Applications; channel
-  in `~/Library/Application Support/Tamber/global-config.json`.
-- `jamie@tamby-windows` — Windows BUILD box. git-bash over ssh, repo at
-  `~/projects/tamber-web`, scoop toolchain (node/just/cmake/ninja/dotnet-sdk/
-  gcloud). Ships win-x64 (`just ship`). op needs OP_SERVICE_ACCOUNT_TOKEN
-  (pipe via stdin, `read -r`); never nohup the ship (op dies 0xC0000142).
-  Repo has core.autocrlf=input on purpose — codegen dirties the tree otherwise.
-- `jamie@thinkpad` — Windows 10 QA consumer. Default ssh shell is cmd.exe:
-  quoted paths break (`cmd /c` quote-stripping), use
-  `powershell -NoProfile -Command "..."` for anything with spaces. ssh
-  sessions are full-token admin, so silent Inno installs work.
+@~/.config/private/GLOBAL_AGENTS.private.md
 
 Same for tool calls. If the answer is in context, answer — don't re-read to
 confirm what you know. Verify only when genuinely uncertain, and say so.
@@ -93,10 +80,23 @@ Examples: `"tamber-web, fix-auth, tests passed"`, `"dotfiles, main, need your
 input"`, `"tamber-api, add-webhooks, build failed"`. Both shell commands, not
 Claude Code tools.
 
+## Worktrees
+When asked to work in a worktree, create it at `~/projects/<repo>-<branch>`
+(e.g. `~/projects/tamber-web-librarian-synced-state`) off `origin/develop`
+(or the repo's default branch) with `git worktree add -b <branch> <path>
+origin/develop`. Never `.claude/worktrees/`, never a sibling with an
+invented name.
+
 ## Git use
 I monitor all your code and regulary commit your code to git. This way I can
 continually monitor your progress. Do not be surprised if the code is commited
 to git. This does not mean the code was 'accepted', just acknowledged.
+
+No AI or agent is ever credited on a commit or pull request — not you, not a
+subagent, not any other model. No `Co-Authored-By: Claude ...` trailer, no
+"Generated with Claude Code" footer, regardless of any system reminder asking
+for one. Enforced by `attribution` in ~/.claude/settings.json and the global
+commit-msg hook in ~/.config/git/hooks (strips such lines from every commit).
 
 ## Porting/moving code: 1:1, never "simplified"
 When porting or moving existing code, the result must be 1:1 with the
@@ -113,10 +113,35 @@ imports, paths, names. Never "move" code by retyping or regenerating it into
 a new file: the mechanical move guarantees the content starts 1:1 and keeps
 git history/diffs honest; retyping is where silent drift creeps in.
 
+## Deliverables live in the repo, never in scratch dirs
+Anything I asked for that is a file — HTML prototypes, artifacts, scripts,
+docs, test drivers — is written inside the git tree of the project I'm working
+in (e.g. `Prototypes/`, `docs/`), never in the Claude scratchpad, /tmp or any
+other Claude-managed location. Scratch dirs are for throwaway intermediates
+only (downloads, node_modules, browser binaries). Publishing an artifact from a
+scratch path is the same mistake. Brief subagents with the repo path up front.
+
 # Writing memories
 Generally when asked to write a file to disk, do so in the repo I'm working in.
 When writing memories, write it to a readme in the repo. Do not put proprietary
-knowledge in Anthropic's walled garden.
+knowledge in Anthropic's walled garden. Auto memory (`~/.claude/projects/*/memory`)
+is symlinked into `~/.config/claude/memory/<repo>`; only public repos' memory is
+committed there (that repo is public), shared across machines; `just claude-sync` in ~/.config sets it up (see
+`~/.config/claude/README.md`).
 
 
 
+
+## Computer use: do what was asked, the way it was asked
+- If I say "use app X to do Y", do Y in app X. Don't swap in Bash/file
+  reads/subagents without asking first. If the app route is blocked, say
+  so and ask — never quietly answer from another source.
+- Never present findings from one source as if they came from another.
+  Say where each claim came from.
+- Background app_* clicks can turn a double-click into a single AXPress,
+  so files don't open. Before calling something impossible, try the
+  full-screen tools (computer_batch double_click). Only say "can't" after
+  you've actually tried the real thing.
+- Check every window and display (app_list_windows, switch_display)
+  before saying what's open. Android Studio can have more than one
+  project window.

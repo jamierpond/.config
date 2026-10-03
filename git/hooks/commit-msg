@@ -1,0 +1,13 @@
+#!/bin/sh
+# Strip AI/agent attribution from every commit message, then run the repo's own hook.
+msg="$1"
+tmp="$msg.noai"
+grep -v -i -E \
+  '^(Co-Authored-By|Signed-off-by|Generated-by|Assisted-by):.*(claude|anthropic|copilot|openai|chatgpt|gpt|gemini|cursor|codex|devin|aider|windsurf|cody|ai@|noreply@anthropic|github-copilot|bot@)' \
+  "$msg" \
+  | grep -v -i -E '(Generated with|Made with|Co-authored with|Written with|Assisted by).*(claude|copilot|chatgpt|gemini|cursor|codex|devin|aider|windsurf|cody|openai| ai\b)' \
+  > "$tmp" || true
+mv "$tmp" "$msg"
+gitdir="$(git rev-parse --git-dir 2>/dev/null)" || exit 0
+local_hook="$gitdir/hooks/commit-msg"
+if [ -x "$local_hook" ]; then exec "$local_hook" "$@"; fi

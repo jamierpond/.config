@@ -1,0 +1,4 @@
+#!/bin/sh
+gitdir="$(git rev-parse --git-dir 2>/dev/null)" || exit 0
+local_hook="$gitdir/hooks/$(basename "$0")"
+if [ -x "$local_hook" ]; then exec "$local_hook" "$@"; fi

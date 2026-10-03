@@ -1,0 +1,1 @@
+- [No README writes in Wim](no-readme-writes.md) — code only, never touch docs

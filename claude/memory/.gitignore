@@ -1,0 +1,7 @@
+# Only memory for PUBLIC repos is committed here. Everything else stays on
+# disk (claude-sync still symlinks it) but never enters this public repo.
+*
+!.gitignore
+!eacp/
+!projects-eacp/
+!projects-Wim/

@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Point ~/.claude at the repo-managed Claude Code config: CLAUDE.md, the
+# shared settings keys, and each repo's auto-memory directory.
+set -euo pipefail
+
+cfg="$(cd "$(dirname "$0")/../.." && pwd)"
+claude_dir="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+mem_root="$cfg/claude/memory"
+mkdir -p "$claude_dir" "$mem_root"
+
+ln -sfn "$cfg/GLOBAL_AGENTS.md" "$claude_dir/CLAUDE.md"
+echo "CLAUDE.md -> GLOBAL_AGENTS.md"
+
+settings="$claude_dir/settings.json"
+[ -s "$settings" ] || echo '{}' > "$settings"
+jq -s '.[0] * .[1]' "$settings" "$cfg/claude/settings.json" > "$settings.tmp"
+mv "$settings.tmp" "$settings"
+echo "settings.json merged"
+
+slug() { printf '%s' "$1" | sed 's/[^A-Za-z0-9]/-/g'; }
+name() { local rel="${1#"$HOME"/}"; printf '%s' "${rel//\//-}"; }
+
+link_memory() {
+    local repo="$1"
+    [ -d "$repo" ] || return 0
+    local src="$claude_dir/projects/$(slug "$repo")/memory"
+    local dst="$mem_root/$(name "$repo")"
+    if [ -d "$src" ] && [ ! -L "$src" ] && [ -n "$(ls -A "$src")" ]; then
+        mkdir -p "$dst"
+        mv -n "$src"/* "$dst"/
+        rmdir "$src" 2>/dev/null || { echo "!! $src still has files, not linked"; return 0; }
+        echo "migrated $(name "$repo")"
+    fi
+    [ -d "$dst" ] || return 0
+    [ -L "$src" ] && [ "$(readlink "$src")" = "$dst" ] && return 0
+    [ -d "$src" ] && rmdir "$src"
+    mkdir -p "$(dirname "$src")"
+    ln -sfn "$dst" "$src"
+    echo "linked  $(name "$repo")"
+}
+
+for repo in "$cfg" "$HOME/projects" "$HOME"/projects/* "$HOME/eacp" "$HOME"/Code/*; do
+    link_memory "$repo"
+done

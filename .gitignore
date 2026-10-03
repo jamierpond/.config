@@ -12,6 +12,7 @@
 !AGENTS.md
 !CLAUDE.md
 !GLOBAL_AGENTS.md
+!claude/
 !OpenCode.md
 !README.md
 
@@ -44,6 +45,9 @@ colima/**
 !colima/default/
 !colima/default/colima.yaml
 !direnv/
+!git/
+git/*
+!git/hooks/
 !screenrc
 
 # Nix config

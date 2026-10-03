@@ -1,0 +1,73 @@
+<!-- header-symbols:begin -->
+- [eacp Camera](eacp-camera.md) — PixelFormat, PermissionStatus, CameraDevice, CameraFormat, CameraConfig, CameraFrame
+- [eacp CameraView](eacp-cameraview.md) — CameraView
+- [eacp Core/App](eacp-core-app.md) — AppBase, App, FilePickerOptions, FileSaveOptions, AppEnvironment, getGlobalApp
+- [eacp Core/Maths](eacp-core-maths.md) — Mat4, Vec2, Vec3, Vec4, radians, degrees
+- [eacp Core/ObjC](eacp-core-objc.md) — AutoReleasePool, CFRef, RetainMode, Ptr, RuntimeClass, alloc
+- [eacp Core/Platform](eacp-core-platform.md) — OS, ScopedAutoReleasePool, current, isMac, isIOS, isApple
+- [eacp Core/Plugins](eacp-core-plugins.md) — DynamicLibrary, unload, getCurrentModulePath, getModuleIdentitySuffix, isDynamicLibrary, start
+- [eacp Core/Process](eacp-core-process.md) — EnvironmentVariable, ProcessOptions, ProcessResult, Process, run, runAsync
+- [eacp Core/Threads](eacp-core-threads.md) — AsyncError, AsyncPromise, Async, EventLoop, BinarySemaphore, TaskSemaphore
+- [eacp Core/Utils](eacp-core-utils.md) — File, FilePath, MemoryMappedFile, Pimpl, Random, Range
+- [eacp GPU/Buffer](eacp-gpu-buffer.md) — BufferUsage, BufferStorage, IndexFormat, ExternalMemory, Buffer, BufferRange
+- [eacp GPU/Codegen](eacp-gpu-codegen.md) — ComputeBindVisitor, ComputeProgram, GeneratedShader, ShaderValueOf, UNorm8x4, Float16x2
+- [eacp GPU/CommandBuffer](eacp-gpu-commandbuffer.md) — CommandBuffer
+- [eacp GPU/Device](eacp-gpu-device.md) — Device
+- [eacp GPU/Frame](eacp-gpu-frame.md) — DispatchArguments, TimingScope, DispatchOrder, ComputePass, DepthAction, RenderPassDescriptor
+- [eacp GPU/Pipeline](eacp-gpu-pipeline.md) — ComputePipeline, CompiledCompute, PixelFormat, PrimitiveTopology, BlendMode, BlendFactor
+- [eacp GPU/Shader](eacp-gpu-shader.md) — ShaderLibrary, ShaderBackend, ShaderStage, ResourceKind, ThreadGroupShape, ResourceBinding
+- [eacp GPU/Spirv](eacp-gpu-spirv.md) — Stage, CompileResult, compileGlsl, compilerIdentity, warmUp
+- [eacp GPU/Texture](eacp-gpu-texture.md) — MipChain, TextureFormat, TextureFilter, TextureAddressMode, TextureSampling, TextureDescriptor
+- [eacp GPU/Timing](eacp-gpu-timing.md) — CallCost, CallCostCounter, ScopedCallCost, CommandTimer, FrameTimer, PassTiming
+- [eacp GPU/View](eacp-gpu-view.md) — GPUView, platformBackingScale
+- [eacp GPUWidgets](eacp-gpuwidgets.md) — colorAt
+- [eacp GPUWidgets/Path](eacp-gpuwidgets-path.md) — AffineTransform, BackdropScanKernel, BinKernel, ClearKernel, CoverageBatch, PathIndexedKernel
+- [eacp GPUWidgets/View](eacp-gpuwidgets-view.md) — CoverageShader, PathFillShader, PathView, VertexColorShader, FillVertex, GradientVertex
+- [eacp Graphics/Graphics](eacp-graphics-graphics.md) — Context, MacOSContext, ModifierKeys, KeyEventType, KeyEvent, Key
+- [eacp Graphics/Helpers](eacp-graphics-helpers.md) — FrameTime, DisplayLink, toNSImage, isSystemDarkMode
+- [eacp Graphics/HotKey](eacp-graphics-hotkey.md) — GlobalHotKey
+- [eacp Graphics/IconTool](eacp-graphics-icontool.md) — downscaleTo, writeIcns, writeIco, writeIconset
+- [eacp Graphics/Image](eacp-graphics-image.md) — ImageFormat, Image, Affine2x3, resizeBilinear, warpAffineInverse, mirroredCrop
+- [eacp Graphics/Layers](eacp-graphics-layers.md) — Layer, TextLayerView, ShapeLayerView, NativeLayer, ShapeLayer, TextLayer
+- [eacp Graphics/Menu](eacp-graphics-menu.md) — KeyEquivalent, MenuItem, Menu, MenuBar, MenuEntryKind, MenuCommand
+- [eacp Graphics/Primitives](eacp-graphics-primitives.md) — FontOptions, Font, Path, Point, Insets, Rect
+- [eacp Graphics/Tray](eacp-graphics-tray.md) — TrayIcon
+- [eacp Graphics/View](eacp-graphics-view.md) — MouseEventType, MouseButton, MouseCursor, ScrollPhase, MouseEvent, ViewProperties
+- [eacp Graphics/Widgets](eacp-graphics-widgets.md) — TextInput
+- [eacp Graphics/Window](eacp-graphics-window.md) — Display, EmbeddedViewOptions, EmbeddedView, NativeChildSurface, ResizeAxis, ResizeRequest
+- [eacp ML/Kernels](eacp-ml-kernels.md) — ActivationKind, ActivationKernel, AttentionScoresKernel, UnmaskedAttentionScoresKernel, AttentionRowStatsKernel, AttentionWeightedSumKernel
+- [eacp ML/Loader](eacp-ml-loader.md) — Value, SafetensorsDType, SafetensorsEntry, SafetensorsFile, parse
+- [eacp ML/Tensor](eacp-ml-tensor.md) — DType, Tensor, elementCountOf
+- [eacp Network](eacp-network.md) — BindInterface
+- [eacp Network/HTTP](eacp-network-http.md) — Response, DownloadProgress, FormField, FileField, Request, DownloadRequest
+- [eacp Network/HTTPRpc](eacp-network-httprpc.md) — Client, Server
+- [eacp Network/HTTPServer](eacp-network-httpserver.md) — ServerThreadingMode, ServerOptions, Error, Server, DispatchTask, Dispatcher
+- [eacp Network/IPC](eacp-network-ipc.md) — Channel, ChannelServer, Error, Lock, ScopedLock, Messenger
+- [eacp Network/IPCRpc](eacp-network-ipcrpc.md) — RpcClient, RpcServer, createRPCServer
+- [eacp Network/OnlineResource](eacp-network-onlineresource.md) — OnlineResource, OnlineResources
+- [eacp Network/Rpc](eacp-network-rpc.md) — CommandExecution, runOnWorkerThread, runCommand, resolveWith, mapJson
+- [eacp Network/TCP](eacp-network-tcp.md) — Address, Timeouts, Error, TimeoutError, Connection, Listener
+- [eacp Network/WebSocket](eacp-network-websocket.md) — Sink, Backend, Opcode, Frame, Decoded, Error
+- [eacp SIMD](eacp-simd.md) — F32, swapRedBlue_scalar, resizeBilinear_scalar, warpAffineInverse_scalar, swapRedBlue_neon, resizeBilinear_neon
+- [eacp SIMD/Backend](eacp-simd-backend.md) — Neon, Scalar
+- [eacp SIMD/Dispatch](eacp-simd-dispatch.md) — hasAvx2Fma
+- [eacp SIMD/Kernels](eacp-simd-kernels.md) — clampi, blendTaps, resizeBilinearImpl, swapRedBlueImpl, warpAffineInverseImpl
+- [eacp Sprites](eacp-sprites.md) — Fit, SpriteVertex, SpriteInstance, SpriteShader, YuvTransform, Nv12Shader
+- [eacp SVG](eacp-svg.md) — NumberReader, ColorResult, Transform, PreserveAspectRatio, LengthAxis, Viewport
+- [eacp Text](eacp-text.md) — BidiBaseDirection, BidiLevels, BidiRun, FontStyle, FontVariant, FontRequest
+- [eacp UI](eacp-ui.md) — defaultUIFontFamily, contains, sameRect
+- [eacp UI/Component](eacp-ui-component.md) — Component, MouseEvent
+- [eacp UI/DragAndDrop](eacp-ui-draganddrop.md) — DragInfo, DragAndDropTarget, DragAndDropContainer
+- [eacp UI/Graphics](eacp-ui-graphics.md) — Justification, Graphics
+- [eacp UI/Host](eacp-ui-host.md) — ComponentHost
+- [eacp UI/Network](eacp-ui-network.md) — OnlineResourceMonitor, OnlineResourceMonitorHost, OnlineResourceMonitorWindow
+- [eacp UI/Render](eacp-ui-render.md) — ClipMask, ContentHash, CoverageAtlas, ShadowShape, ShapeDraw, GlyphRun
+- [eacp UI/Widgets](eacp-ui-widgets.md) — ComboBox, ListBoxModel, ListBox, TabBar, TabbedComponent, Theme
+- [eacp Video](eacp-video.md) — AudioBuffer, AudioSpec, AudioRing, AppleEncoder, VideoSpec, EncoderSpec
+- [eacp Video/Decode](eacp-video-decode.md) — VideoInfo, SeekMode, Decoder, StreamOptions, FrameStream, Player
+- [eacp Video/Demux](eacp-video-demux.md) — BoxReader, Box, Mp4Codec, Mp4Sample, Mp4TrackInfo, Mp4AudioInfo
+- [eacp VideoView](eacp-videoview.md) — VideoView
+- [eacp WebView/Codegen](eacp-webview-codegen.md) — formatHooksModule
+- [eacp WebView/Test](eacp-webview-test.md) — CallOptions, AppDriverOptions, ScreenshotOptions, ScreenshotResult, SnapshotOptions, SnapshotResult
+- [eacp WebView/WebView](eacp-webview-webview.md) — WebViewBridge, DraggableFile, DraggableFileList, ScriptHost, RangeRequest, ResolvedRange
+<!-- header-symbols:end -->
