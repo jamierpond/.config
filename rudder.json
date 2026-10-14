@@ -1,0 +1,17 @@
+{
+  "browser": "audio.pond.grazer",
+  "favourites": [
+    {
+      "title": "gmail personal",
+      "url": "https://mail.google.com/mail/u/1/#inbox",
+      "openWith": "audio.pond.grazer",
+      "keywords": ["mail", "email", "inbox"]
+    },
+    {
+      "title": "gmail work",
+      "url": "https://mail.google.com/mail/u/0/#inbox",
+      "openWith": "audio.pond.grazer",
+      "keywords": ["mail", "email", "inbox"]
+    }
+  ]
+}

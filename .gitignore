@@ -8,6 +8,8 @@
 !.gitmodules
 !.github
 
+!rudder.json
+
 # Agent/editor instructions
 !AGENTS.md
 !CLAUDE.md

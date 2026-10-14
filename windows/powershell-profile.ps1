@@ -244,6 +244,7 @@ function kaf { param([string]$n) Stop-Process -Name $n -Force }   # killall -9
 function o   { crush @args }
 function a   { yapi @args }
 function gtree { git ls-files }   # no `tree --fromfile` on Windows; flat list
+function timer { node "$env:USERPROFILE\.config\bin\scripts\timer" @args }
 
 # ssh / remote hosts
 function ssh-win { $env:TERM = 'xterm'; ssh @args }

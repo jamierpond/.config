@@ -1,1 +1,2 @@
 - [No README writes in Wim](no-readme-writes.md) — code only, never touch docs
+- [Launch via just run](launch-via-just-run.md) — dev builds only through `just run`, never hand-rolled launches

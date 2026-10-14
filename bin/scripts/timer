@@ -1,0 +1,343 @@
+#!/usr/bin/env node
+
+"use strict";
+
+const crypto = require("node:crypto");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+const { spawn } = require("node:child_process");
+
+const MAX_TIMEOUT_MS = 2_147_483_647;
+const POLL_MS = 1_000;
+const SOUND_FILE = path.join(__dirname, "timer-assets", "windchimes.ogg");
+const STATE_DIR = process.env.TIMER_STATE_DIR || defaultStateDir();
+
+function defaultStateDir() {
+  if (process.platform === "win32") {
+    return path.join(
+      process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"),
+      "timer-cli",
+    );
+  }
+
+  return path.join(
+    process.env.XDG_STATE_HOME || path.join(os.homedir(), ".local", "state"),
+    "timer-cli",
+  );
+}
+
+function usage(exitCode = 0) {
+  const stream = exitCode === 0 ? process.stdout : process.stderr;
+  stream.write(`Usage:
+  timer <duration> [label]   Start a detached timer (for example: timer 90m)
+  timer --list              List active timers and their ETAs
+  timer dismiss [id]        Dismiss all timers, or only the given timer
+
+Durations may combine ms, s, m, h, and d (for example: 1h30m).
+`);
+  process.exitCode = exitCode;
+}
+
+function parseDuration(value) {
+  const compact = value.trim().toLowerCase().replace(/\s+/g, "");
+  const matcher = /(\d+(?:\.\d+)?)(ms|s|m|h|d)/gy;
+  const multipliers = { ms: 1, s: 1_000, m: 60_000, h: 3_600_000, d: 86_400_000 };
+  let total = 0;
+  let position = 0;
+  let match;
+
+  while ((match = matcher.exec(compact)) !== null) {
+    if (match.index !== position) return null;
+    total += Number(match[1]) * multipliers[match[2]];
+    position = matcher.lastIndex;
+  }
+
+  if (position !== compact.length || total < 1 || !Number.isSafeInteger(Math.round(total))) {
+    return null;
+  }
+  return Math.round(total);
+}
+
+function ensureStateDir() {
+  fs.mkdirSync(STATE_DIR, { recursive: true, mode: 0o700 });
+}
+
+function timerPath(id) {
+  return path.join(STATE_DIR, `${id}.json`);
+}
+
+function writeTimer(timer) {
+  ensureStateDir();
+  fs.writeFileSync(timerPath(timer.id), `${JSON.stringify(timer)}\n`, { mode: 0o600 });
+}
+
+function readTimer(file) {
+  try {
+    const timer = JSON.parse(fs.readFileSync(path.join(STATE_DIR, file), "utf8"));
+    if (
+      typeof timer.id !== "string" ||
+      typeof timer.dueAt !== "number" ||
+      timer.id !== path.basename(file, ".json")
+    ) {
+      return null;
+    }
+    return timer;
+  } catch {
+    return null;
+  }
+}
+
+function getTimers() {
+  try {
+    return fs
+      .readdirSync(STATE_DIR)
+      .filter((file) => file.endsWith(".json"))
+      .map(readTimer)
+      .filter(Boolean)
+      .sort((a, b) => a.dueAt - b.dueAt);
+  } catch (error) {
+    if (error.code === "ENOENT") return [];
+    throw error;
+  }
+}
+
+function formatRemaining(milliseconds) {
+  let seconds = Math.max(0, Math.ceil(milliseconds / 1_000));
+  const days = Math.floor(seconds / 86_400);
+  seconds %= 86_400;
+  const hours = Math.floor(seconds / 3_600);
+  seconds %= 3_600;
+  const minutes = Math.floor(seconds / 60);
+  seconds %= 60;
+
+  const parts = [];
+  if (days) parts.push(`${days}d`);
+  if (hours) parts.push(`${hours}h`);
+  if (minutes) parts.push(`${minutes}m`);
+  if (seconds || parts.length === 0) parts.push(`${seconds}s`);
+  return parts.slice(0, 2).join(" ");
+}
+
+function formatEta(timestamp) {
+  return new Date(timestamp).toLocaleString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function commandPath(name) {
+  const extensions = process.platform === "win32"
+    ? (process.env.PATHEXT || ".EXE;.CMD;.BAT;.COM").split(";")
+    : [""];
+
+  for (const directory of (process.env.PATH || "").split(path.delimiter)) {
+    if (!directory) continue;
+    for (const extension of extensions) {
+      const candidate = path.join(directory, `${name}${extension}`);
+      try {
+        fs.accessSync(candidate, process.platform === "win32" ? fs.constants.F_OK : fs.constants.X_OK);
+        return candidate;
+      } catch {
+        // Try the next PATH entry.
+      }
+    }
+  }
+  return null;
+}
+
+function spawnDetached(command, args) {
+  try {
+    const child = spawn(command, args, {
+      detached: true,
+      stdio: "ignore",
+      windowsHide: true,
+    });
+    child.on("error", () => {});
+    child.unref();
+  } catch {
+    // Notifications are best-effort; the timer has still completed.
+  }
+}
+
+function showNotification(message) {
+  if (process.platform === "darwin") {
+    spawnDetached("/usr/bin/osascript", [
+      "-e",
+      "on run argv",
+      "-e",
+      'display notification (item 1 of argv) with title "Timer"',
+      "-e",
+      "end run",
+      message,
+    ]);
+    return;
+  }
+
+  if (process.platform === "linux") {
+    const notifySend = commandPath("notify-send");
+    if (notifySend) spawnDetached(notifySend, ["Timer", message]);
+    return;
+  }
+
+  if (process.platform === "win32") {
+    const powershell = commandPath("powershell");
+    if (!powershell) return;
+    const escaped = message
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/'/g, "&apos;")
+      .replace(/"/g, "&quot;");
+    const script = [
+      "$xml = New-Object Windows.Data.Xml.Dom.XmlDocument",
+      `$xml.LoadXml('<toast><visual><binding template="ToastGeneric"><text>Timer</text><text>${escaped}</text></binding></visual></toast>')`,
+      "$toast = [Windows.UI.Notifications.ToastNotification]::new($xml)",
+      "[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('Timer').Show($toast)",
+    ].join(";");
+    const encoded = Buffer.from(script, "utf16le").toString("base64");
+    spawnDetached(powershell, ["-NoProfile", "-NonInteractive", "-EncodedCommand", encoded]);
+  }
+}
+
+function notify(timer) {
+  if (process.env.TIMER_NO_NOTIFY === "1") return;
+  const message = timer.label ? `${timer.label} — time is up` : "Time is up";
+  const ffplay = commandPath("ffplay");
+  if (ffplay && fs.existsSync(SOUND_FILE)) {
+    spawnDetached(ffplay, ["-nodisp", "-autoexit", "-loglevel", "quiet", SOUND_FILE]);
+  }
+  showNotification(message);
+}
+
+function runWorker(id) {
+  const file = timerPath(id);
+
+  function check() {
+    const timer = readTimer(`${id}.json`);
+    if (!timer) return;
+    const remaining = timer.dueAt - Date.now();
+    if (remaining > 0) {
+      setTimeout(check, Math.min(remaining, POLL_MS, MAX_TIMEOUT_MS));
+      return;
+    }
+
+    try {
+      fs.unlinkSync(file);
+    } catch (error) {
+      if (error.code === "ENOENT") return;
+      throw error;
+    }
+    notify(timer);
+  }
+
+  check();
+}
+
+function startTimer(durationText, label) {
+  const duration = parseDuration(durationText);
+  if (duration === null) {
+    process.stderr.write(`Invalid duration: ${durationText}\n`);
+    usage(2);
+    return;
+  }
+
+  const id = crypto.randomBytes(4).toString("hex");
+  const timer = {
+    id,
+    createdAt: Date.now(),
+    dueAt: Date.now() + duration,
+    label: label || "",
+  };
+  writeTimer(timer);
+
+  try {
+    const child = spawn(process.execPath, [__filename, "--worker", id], {
+      detached: true,
+      stdio: "ignore",
+      windowsHide: true,
+      env: process.env,
+    });
+    child.unref();
+  } catch (error) {
+    try { fs.unlinkSync(timerPath(id)); } catch {}
+    throw error;
+  }
+
+  const suffix = timer.label ? ` — ${timer.label}` : "";
+  process.stdout.write(`Timer ${id} set for ${formatRemaining(duration)} (ETA ${formatEta(timer.dueAt)})${suffix}\n`);
+}
+
+function listTimers() {
+  const timers = getTimers();
+  if (timers.length === 0) {
+    process.stdout.write("No active timers.\n");
+    return;
+  }
+
+  const now = Date.now();
+  const rows = timers.map((timer) => ({
+    id: timer.id,
+    remaining: formatRemaining(timer.dueAt - now),
+    eta: formatEta(timer.dueAt),
+    label: timer.label || "",
+  }));
+  const remainingWidth = Math.max("REMAINING".length, ...rows.map((row) => row.remaining.length));
+  process.stdout.write(`${"ID".padEnd(10)}${"REMAINING".padEnd(remainingWidth + 2)}ETA\n`);
+  for (const row of rows) {
+    const label = row.label ? `  ${row.label}` : "";
+    process.stdout.write(`${row.id.padEnd(10)}${row.remaining.padEnd(remainingWidth + 2)}${row.eta}${label}\n`);
+  }
+}
+
+function dismiss(id) {
+  const timers = getTimers();
+  const selected = id ? timers.filter((timer) => timer.id === id) : timers;
+  if (selected.length === 0) {
+    process.stdout.write(id ? `No active timer with ID ${id}.\n` : "No active timers.\n");
+    process.exitCode = id ? 1 : 0;
+    return;
+  }
+
+  let dismissed = 0;
+  for (const timer of selected) {
+    try {
+      fs.unlinkSync(timerPath(timer.id));
+      dismissed += 1;
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+    }
+  }
+  process.stdout.write(`Dismissed ${dismissed} timer${dismissed === 1 ? "" : "s"}.\n`);
+}
+
+function main(args) {
+  if (args[0] === "--worker") {
+    if (args[1]) runWorker(args[1]);
+    return;
+  }
+  if (args.length === 0 || args[0] === "--help" || args[0] === "-h") {
+    usage(args.length === 0 ? 2 : 0);
+    return;
+  }
+  if (args[0] === "--list" || args[0] === "-l" || args[0] === "list") {
+    listTimers();
+    return;
+  }
+  if (args[0] === "dismiss") {
+    dismiss(args[1]);
+    return;
+  }
+  startTimer(args[0], args.slice(1).join(" "));
+}
+
+try {
+  main(process.argv.slice(2));
+} catch (error) {
+  process.stderr.write(`timer: ${error.message}\n`);
+  process.exitCode = 1;
+}
