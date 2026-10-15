@@ -1,5 +1,8 @@
 # Claude Code config, shared across machines
 
+- `CLAUDE.md` — global instructions, symlinked to `~/.claude/CLAUDE.md`. If
+  something replaces the link with a plain file, `claude-sync` copies it back
+  here before relinking.
 - `settings.json` — the repo-managed part of `~/.claude/settings.json`
   (model, subagent model, plugins, no AI attribution on commits/PRs). Merged in,
   repo wins; machine-local keys (theme, voice, …) are left alone.
@@ -11,8 +14,7 @@
   Private-repo memory stays local (still symlinked) and does not sync between
   machines.
 - `../private/GLOBAL_AGENTS.private.md` — hostnames, keychain passwords.
-  Gitignored, imported from `GLOBAL_AGENTS.md`; copy it to each machine by hand.
-- `../GLOBAL_AGENTS.md` → `~/.claude/CLAUDE.md`.
+  Gitignored, imported from `CLAUDE.md`; copy it to each machine by hand.
 - `../git/hooks/commit-msg` strips AI attribution from every commit.
 
 Run `just claude-sync` (= `bin/scripts/claude-sync`) after cloning, and again

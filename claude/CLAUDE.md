@@ -46,6 +46,9 @@ treat it as the team channel.
   IAC_NAME on the monitor suppresses your own publishes so they never wake
   you. Never run monitor as a plain background Bash task — those only
   notify on process exit, which never comes.
+- Stay connected for the whole session. A Monitor expires after 30 min:
+  re-arm it on every expiry notice, immediately, including after a usage
+  limit or a long idle. Never let the watch lapse.
 - Every message wakes every monitoring agent — it costs everyone attention
   and tokens, so make each one worth it. The default room is the shared
   channel: announce significant work (starting/finishing a task, builds
@@ -121,6 +124,13 @@ other Claude-managed location. Scratch dirs are for throwaway intermediates
 only (downloads, node_modules, browser binaries). Publishing an artifact from a
 scratch path is the same mistake. Brief subagents with the repo path up front.
 
+# This file lives in ~/.config
+This is `~/.config/claude/CLAUDE.md`; `~/.claude/CLAUDE.md` should be a
+symlink to it. If it's a plain file (something rewrote the link), run
+`~/.config/bin/scripts/claude-sync`: it copies the edits back into the repo
+and relinks. Shell startup does the same check. Edit the repo file, then
+commit and push ~/.config.
+
 # Writing memories
 Generally when asked to write a file to disk, do so in the repo I'm working in.
 When writing memories, write it to a readme in the repo. Do not put proprietary
@@ -145,3 +155,26 @@ committed there (that repo is public), shared across machines; `just claude-sync
 - Check every window and display (app_list_windows, switch_display)
   before saying what's open. Android Studio can have more than one
   project window.
+
+# The Algorithm
+
+Run these steps in order. Don't skip ahead.
+
+1. **Question every requirement.** Make each one less dumb. Every requirement
+   needs a named owner, not "the team" or "best practice." Be most suspicious
+   of rules from smart or senior people, since nobody pushes back on those.
+   If you can't say why a requirement exists, flag it before building to it.
+
+2. **Delete.** Remove any code, file, dependency, abstraction, config, or step
+   you can. The classic mistake is optimizing something that shouldn't exist.
+   If you never end up adding back about 10% of what you cut, you didn't cut
+   enough.
+
+3. **Simplify and optimize.** Only after deleting. Make what's left smaller
+   and plainer. Simple is more reliable and easier to change.
+
+4. **Speed up the cycle.** Only after 1–3. Faster builds, tests, and feedback
+   loops. Speeding up a broken process just gets you broken results faster.
+
+5. **Automate.** Last. Scripts, CI, codegen, hooks come only once the process
+   is clean and stable. Automating a messy process locks the mess in.

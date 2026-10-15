@@ -295,3 +295,7 @@ _auto_activate_venv() {
   fi
 }
 _auto_activate_venv
+
+# Claude Code sometimes rewrites ~/.claude/CLAUDE.md as a plain file, which
+# cuts it off from the repo. claude-sync copies its edits back and relinks.
+[ -L "$HOME/.claude/CLAUDE.md" ] || "$HOME/.config/bin/scripts/claude-sync"

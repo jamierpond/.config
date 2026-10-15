@@ -8,8 +8,11 @@ claude_dir="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 mem_root="$cfg/claude/memory"
 mkdir -p "$claude_dir" "$mem_root"
 
-ln -sfn "$cfg/GLOBAL_AGENTS.md" "$claude_dir/CLAUDE.md"
-echo "CLAUDE.md -> GLOBAL_AGENTS.md"
+# Something rewrote the symlink as a plain file: keep its edits (git shows the diff).
+[ -f "$claude_dir/CLAUDE.md" ] && [ ! -L "$claude_dir/CLAUDE.md" ] \
+  && cp "$claude_dir/CLAUDE.md" "$cfg/claude/CLAUDE.md"
+ln -sfn "$cfg/claude/CLAUDE.md" "$claude_dir/CLAUDE.md"
+echo "CLAUDE.md -> claude/CLAUDE.md"
 
 settings="$claude_dir/settings.json"
 [ -s "$settings" ] || echo '{}' > "$settings"

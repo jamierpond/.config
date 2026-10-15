@@ -159,15 +159,6 @@ edit-darwin:
     ${EDITOR:-nvim} darwin/default.nix && just darwin-switch
 
 # ============================================================================
-# Symlinks
-# ============================================================================
-
-# Symlink GLOBAL_AGENTS.md -> ~/.claude/CLAUDE.md
-link-global-agents:
-    ln -sf {{ justfile_directory() }}/GLOBAL_AGENTS.md {{ env("HOME") }}/.claude/CLAUDE.md
-    @echo "Linked {{ env("HOME") }}/.claude/CLAUDE.md -> {{ justfile_directory() }}/GLOBAL_AGENTS.md"
-
-# ============================================================================
 # Search & explore
 # ============================================================================
 
