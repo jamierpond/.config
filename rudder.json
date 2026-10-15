@@ -2,16 +2,40 @@
   "browser": "audio.pond.grazer",
   "favourites": [
     {
-      "title": "gmail personal",
+      "title": "Gmail Work",
       "url": "https://mail.google.com/mail/u/1/#inbox",
       "openWith": "audio.pond.grazer",
       "keywords": ["mail", "email", "inbox"]
     },
     {
-      "title": "gmail work",
+      "title": "Gmail Personal",
       "url": "https://mail.google.com/mail/u/0/#inbox",
       "openWith": "audio.pond.grazer",
       "keywords": ["mail", "email", "inbox"]
+    },
+    {
+      "title": "jamierpond GitHub Personal",
+      "url": "https://github.com/jamierpond",
+      "openWith": "audio.pond.grazer",
+      "keywords": ["coding"]
+    },
+    {
+      "title": "Work Google Calendar",
+      "url": "https://calendar.google.com/calendar/u/0/r",
+      "openWith": "audio.pond.grazer",
+      "keywords": ["coding"]
+    },
+    {
+      "title": "Personal Google Calendar",
+      "url": "https://calendar.google.com/calendar/u/1/r",
+      "openWith": "audio.pond.grazer",
+      "keywords": ["coding"]
+    },
+    {
+      "title": "Tamber Web GitHub PRs",
+      "url": "https://github.com/tamber-inc/tamber-web/pulls",
+      "openWith": "audio.pond.grazer",
+      "keywords": ["coding"]
     }
   ]
 }
