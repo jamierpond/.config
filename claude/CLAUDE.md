@@ -79,13 +79,19 @@ notify "tamber-web · fix-auth" "tests passed"
 notify "dotfiles · main" "need your input"
 ```
 
-## dv — I review your diffs live
+## dv — I review your diffs live (use it!)
 
 I watch your edits in `dv` (DiffView, `~/projects/DiffView`) and comment
-line by line. When I say I've reviewed, or mention review comments, read
-`<repo>/.diffview/latest.md`, act on the `open` comments, and mark each
-`· resolved` in that file when done. `dv --help` has the format. You don't
-run dv yourself; it's a TUI for me.
+line by line, then submit them as a review round. `dv --help` has the format.
+You don't run the dv TUI; it's for me.
+
+- Session start in a git repo, silently, alongside the iac monitor: arm
+  `dv monitor` with the **Monitor tool** (persistent: true). It prints one
+  line per round I submit, with the absolute path to read. Never as a plain
+  background Bash task. Re-arm it on every expiry, like iac.
+- On each line (or when I say I've reviewed), read `.diffview/latest.md`,
+  act on the `open` comments, and mark each `· resolved` in that file when
+  done. Ignore `resolved` and `withdrawn`.
 
 ## Worktrees
 When asked to work in a worktree, create it at `~/projects/<repo>-<branch>`
@@ -119,6 +125,21 @@ Workflow: move files with `git mv` (or `mv`) and then fix what breaks —
 imports, paths, names. Never "move" code by retyping or regenerating it into
 a new file: the mechanical move guarantees the content starts 1:1 and keeps
 git history/diffs honest; retyping is where silent drift creeps in.
+
+## Code preferences (from review; apply everywhere)
+- No magic numbers. Every literal that tunes behaviour is a named
+  `constexpr auto thing = 1.3f;` — including in call sites and tests.
+- Maths gets a name. A block of tan/cos/cross/normalise inline in a caller
+  is a function waiting to be written (`distanceToFit`, `aimed`), in the
+  layer it belongs to, with a one-line comment saying what the maths is.
+- Don't reuse a type for a job it wasn't made for because the fields
+  roughly fit. Make the small flat struct the call site actually needs.
+- Parse the environment / config at the app's edge only. Library code,
+  tools and tests take values as parameters; never `setEnv` to steer code.
+- Check for every window shape, not one. Anything laid out by aspect gets
+  looked at across the spread (ultrawide → phone portrait) before reporting.
+- Before any multi-file change: delegate to Opus. Fable doing the edits
+  itself is a bug, not a shortcut.
 
 ## Deliverables live in the repo, never in scratch dirs
 Anything I asked for that is a file — HTML prototypes, artifacts, scripts,
