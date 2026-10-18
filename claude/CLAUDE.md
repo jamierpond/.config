@@ -67,21 +67,25 @@ treat it as the team channel.
   `iac rooms` lists them.
 - `iac help` for full usage. Source: `~/projects/iac`.
 
-## Bell Notification
+## Notify when done
 
-User has `bell` zsh alias triggering system notification/sound. Use when
-long-running task done, need user attention/input, finished significant work.
-
-How: run `bell`, sleep 2, then `say` with `<project>, <branch>, <status/task>`.
-Don't use `printf '\a'` or other terminal bell methods.
+`notify "<project> · <branch>" "<status>"` posts a silent desktop
+notification. In CowTerm, clicking it jumps back to your pane (and it's
+suppressed if the user is already looking at it). Use it when a long task
+finishes, you need input, or significant work is done. No `bell`, no `say`.
 
 ```bash
-bell && sleep 2 && say "tamber-web, feature-login, CI now green"
+notify "tamber-web · fix-auth" "tests passed"
+notify "dotfiles · main" "need your input"
 ```
 
-Examples: `"tamber-web, fix-auth, tests passed"`, `"dotfiles, main, need your
-input"`, `"tamber-api, add-webhooks, build failed"`. Both shell commands, not
-Claude Code tools.
+## dv — I review your diffs live
+
+I watch your edits in `dv` (DiffView, `~/projects/DiffView`) and comment
+line by line. When I say I've reviewed, or mention review comments, read
+`<repo>/.diffview/latest.md`, act on the `open` comments, and mark each
+`· resolved` in that file when done. `dv --help` has the format. You don't
+run dv yourself; it's a TUI for me.
 
 ## Worktrees
 When asked to work in a worktree, create it at `~/projects/<repo>-<branch>`
