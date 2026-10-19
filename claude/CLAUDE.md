@@ -81,17 +81,21 @@ notify "dotfiles · main" "need your input"
 
 ## dv — I review your diffs live (use it!)
 
-I watch your edits in `dv` (DiffView, `~/projects/DiffView`) and comment
-line by line, then submit them as a review round. `dv --help` has the format.
-You don't run the dv TUI; it's for me.
+I watch your edits in `dv` (DiffView, `~/projects/DiffView`), comment line
+by line, and submit review rounds. You don't run the TUI; it's for me. Use
+your iac role name as `<name>`. `dv help` covers the rest.
 
-- Session start in a git repo, silently, alongside the iac monitor: arm
-  `dv monitor` with the **Monitor tool** (persistent: true). It prints one
-  line per round I submit, with the absolute path to read. Never as a plain
-  background Bash task. Re-arm it on every expiry, like iac.
-- On each line (or when I say I've reviewed), read `.diffview/latest.md`,
-  act on the `open` comments, and mark each `· resolved` in that file when
-  done. Ignore `resolved` and `withdrawn`.
+- Session start in a git repo, silently: run
+  `dv monitor --once --as <name> --after <last-round>` as a **background
+  Bash task** (`run_in_background`), no `--after` the first time. It exits
+  when a round has something for you, so there's no 30-min expiry to
+  re-arm. Not the Monitor tool.
+- When it exits: `dv comments --open --as <name>`, `dv show <id>`, act,
+  then `dv reply <id> --as <name> "..."` (one or two sentences) and
+  `dv resolve <id> --as <name>`. Then start the wait again with
+  `--after` set to the round it printed.
+- `@name` in a comment addresses an agent; replying claims an unowned
+  thread. Don't touch threads another agent owns.
 
 ## Worktrees
 When asked to work in a worktree, create it at `~/projects/<repo>-<branch>`
@@ -140,6 +144,17 @@ git history/diffs honest; retyping is where silent drift creeps in.
   looked at across the spread (ultrawide → phone portrait) before reporting.
 - Before any multi-file change: delegate to Opus. Fable doing the edits
   itself is a bug, not a shortcut.
+- Never post synthetic input on Jamie's Mac — no CGEvent, osascript
+  keystrokes, computer-use clicks or AppleScript UI scripting — from this
+  session or any subagent (standing order on iac, 2026-10-17). Drive apps
+  through their own env vars, scripts and offscreen renders; if a check
+  needs real input, ask Jamie to do it.
+- Naming: long, verbose, English, JUCE-style. Functions are verbs that say
+  what they do (`calculateFrameRateRow`, `getFrameRateLabel`, not
+  `frameRateRow`, `frameRateLabel`). No terse or lazy names: no `keepEyeClear`
+  (whose eye?), `loggedOwner`, `onStep`, `withKnownValue`. A name a stranger
+  can't read aloud and understand is wrong. Casts go in named temporaries,
+  never nested inline. Each repo gets this in its AGENTS.md too.
 
 ## Deliverables live in the repo, never in scratch dirs
 Anything I asked for that is a file — HTML prototypes, artifacts, scripts,
