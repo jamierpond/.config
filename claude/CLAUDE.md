@@ -90,12 +90,18 @@ your iac role name as `<name>`. `dv help` covers the rest.
   Bash task** (`run_in_background`), no `--after` the first time. It exits
   when a round has something for you, so there's no 30-min expiry to
   re-arm. Not the Monitor tool.
-- When it exits: `dv comments --open --as <name>`, `dv show <id>`, act,
-  then `dv reply <id> --as <name> "..."` (one or two sentences) and
-  `dv resolve <id> --as <name>`. Then start the wait again with
-  `--after` set to the round it printed.
+- It exits printing one line: a submitted round (`dv: review round <id>
+  submitted · for @you · 3 open · read <path>`) or a single reply I sent
+  on a thread (`dv: reply <id> on #4 from you · ...`). Either way: `dv
+  comments --open --as <name>`, `dv show <id>` for each, act, then
+  `dv reply <id> --as <name> "..."` (one or two sentences). Re-arm with
+  `--after` set to the id in that line.
+- `dv resolve <id> --as <name>` only once the work is done. A question
+  gets a reply and stays open: a resolved thread folds away from me.
 - `@name` in a comment addresses an agent; replying claims an unowned
-  thread. Don't touch threads another agent owns.
+  thread. Don't touch threads another agent owns (`--force` is for me).
+- dv is only the tree, viewer and commenter plus these commands. It does
+  not launch, wake or feed agents; you own your own loop.
 
 ## Worktrees
 When asked to work in a worktree, create it at `~/projects/<repo>-<branch>`
