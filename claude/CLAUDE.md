@@ -155,6 +155,16 @@ git history/diffs honest; retyping is where silent drift creeps in.
   (whose eye?), `loggedOwner`, `onStep`, `withKnownValue`. A name a stranger
   can't read aloud and understand is wrong. Casts go in named temporaries,
   never nested inline. Each repo gets this in its AGENTS.md too.
+- Comments: none by default. Names, types and structure carry the meaning;
+  if you want a comment, first try a better name, a named constant or an
+  extracted function. A comment earns its place only for what code can't
+  say: a non-obvious why, a workaround and its cause, an invariant or unit
+  the types don't show. One line. Never restate a name or signature,
+  narrate the next lines, document a simple function, or write essays.
+- No nested or multi-line ternaries: use a named function or an
+  immediately invoked lambda with plain ifs. No nullable raw pointers:
+  `std::optional` or a reference. Braces on any loop/if whose body or
+  condition spans lines.
 
 ## Deliverables live in the repo, never in scratch dirs
 Anything I asked for that is a file — HTML prototypes, artifacts, scripts,
