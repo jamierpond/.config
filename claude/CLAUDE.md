@@ -164,7 +164,17 @@ git history/diffs honest; retyping is where silent drift creeps in.
 - No nested or multi-line ternaries: use a named function or an
   immediately invoked lambda with plain ifs. No nullable raw pointers:
   `std::optional` or a reference. Braces on any loop/if whose body or
-  condition spans lines.
+  condition spans lines; an if body never sits on the if's line.
+- Predicates read as questions: `isX()`, `hasX()`.
+- A header exposes only what callers use. Constants needed only by tests
+  stay in the .cpp or behind a behaviour-level query.
+- Never cast an enum to an index; look it up in a small table.
+- No caching by equality-comparing inputs (no `operator==` just for that):
+  set a dirty flag where the input changes. No mutable memoised getters.
+- Replacing something deletes the old code and its shims in the same
+  change. A test that tests nothing gets deleted.
+- Product behaviour changes (frame rate, data structure semantics, UX) are
+  asked, not assumed. Never merge to develop/main without an explicit ask.
 
 ## Deliverables live in the repo, never in scratch dirs
 Anything I asked for that is a file — HTML prototypes, artifacts, scripts,
