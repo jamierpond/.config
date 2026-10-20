@@ -12,5 +12,19 @@
   "attribution": {
     "commit": "",
     "pr": ""
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{ echo '[iac team channel, last 20 — arm IAC_NAME=<role> iac monitor now]'; ~/.local/bin/iac read -n 20; } 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Reading iac"
+          }
+        ]
+      }
+    ]
   }
 }

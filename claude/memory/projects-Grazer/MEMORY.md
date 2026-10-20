@@ -1,2 +1,3 @@
 - [No README writes in Grazer](no-readme-writes.md) — code only, never touch docs
 - [Launch via just run](launch-via-just-run.md) — dev builds only through `just run`, never hand-rolled launches
+- [Reinstall after work](reinstall-after-work.md) — finished Grazer work ends with install + relaunch

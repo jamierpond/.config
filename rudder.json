@@ -2,40 +2,89 @@
   "browser": "audio.pond.grazer",
   "favourites": [
     {
+      "app": "",
+      "keywords": [
+        "mail",
+        "email",
+        "inbox"
+      ],
+      "openWith": "audio.pond.grazer",
+      "path": "",
+      "title": "Tamber Marketing Pulls",
+      "url": "https://github.com/tamber-inc/tamber-mktg/pulls"
+    },
+    {
+      "app": "",
+      "keywords": [
+        "mail",
+        "email",
+        "inbox"
+      ],
+      "openWith": "audio.pond.grazer",
+      "path": "",
       "title": "Gmail Work",
-      "url": "https://mail.google.com/mail/u/1/#inbox",
-      "openWith": "audio.pond.grazer",
-      "keywords": ["mail", "email", "inbox"]
+      "url": "https://mail.google.com/mail/u/1/#inbox"
     },
     {
+      "app": "",
+      "keywords": [
+        "mail",
+        "email",
+        "inbox"
+      ],
+      "openWith": "audio.pond.grazer",
+      "path": "",
       "title": "Gmail Personal",
-      "url": "https://mail.google.com/mail/u/0/#inbox",
-      "openWith": "audio.pond.grazer",
-      "keywords": ["mail", "email", "inbox"]
+      "url": "https://mail.google.com/mail/u/0/#inbox"
     },
     {
+      "app": "",
+      "keywords": [
+        "coding"
+      ],
+      "openWith": "audio.pond.grazer",
+      "path": "",
       "title": "jamierpond GitHub Personal",
-      "url": "https://github.com/jamierpond",
-      "openWith": "audio.pond.grazer",
-      "keywords": ["coding"]
+      "url": "https://github.com/jamierpond"
     },
     {
+      "app": "",
+      "keywords": [
+        "coding"
+      ],
+      "openWith": "audio.pond.grazer",
+      "path": "",
       "title": "Work Google Calendar",
-      "url": "https://calendar.google.com/calendar/u/0/r",
-      "openWith": "audio.pond.grazer",
-      "keywords": ["coding"]
+      "url": "https://calendar.google.com/calendar/u/0/r"
     },
     {
+      "app": "",
+      "keywords": [
+        "coding"
+      ],
+      "openWith": "audio.pond.grazer",
+      "path": "",
       "title": "Personal Google Calendar",
-      "url": "https://calendar.google.com/calendar/u/1/r",
-      "openWith": "audio.pond.grazer",
-      "keywords": ["coding"]
+      "url": "https://calendar.google.com/calendar/u/1/r"
     },
     {
-      "title": "Tamber Web GitHub PRs",
-      "url": "https://github.com/tamber-inc/tamber-web/pulls",
+      "app": "",
+      "keywords": [
+        "coding"
+      ],
       "openWith": "audio.pond.grazer",
-      "keywords": ["coding"]
+      "path": "",
+      "title": "Tamber Web GitHub PRs",
+      "url": "https://github.com/tamber-inc/tamber-web/pulls"
     }
-  ]
+  ],
+  "panel": {
+    "0,33 1512x949": {
+      "height": 502,
+      "width": 737,
+      "x": 319.265625,
+      "y": 270.1328125
+    }
+  },
+  "searchUrl": ""
 }

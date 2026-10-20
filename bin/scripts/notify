@@ -1,0 +1,17 @@
+#!/bin/bash
+# notify <title> [body] — desktop notification that deep-links back to the pane.
+# Emits OSC 777 to the nearest ancestor's tty, so it works from tty-less
+# subprocesses (agent Bash tools). CowTerm turns it into a notification whose
+# click jumps to the pane. No tty found → plain macOS notification.
+
+title="$1"; body="${2:-}"
+pid=$$
+while [[ "$pid" -gt 1 ]]; do
+  t=$(ps -o tty= -p "$pid" | tr -d ' ')
+  if [[ -n "$t" && "$t" != "??" && -w "/dev/$t" ]]; then
+    printf '\033]777;notify;%s;%s\007' "$title" "$body" > "/dev/$t"
+    exit 0
+  fi
+  pid=$(ps -o ppid= -p "$pid" | tr -d ' ')
+done
+osascript -e "display notification \"${body//\"/\\\"}\" with title \"${title//\"/\\\"}\""
