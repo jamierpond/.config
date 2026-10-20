@@ -17,6 +17,7 @@ active_warning_window_seconds=600
 connect_timeout_seconds=3
 lock_wait_seconds=30
 lock_stale_seconds=120
+transcript_tail_bytes=4096
 remote_script='~/.config/bin/scripts/claude-session-sync'
 ssh_options=(-o BatchMode=yes -o ConnectTimeout="$connect_timeout_seconds"
              -o ServerAliveInterval=3 -o ServerAliveCountMax=2)
@@ -72,23 +73,60 @@ list_online_peers() {
     done < "$peers_file"
 }
 
-# "mtime<TAB>path" for every file under the slug dir, skipping memory (a symlink into ~/.config).
+# "mtime<TAB>size<TAB>tail<TAB>path" for every file under the slug dir, skipping memory
+# (a symlink into ~/.config). tail hashes a transcript's last bytes, so the sender can
+# tell whether its copy extends the receiver's.
 write_manifest() {
     local slug_dir="$1"
     [ -d "$slug_dir" ] || return 0
-    (cd "$slug_dir" && perl -MFile::Find -e '
+    (cd "$slug_dir" && perl -MFile::Find -MDigest::SHA=sha1_hex -e '
+        my $tail_bytes = shift;
         find({ no_chdir => 1, wanted => sub {
             if ($_ eq "./memory") { $File::Find::prune = 1; return }
             return if -l $_;
             return unless -f _;
-            printf "%d\t%s\n", (lstat _)[9], substr($_, 2);
-        }}, ".")')
+            my ($size, $mtime) = (lstat _)[7, 9];
+            my $tail = "-";
+            if (/\.jsonl$/ && open my $file, "<:raw", $_) {
+                my $start = $size > $tail_bytes ? $size - $tail_bytes : 0;
+                seek $file, $start, 0;
+                read $file, my $bytes, $size - $start;
+                $tail = sha1_hex($bytes);
+            }
+            printf "%d\t%d\t%s\t%s\n", $mtime, $size, $tail, substr($_, 2);
+        }}, ".")' "$transcript_tail_bytes")
 }
 
-# Paths in the source manifest that the destination lacks or holds an older copy of.
-list_newer_files() {
-    awk -F'\t' 'FILENAME == ARGV[1] { destination[$2] = $1; next }
-                !($2 in destination) || $1 > destination[$2] { print $2 }' "$1" "$2"
+# Files the destination lacks or holds an older copy of, run where the source files are.
+# A transcript is only sent when it extends the destination's copy; two machines
+# appending to one session diverge, and newest-wins would drop one side's turns.
+list_files_to_send() {
+    local destination_manifest="$1" source_manifest="$2" source_dir="$3"
+    (cd "$source_dir" && perl -MDigest::SHA=sha1_hex -e '
+        my ($destination_manifest, $source_manifest, $tail_bytes) = @ARGV;
+        my %destination;
+        open my $in, "<", $destination_manifest or die;
+        while (<$in>) { chomp; my @f = split /\t/, $_, 4; $destination{$f[3]} = \@f if @f == 4 }
+        open $in, "<", $source_manifest or die;
+        while (<$in>) {
+            chomp;
+            my ($mtime, $size, $tail, $path) = split /\t/, $_, 4;
+            my $theirs = $destination{$path};
+            if (!$theirs) { print "$path\n"; next }
+            my ($their_mtime, $their_size, $their_tail) = @$theirs;
+            next unless $mtime > $their_mtime;
+            if ($path =~ /\.jsonl$/) {
+                my $extends = 0;
+                if ($size >= $their_size && open my $file, "<:raw", $path) {
+                    my $start = $their_size > $tail_bytes ? $their_size - $tail_bytes : 0;
+                    seek $file, $start, 0;
+                    read $file, my $bytes, $their_size - $start;
+                    $extends = sha1_hex($bytes) eq $their_tail;
+                }
+                if (!$extends) { print STDERR "diverged, not overwritten: $path\n"; next }
+            }
+            print "$path\n";
+        }' "$destination_manifest" "$source_manifest" "$transcript_tail_bytes")
 }
 
 extract_archive_into() {
@@ -105,9 +143,11 @@ serve_send() {
     work="$(mktemp -d)"
     cat > "$work/theirs"
     write_manifest "$slug_dir" > "$work/mine"
-    list_newer_files "$work/theirs" "$work/mine" > "$work/list"
-    [ -s "$work/list" ] && (cd "$slug_dir" && tar "${tar_create_options[@]}" -cf - -T "$work/list")
-    local status=$?
+    list_files_to_send "$work/theirs" "$work/mine" "$slug_dir" > "$work/list"
+    local status=0
+    if [ -s "$work/list" ]; then
+        (cd "$slug_dir" && tar "${tar_create_options[@]}" -cf - -T "$work/list"); status=$?
+    fi
     rm -rf "$work"
     return "$status"
 }
@@ -153,7 +193,7 @@ push_to_peer() {
     if ! run_on_peer "$peer" serve-manifest "$key" < /dev/null > "$work/theirs"; then
         log "push $peer: failed"
     else
-        list_newer_files "$work/theirs" "$work/mine" > "$work/list"
+        list_files_to_send "$work/theirs" "$work/mine" "$slug_dir" > "$work/list"
         if [ ! -s "$work/list" ]; then
             log "push $peer: 0 files"
         elif (cd "$slug_dir" && tar "${tar_create_options[@]}" -cf - -T "$work/list") | run_on_peer "$peer" serve-receive "$key"; then
