@@ -16,8 +16,9 @@ active_marker=".active-host"
 active_warning_window_seconds=600
 connect_timeout_seconds=3
 lock_wait_seconds=30
-lock_stale_seconds=120
+lock_stale_seconds=600
 transcript_tail_bytes=4096
+session_start_pull_wait_tenths=150
 remote_script='~/.config/bin/scripts/claude-session-sync'
 ssh_options=(-o BatchMode=yes -o ConnectTimeout="$connect_timeout_seconds"
              -o ServerAliveInterval=3 -o ServerAliveCountMax=2)
@@ -253,6 +254,15 @@ warn_if_active_elsewhere() {
 
 run_detached() { "$0" "$@" < /dev/null >> "$log_file" 2>&1 & }
 
+# A big first pull outlives session start; it finishes in the background for the next resume.
+wait_for_detached_pull() {
+    run_detached pull "$1"
+    local pull_pid=$! waited=0
+    while kill -0 "$pull_pid" 2>/dev/null && [ "$waited" -lt "$session_start_pull_wait_tenths" ]; do
+        sleep 0.1; waited=$((waited + 1))
+    done
+}
+
 main() {
     local command="${1:-}"
     case "$command" in
@@ -267,7 +277,7 @@ main() {
     case "$command" in
         pull|push) sync_with_peers "$command" "$key" "$slug_dir" ;;
         session-start)
-            sync_with_peers pull "$key" "$slug_dir" 2>> "$log_file"
+            wait_for_detached_pull "$dir"
             warn_if_active_elsewhere "$slug_dir" | tee -a "$log_file"
             write_active_marker "$slug_dir" active
             run_detached push "$dir" ;;
