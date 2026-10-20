@@ -69,6 +69,7 @@ list_online_peers() {
         | jq -r '.Peer[]? | select(.Online) | .DNSName' | tr -d '\r' | sed 's/\..*//')"
     local host user
     while read -r host user; do
+        user="${user%$'\r'}"
         case "$host" in ''|'#'*) continue ;; esac
         grep -qx "$host" <<<"$online" && printf '%s@%s\n' "$user" "$host"
     done < "$peers_file"
