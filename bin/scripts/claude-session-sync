@@ -21,6 +21,10 @@ remote_script='~/.config/bin/scripts/claude-session-sync'
 ssh_options=(-o BatchMode=yes -o ConnectTimeout="$connect_timeout_seconds"
              -o ServerAliveInterval=3 -o ServerAliveCountMax=2)
 
+# No macOS xattrs or ._ files in archives; GNU tar on peers warns on every one.
+export COPYFILE_DISABLE=1
+tar_create_options=(--no-xattrs)
+
 log() { printf '%s %s\n' "$(date '+%F %T')" "$*" >&2; }
 
 is_windows() { case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) return 0 ;; esac; return 1; }
@@ -102,7 +106,7 @@ serve_send() {
     cat > "$work/theirs"
     write_manifest "$slug_dir" > "$work/mine"
     list_newer_files "$work/theirs" "$work/mine" > "$work/list"
-    [ -s "$work/list" ] && (cd "$slug_dir" && tar -cf - -T "$work/list")
+    [ -s "$work/list" ] && (cd "$slug_dir" && tar "${tar_create_options[@]}" -cf - -T "$work/list")
     local status=$?
     rm -rf "$work"
     return "$status"
@@ -152,7 +156,7 @@ push_to_peer() {
         list_newer_files "$work/theirs" "$work/mine" > "$work/list"
         if [ ! -s "$work/list" ]; then
             log "push $peer: 0 files"
-        elif (cd "$slug_dir" && tar -cf - -T "$work/list") | run_on_peer "$peer" serve-receive "$key"; then
+        elif (cd "$slug_dir" && tar "${tar_create_options[@]}" -cf - -T "$work/list") | run_on_peer "$peer" serve-receive "$key"; then
             log "push $peer: $(wc -l < "$work/list" | tr -d ' ') files"
         else
             log "push $peer: failed"
