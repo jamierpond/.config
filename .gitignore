@@ -18,6 +18,7 @@
 !README.md
 
 # Shell config
+!ssh/
 !shellrc
 !bashrc
 !zshrc

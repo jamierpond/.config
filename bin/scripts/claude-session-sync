@@ -7,9 +7,10 @@
 #
 # Transport is tar over ssh, not rsync: scoop has no rsync for git-bash.
 # Peers run this same script (from their ~/.config) for the remote half.
+# thinkpad is untested: its default ssh shell is cmd.exe, where `bash ~/...`
+# may not reach git-bash; it fails like any unreachable peer.
 set -uo pipefail
 
-peers_file="$HOME/.config/claude/session-sync-peers"
 projects_root="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects"
 log_file="$HOME/.cache/claude-session-sync.log"
 active_marker=".active-host"
@@ -61,18 +62,12 @@ get_this_host_name() {
     printf '%s' "${name:-$(hostname)}"
 }
 
-# "user@host" for each online Tailscale peer listed in the peers file.
+# MagicDNS short name of each online Tailscale computer. ssh users come from
+# ~/.ssh/config (~/.config/ssh/config); an unreachable host costs one connect timeout.
 list_online_peers() {
-    [ -f "$peers_file" ] || return 0
-    local online
-    online="$(tailscale status --json 2>/dev/null \
-        | jq -r '.Peer[]? | select(.Online) | .DNSName' | tr -d '\r' | sed 's/\..*//')"
-    local host user
-    while read -r host user; do
-        user="${user%$'\r'}"
-        case "$host" in ''|'#'*) continue ;; esac
-        grep -qx "$host" <<<"$online" && printf '%s@%s\n' "$user" "$host"
-    done < "$peers_file"
+    tailscale status --json 2>/dev/null \
+        | jq -r '.Peer[]? | select(.Online and (.OS | IN("macOS", "windows", "linux"))) | .DNSName' \
+        | tr -d '\r' | sed 's/\..*//'
 }
 
 # "mtime<TAB>size<TAB>tail<TAB>path" for every file under the slug dir, skipping memory

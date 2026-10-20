@@ -1,0 +1,6 @@
+# Included from ~/.ssh/config on every machine. Tailscale MagicDNS short names.
+Host big-cow tamby jamies-mac
+    User jamiepond
+
+Host tamby-windows thinkpad
+    User jamie
