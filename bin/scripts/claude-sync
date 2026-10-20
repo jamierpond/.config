@@ -3,6 +3,9 @@
 # shared settings keys, and each repo's auto-memory directory.
 set -euo pipefail
 
+# git-bash's ln -s copies unless told to make real Windows symlinks.
+case "$(uname -s)" in MINGW*|MSYS*) export MSYS=winsymlinks:nativestrict ;; esac
+
 cfg="$(cd "$(dirname "$0")/../.." && pwd)"
 claude_dir="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 mem_root="$cfg/claude/memory"
@@ -20,7 +23,9 @@ jq -s '.[0] * .[1]' "$settings" "$cfg/claude/settings.json" > "$settings.tmp"
 mv "$settings.tmp" "$settings"
 echo "settings.json merged"
 
-slug() { printf '%s' "$1" | sed 's/[^A-Za-z0-9]/-/g'; }
+# Claude Code names a project's dir after its native path (C:\Users\... on Windows).
+native_path() { if command -v cygpath >/dev/null; then cygpath -w "$1"; else printf '%s' "$1"; fi; }
+slug() { native_path "$1" | sed 's/[^A-Za-z0-9]/-/g'; }
 name() { local rel="${1#"$HOME"/}"; printf '%s' "${rel//\//-}"; }
 
 link_memory() {
