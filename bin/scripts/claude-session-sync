@@ -1,0 +1,240 @@
+#!/usr/bin/env bash
+# Hand Claude Code sessions between Tailscale machines: copy this project's
+# ~/.claude/projects/<slug>/ to or from every online peer, newest file wins.
+#
+#   claude-session-sync pull|push [project-dir]   manual handoff
+#   claude-session-sync session-start|turn-end|session-end   Claude Code hooks
+#
+# Transport is tar over ssh, not rsync: scoop has no rsync for git-bash.
+# Peers run this same script (from their ~/.config) for the remote half.
+set -uo pipefail
+
+peers_file="$HOME/.config/claude/session-sync-peers"
+projects_root="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects"
+log_file="$HOME/.cache/claude-session-sync.log"
+active_marker=".active-host"
+active_warning_window_seconds=600
+connect_timeout_seconds=3
+lock_wait_seconds=30
+lock_stale_seconds=120
+remote_script='~/.config/bin/scripts/claude-session-sync'
+ssh_options=(-o BatchMode=yes -o ConnectTimeout="$connect_timeout_seconds"
+             -o ServerAliveInterval=3 -o ServerAliveCountMax=2)
+
+log() { printf '%s %s\n' "$(date '+%F %T')" "$*" >&2; }
+
+is_windows() { case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) return 0 ;; esac; return 1; }
+
+get_native_path() { if is_windows; then cygpath -w "$1"; else printf '%s' "$1"; fi; }
+
+# Claude Code's project dir name: the native cwd with every non-alphanumeric as '-'.
+get_slug_for_path() { get_native_path "$1" | sed 's/[^A-Za-z0-9]/-/g'; }
+
+# Peers agree on a project by its path under $HOME; anything else must match exactly.
+get_project_key() {
+    local dir
+    dir="$(cd "$1" && pwd -P)" || return 1
+    case "$dir" in
+        "$HOME"/*) printf 'home:%s' "${dir#"$HOME"/}" ;;
+        *) printf 'slug:%s' "$(get_slug_for_path "$dir")" ;;
+    esac
+}
+
+get_slug_dir_for_key() {
+    case "$1" in
+        home:*) printf '%s/%s' "$projects_root" "$(get_slug_for_path "$HOME/${1#home:}")" ;;
+        slug:*) printf '%s/%s' "$projects_root" "${1#slug:}" ;;
+        *) return 1 ;;
+    esac
+}
+
+get_this_host_name() {
+    local name
+    name="$(tailscale status --json 2>/dev/null | jq -r '.Self.DNSName // empty' | tr -d '\r')"
+    name="${name%%.*}"
+    printf '%s' "${name:-$(hostname)}"
+}
+
+# "user@host" for each online Tailscale peer listed in the peers file.
+list_online_peers() {
+    [ -f "$peers_file" ] || return 0
+    local online
+    online="$(tailscale status --json 2>/dev/null \
+        | jq -r '.Peer[]? | select(.Online) | .DNSName' | tr -d '\r' | sed 's/\..*//')"
+    local host user
+    while read -r host user; do
+        case "$host" in ''|'#'*) continue ;; esac
+        grep -qx "$host" <<<"$online" && printf '%s@%s\n' "$user" "$host"
+    done < "$peers_file"
+}
+
+# "mtime<TAB>path" for every file under the slug dir, skipping memory (a symlink into ~/.config).
+write_manifest() {
+    local slug_dir="$1"
+    [ -d "$slug_dir" ] || return 0
+    (cd "$slug_dir" && perl -MFile::Find -e '
+        find({ no_chdir => 1, wanted => sub {
+            if ($_ eq "./memory") { $File::Find::prune = 1; return }
+            return if -l $_;
+            return unless -f _;
+            printf "%d\t%s\n", (lstat _)[9], substr($_, 2);
+        }}, ".")')
+}
+
+# Paths in the source manifest that the destination lacks or holds an older copy of.
+list_newer_files() {
+    awk -F'\t' 'FILENAME == ARGV[1] { destination[$2] = $1; next }
+                !($2 in destination) || $1 > destination[$2] { print $2 }' "$1" "$2"
+}
+
+extract_archive_into() {
+    local archive="$1" slug_dir="$2"
+    [ -s "$archive" ] || return 0
+    tar -tf "$archive" >/dev/null || { log "corrupt archive, not extracted"; return 1; }
+    mkdir -p "$slug_dir" && tar -xpf "$archive" -C "$slug_dir"
+}
+
+# Remote half of pull: read the caller's manifest on stdin, send back a tar of what it lacks.
+serve_send() {
+    local slug_dir work
+    slug_dir="$(get_slug_dir_for_key "$1")" || return 1
+    work="$(mktemp -d)"
+    cat > "$work/theirs"
+    write_manifest "$slug_dir" > "$work/mine"
+    list_newer_files "$work/theirs" "$work/mine" > "$work/list"
+    [ -s "$work/list" ] && (cd "$slug_dir" && tar -cf - -T "$work/list")
+    local status=$?
+    rm -rf "$work"
+    return "$status"
+}
+
+serve_manifest() {
+    local slug_dir
+    slug_dir="$(get_slug_dir_for_key "$1")" || return 1
+    write_manifest "$slug_dir"
+}
+
+serve_receive() {
+    local slug_dir archive
+    slug_dir="$(get_slug_dir_for_key "$1")" || return 1
+    archive="$(mktemp)"
+    cat > "$archive" && extract_archive_into "$archive" "$slug_dir"
+    local status=$?
+    rm -f "$archive"
+    return "$status"
+}
+
+run_on_peer() {
+    local peer="$1"; shift
+    ssh "${ssh_options[@]}" "$peer" bash "$remote_script" "$(printf "%q " "$@")"
+}
+
+pull_from_peer() {
+    local peer="$1" key="$2" slug_dir="$3" work
+    work="$(mktemp -d)"
+    write_manifest "$slug_dir" > "$work/mine"
+    if run_on_peer "$peer" serve-send "$key" < "$work/mine" > "$work/archive" \
+        && extract_archive_into "$work/archive" "$slug_dir"; then
+        log "pull $peer: $(tar -tf "$work/archive" 2>/dev/null | grep -vc '/$') files"
+    else
+        log "pull $peer: failed"
+    fi
+    rm -rf "$work"
+}
+
+push_to_peer() {
+    local peer="$1" key="$2" slug_dir="$3" work
+    work="$(mktemp -d)"
+    write_manifest "$slug_dir" > "$work/mine"
+    if ! run_on_peer "$peer" serve-manifest "$key" < /dev/null > "$work/theirs"; then
+        log "push $peer: failed"
+    else
+        list_newer_files "$work/theirs" "$work/mine" > "$work/list"
+        if [ ! -s "$work/list" ]; then
+            log "push $peer: 0 files"
+        elif (cd "$slug_dir" && tar -cf - -T "$work/list") | run_on_peer "$peer" serve-receive "$key"; then
+            log "push $peer: $(wc -l < "$work/list" | tr -d ' ') files"
+        else
+            log "push $peer: failed"
+        fi
+    fi
+    rm -rf "$work"
+}
+
+# Overlapping hook runs on one project wait their turn; a lock older than lock_stale_seconds is dead.
+acquire_lock() {
+    lock_dir="$HOME/.cache/claude-session-sync.$(basename "$1").lock"
+    local waited=0
+    until mkdir "$lock_dir" 2>/dev/null; do
+        local age
+        age=$(perl -e 'print time - (stat shift)[9]' "$lock_dir" 2>/dev/null || echo 0)
+        [ "$age" -gt "$lock_stale_seconds" ] && rmdir "$lock_dir" 2>/dev/null && continue
+        [ "$waited" -ge "$lock_wait_seconds" ] && return 1
+        sleep 1; waited=$((waited + 1))
+    done
+    trap 'rmdir "$lock_dir" 2>/dev/null' EXIT
+}
+
+sync_with_peers() {
+    local direction="$1" key="$2" slug_dir="$3" peer
+    acquire_lock "$slug_dir" || { log "$direction: lock busy, skipped"; return 0; }
+    local peers
+    peers="$(list_online_peers)"
+    [ -n "$peers" ] || { log "$direction: no online peers"; return 0; }
+    while read -r peer; do
+        "${direction}_peer" "$peer" "$key" "$slug_dir" &
+    done <<<"$peers"
+    wait
+}
+
+pull_peer() { pull_from_peer "$@"; }
+push_peer() { push_to_peer "$@"; }
+
+write_active_marker() {
+    local slug_dir="$1" state="$2"
+    mkdir -p "$slug_dir"
+    printf '%s %s %s\n' "$(get_this_host_name)" "$(date +%s)" "$state" > "$slug_dir/$active_marker"
+}
+
+# Called after a pull: the newest marker across peers says who used this project last.
+warn_if_active_elsewhere() {
+    local marker="$1/$active_marker" host stamp state
+    [ -f "$marker" ] || return 0
+    read -r host stamp state < "$marker"
+    [ "$state" = active ] && [ "$host" != "$(get_this_host_name)" ] || return 0
+    local age=$(( $(date +%s) - stamp ))
+    [ "$age" -lt "$active_warning_window_seconds" ] || return 0
+    echo "claude-session-sync: a Claude session in this project was active on $host $((age / 60)) min ago; resuming here forks it."
+}
+
+run_detached() { "$0" "$@" < /dev/null >> "$log_file" 2>&1 & }
+
+main() {
+    local command="${1:-}"
+    case "$command" in
+        serve-send|serve-manifest|serve-receive) "${command//-/_}" "$2"; return ;;
+    esac
+
+    local dir="${2:-${CLAUDE_PROJECT_DIR:-$PWD}}" key slug_dir
+    key="$(get_project_key "$dir")" || { echo "no such dir: $dir" >&2; return 1; }
+    slug_dir="$(get_slug_dir_for_key "$key")"
+    mkdir -p "$(dirname "$log_file")"
+
+    case "$command" in
+        pull|push) sync_with_peers "$command" "$key" "$slug_dir" ;;
+        session-start)
+            sync_with_peers pull "$key" "$slug_dir" 2>> "$log_file"
+            warn_if_active_elsewhere "$slug_dir" | tee -a "$log_file"
+            write_active_marker "$slug_dir" active
+            run_detached push "$dir" ;;
+        turn-end)
+            write_active_marker "$slug_dir" active
+            run_detached push "$dir" ;;
+        session-end)
+            write_active_marker "$slug_dir" ended
+            run_detached push "$dir" ;;
+        *) sed -n '2,7s/^# \{0,1\}//p' "$0"; return 1 ;;
+    esac
+}
+
+main "$@"

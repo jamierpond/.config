@@ -1,0 +1,7 @@
+# claude-session-sync peers: Tailscale MagicDNS short name, then the ssh user.
+# Online peers not listed here are skipped.
+big-cow        jamiepond
+tamby          jamiepond
+tamby-windows  jamie
+# thinkpad: default ssh shell is cmd.exe, untested (it was offline). Add
+# "thinkpad jamie" once `ssh jamie@thinkpad bash -lc true` is known to reach git-bash.
