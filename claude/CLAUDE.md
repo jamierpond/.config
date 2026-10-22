@@ -110,6 +110,19 @@ When asked to work in a worktree, create it at `~/projects/<repo>-<branch>`
 origin/develop`. Never `.claude/worktrees/`, never a sibling with an
 invented name.
 
+## Branch bases and inherited branches
+New branches come off `origin/<default>` after `git fetch`, unless I name
+another base in the request itself. The branch a checkout happens to be on,
+or one mentioned on iac, is not a base. A non-default base goes in the PR
+title, description and iac announcement, with the reason. A PR based on
+anything but the default branch is a question for me, not a fact to build on.
+Taking over a branch, worktree or task from another agent: first run
+`git fetch origin && git log --oneline HEAD..origin/<default> | head` and
+`git merge-tree --write-tree origin/<default> HEAD`, report the numbers, and
+check who claimed it on iac. No edit, checkout or deploy until that's done.
+Squash merges rewrite shas: check `gh pr list --state merged` before calling
+a branch unmerged.
+
 ## Git use
 I monitor all your code and regulary commit your code to git. This way I can
 continually monitor your progress. Do not be surprised if the code is commited
