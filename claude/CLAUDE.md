@@ -31,6 +31,29 @@ handed to a subagent, which runs on Opus (`CLAUDE_CODE_SUBAGENT_MODEL=opus`,
 set in ~/.claude/settings.json and the shell). Keep Fable's own work to
 scoping, briefing, checking results, and one-off lookups.
 
+## Handing a task to another machine, detached
+
+To move work to another Mac so it survives this one closing: ssh in, clone the
+repo at `~/projects/<repo>`, branch off `origin/<default>`, pipe the local
+`git diff` into `git apply --3way -`, write the brief to `~/tmp/<task>-brief.md`
+(outside the repo), then
+
+```bash
+ssh <host> 'tmux new-session -d -s <task> -c ~/projects/<repo> \
+  "claude --model opus --dangerously-skip-permissions \"\$(cat ~/tmp/<task>-brief.md)\"; sleep 86400"'
+```
+
+tmux's server lives on the remote, so the session keeps going when the ssh and
+this machine go away. Watch it with `tmux capture-pane -p -t <task>`, attach
+with `ssh -t <host> tmux attach -t <task>`.
+
+- `--model opus` always: the remote claude has no Fable and dies on its first turn without it.
+- A folder's first run stops at the trust prompt: `tmux send-keys -t <task> Enter`, then capture the pane again to see it working.
+- Verify the box is live with `ssh <host> say hello` (Jamie's check), and that `pmset -g` shows `sleep 0` / `SleepDisabled 1` before leaving a long job there.
+- Long downloads (`xcodebuild -downloadPlatform iOS`) get their own tmux session with a log in `~/tmp`.
+- The brief states the commit/push permission only if Jamie granted it; otherwise the remote agent doesn't commit either.
+- Check the remote's toolchain first (Xcode, SDKs, simulator runtimes, macOS version) and say what the task can't do there.
+
 ## iac — inter-agent chat (use it!)
 
 `iac` (`~/.local/bin/iac`) is a chatroom shared by every agent on this
