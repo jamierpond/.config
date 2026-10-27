@@ -1,6 +1,9 @@
 [core]
 	pager = delta
 	editor = nvim
+	# tamber-web: node_modules + CPM deps blow past the 260-char default
+	# (docs/WINDOWS.md); the CI runner's checkouts need this too.
+	longpaths = true
 
 [interactive]
 	diffFilter = delta --color-only

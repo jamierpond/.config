@@ -90,7 +90,13 @@ if (Get-Command scoop -ErrorAction SilentlyContinue) {
     Write-Info "Installing Scoop..."
     # May be overridden by a higher-scope policy (e.g. already Bypass); non-fatal.
     try { Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force -ErrorAction Stop } catch { Write-Warn "Could not set execution policy (likely already permissive): $($_.Exception.Message)" }
-    Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+    # Scoop's installer refuses elevated shells unless -RunAsAdmin is passed.
+    $scoopInstaller = Invoke-RestMethod -Uri https://get.scoop.sh
+    if (Test-Admin) {
+        & ([scriptblock]::Create($scoopInstaller)) -RunAsAdmin
+    } else {
+        & ([scriptblock]::Create($scoopInstaller))
+    }
 }
 
 # Refresh PATH so scoop is available
@@ -150,13 +156,18 @@ if (Test-Path $ScoopFile) {
     }
 
     # Install apps (skip already installed)
-    $installedApps = (scoop list 2>$null).Name
+    # Empty-safe under StrictMode: fresh installs return nothing (plus an info
+    # line), and .Name on $null/strings would throw.
+    $installedApps = @(scoop list 2>$null | Where-Object { $_ -and $_.PSObject.Properties['Name'] } | ForEach-Object { $_.Name })
     foreach ($app in $scoopConfig.apps) {
         if ($installedApps -contains $app.Name) {
             Write-Info "  $($app.Name) already installed"
         } else {
             Write-Info "  Installing $($app.Name)..."
-            scoop install $app.Name
+            # scoop shims resolve to scoop.ps1 and run in-process, inheriting our
+            # ErrorActionPreference=Stop - which turns scoop's non-fatal errors
+            # (e.g. leftover files from a prior partial install) into hard aborts.
+            & { $ErrorActionPreference = 'Continue'; scoop install $app.Name }
         }
     }
 } else {
@@ -190,6 +201,26 @@ if (-not $op1pInstalled) {
     winget install --id AgileBits.1Password --accept-source-agreements --accept-package-agreements
 } else {
     Write-Info "1Password desktop app already installed"
+}
+
+# Inno Setup - winget not scoop: the scoop manifest depends on innounp whose
+# upstream download URL is dead (404), so the scoop install always fails.
+if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+    Write-Info "Installing Inno Setup via winget..."
+    winget install --id JRSoftware.InnoSetup -e --accept-source-agreements --accept-package-agreements
+} else {
+    Write-Info "Inno Setup already installed"
+}
+
+# PowerToys - winget not scoop (needs its runner/services; scoop build is
+# portable and stores settings differently). Keyboard Manager remaps get
+# symlinked from the repo further down.
+$ptInstalled = winget list --id Microsoft.PowerToys -e --accept-source-agreements 2>$null | Select-String -SimpleMatch "Microsoft.PowerToys"
+if (-not $ptInstalled) {
+    Write-Info "Installing PowerToys via winget..."
+    winget install --id Microsoft.PowerToys --accept-source-agreements --accept-package-agreements
+} else {
+    Write-Info "PowerToys already installed"
 }
 
 # =============================================================================
@@ -261,6 +292,13 @@ if ($terminalDir) {
 # =============================================================================
 
 $kbdMgrDir = "$env:LOCALAPPDATA\Microsoft\PowerToys\Keyboard Manager"
+# If PowerToys is installed but has never run, its settings tree doesn't exist
+# yet - create the dir so the symlink lands before first launch.
+$ptExe = @("$env:LOCALAPPDATA\PowerToys\PowerToys.exe", "$env:ProgramFiles\PowerToys\PowerToys.exe") |
+    Where-Object { Test-Path $_ } | Select-Object -First 1
+if ($ptExe -and -not (Test-Path $kbdMgrDir)) {
+    New-Item -ItemType Directory -Path $kbdMgrDir -Force | Out-Null
+}
 if (Test-Path $kbdMgrDir) {
     $kbdMgrTarget = Join-Path $kbdMgrDir "default.json"
     if (Test-Path $KbdMgrSrc) {
@@ -306,10 +344,21 @@ Write-Info "psmux config stub written: $psmuxTarget sources windows/psmux.conf"
 # PowerShell profile (dot-source stub - survives file replacement, no admin needed)
 # =============================================================================
 
-$psProfileDir = Split-Path $PROFILE
-New-Item -ItemType Directory -Path $psProfileDir -Force | Out-Null
-". `"$DotfilesDir\windows\powershell-profile.ps1`"" | Set-Content $PROFILE
-Write-Info "PowerShell profile stub written: $PROFILE sources windows/powershell-profile.ps1"
+# Stub BOTH engines: pwsh 7 reads Documents\PowerShell, Windows PowerShell 5.1
+# reads Documents\WindowsPowerShell (psmux's default-shell is 5.1). $PROFILE
+# only covers whichever engine is running this script.
+# 5.1 keeps its own execution policy (separate from pwsh 7); without this the
+# profile stub is refused with "running scripts is disabled".
+try {
+    powershell.exe -NoProfile -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force" 2>$null
+} catch { Write-Warn "Could not set 5.1 execution policy: $($_.Exception.Message)" }
+
+$docs = [Environment]::GetFolderPath("MyDocuments")
+foreach ($psDir in @("$docs\PowerShell", "$docs\WindowsPowerShell")) {
+    New-Item -ItemType Directory -Path $psDir -Force | Out-Null
+    ". `"$DotfilesDir\windows\powershell-profile.ps1`"" | Set-Content "$psDir\Microsoft.PowerShell_profile.ps1"
+    Write-Info "PowerShell profile stub written: $psDir\Microsoft.PowerShell_profile.ps1"
+}
 
 # =============================================================================
 # Git Bash profile (source stub - survives file replacement, no admin needed)

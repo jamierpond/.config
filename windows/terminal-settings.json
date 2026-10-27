@@ -78,6 +78,24 @@
                 "hidden": false,
                 "name": "Developer PowerShell for VS 18",
                 "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "guid": "{2a12b250-8f42-5ea7-b3d7-a1896e40b58e}",
+                "hidden": false,
+                "name": "Developer Command Prompt for VS 18",
+                "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "guid": "{ca61fb48-71e1-51ee-b110-1a471407b110}",
+                "hidden": false,
+                "name": "Developer PowerShell for VS 18",
+                "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "guid": "{fe66f4b8-350f-56bb-adb0-c2ce745f6db5}",
+                "hidden": false,
+                "name": "PowerShell (scoop)",
+                "source": "Windows.Terminal.PowershellCore"
             }
         ]
     },

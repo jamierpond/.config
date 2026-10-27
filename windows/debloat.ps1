@@ -21,7 +21,11 @@ function Set-Reg {
     param([string]$Path, [string]$Name, [int]$Value)
     # Skip if already at the desired value (idempotent, and dodges values with
     # locked ACLs that are already correct - e.g. TaskbarDa).
-    $cur = (Get-ItemProperty -Path $Path -Name $Name -ErrorAction SilentlyContinue).$Name
+    # PSObject.Properties lookup is StrictMode-safe when the value doesn't exist
+    # yet (fresh machine) - dot access on a missing property would throw.
+    $item = Get-ItemProperty -Path $Path -ErrorAction SilentlyContinue
+    $prop = if ($item) { $item.PSObject.Properties[$Name] } else { $null }
+    $cur = if ($prop) { $prop.Value } else { $null }
     if ($null -ne $cur -and [int]$cur -eq $Value) { return }
     try {
         if (-not (Test-Path $Path)) { New-Item -Path $Path -Force | Out-Null }
