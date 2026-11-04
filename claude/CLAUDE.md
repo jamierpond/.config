@@ -339,5 +339,5 @@ Run these steps in order. Don't skip ahead.
 ## eacp branches and PRs
 eacp branches are pushed to Eyal's repo (`eyalamirmusic/eacp`, remote `eyal`/`upstream`), never to my fork, off `eyal/develop`. Open the PR there against `develop` as a draft, for me to review.
 
-## Test Windows code, don't just compile it
-Platform code for Windows gets run, not only built in CI. Use `windows-vm` (Parallels, ssh, see the machines list) or `jamie@tamby-windows`. "Compiles in CI only" is not a finished report.
+## Run platform code on every platform, don't just compile it
+Platform code gets run on every platform, not only built in CI: Windows ARM64 on `windows-vm` (Parallels), Windows x64 on `jamie@tamby-windows`, Linux on `ubuntu-vm` (Parallels), all over ssh (see the machines list). "Compiles in CI only" is not a finished report.
