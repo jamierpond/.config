@@ -90,16 +90,34 @@ treat it as the team channel.
   `iac rooms` lists them.
 - `iac help` for full usage. Source: `~/projects/iac`.
 
-## Notify when done
+## Asking me and notifying me: `ct notify-user` first
 
-`notify "<project> · <branch>" "<status>"` posts a silent desktop
-notification. In CowTerm, clicking it jumps back to your pane (and it's
-suppressed if the user is already looking at it). Use it when a long task
-finishes, you need input, or significant work is done. No `bell`, no `say`.
+When you need my answer or decision, ask with `ct notify-user`. It opens a
+window over everything (naming your pane, so I can jump to it), blocks until
+I answer, and prints the chosen option or typed text. Use it instead of
+AskUserQuestion or stopping with a question in the transcript: I am usually
+in another pane and will not see the transcript. Give options when the
+answer is a choice; add `--allow-type-response` when it might not be.
+
+```bash
+answer=$(ct notify-user --title "tamber-web · fix-auth" \
+  --content "Tests pass. Merge?" --options "merge" "wait")
+ct notify-user --content "Login flow needs a product call: keep the modal or go inline?" \
+  --options "modal" "inline" --allow-type-response
+```
+
+Exit 0 answered, 1 dismissed (nothing printed), 4 CowTerm not running: then
+fall back to AskUserQuestion. The flag is `--content`, not `--context`. The
+pane comes from `$COWTERM_PANE` (set in every CowTerm pane); `--pane <id>`
+overrides it. `ct help` lists everything. Subagents too: put this in briefs.
+
+`notify "<project> · <branch>" "<status>"` is for the no-answer case: a long
+task finished, significant work landed. Silent desktop notification; in
+CowTerm clicking it jumps back to your pane, and it's suppressed if I'm
+already looking at it. No `bell`, no `say`.
 
 ```bash
 notify "tamber-web · fix-auth" "tests passed"
-notify "dotfiles · main" "need your input"
 ```
 
 ## dv — I review your diffs live (use it!)
@@ -125,6 +143,22 @@ your iac role name as `<name>`. `dv help` covers the rest.
   thread. Don't touch threads another agent owns (`--force` is for me).
 - dv is only the tree, viewer and commenter plus these commands. It does
   not launch, wake or feed agents; you own your own loop.
+
+## PR descriptions: short, value first
+
+Every PR body, in this order, readable in about a minute:
+1. Value in two sentences: what was broken or lost for a user before, what
+   they get now.
+2. The interface: one real code block a user would write, names copied from
+   the headers.
+3. How it works: at most four plain sentences.
+4. What isn't covered: one-line bullets, honest.
+5. Testing: two lines, a few real test names, the CI lanes.
+6. Where it sits (stack position, what's next): one line.
+
+Never the default agent style: no "## What / ## Why" essays, bold mini-labels,
+implementation inventories or verification tables nobody acts on. Every
+claim true of the head commit. eacp #181 (2026-10-28) is the reference.
 
 ## Worktrees
 When asked to work in a worktree, create it at `~/projects/<repo>-<branch>`
@@ -215,6 +249,27 @@ git history/diffs honest; retyping is where silent drift creeps in.
   set a dirty flag where the input changes. No mutable memoised getters.
 - Replacing something deletes the old code and its shims in the same
   change. A test that tests nothing gets deleted.
+- Use what the codebase already has before writing anything: its utilities
+  (eacp's `Docs/Toolbox.md`), its patterns (load a library the way the
+  plugin host does), its macros (Miro's reflection macro; a hand-written
+  `reflect` only for a field serialised differently from its value). A
+  file-local helper that duplicates one is a review failure.
+- A fix for a test, demo or CI flake stays in the test, demo or CI. It
+  never changes library or framework behaviour for every consumer.
+- Tests don't depend on demo apps. A test that needs a crashing or separate
+  process relaunches its own binary in a mode (custom nanotest `main`).
+- Build only what was asked. A question in review ("why is this…?", "i kinda
+  think…") gets an answer, not an edit. Spotted something else? Say so;
+  don't fix it uninvited. Read examples as intent and write them in the
+  codebase's style, unless Jamie is explicitly precise.
+- Explanations and comments: name the concrete thing, what it does, then
+  why. Plain short sentences, no jargon left unexplained.
+- Zero tolerance for text that doesn't mean anything: comments, user-facing
+  descriptions, flag help, log lines. Every sentence must say exactly what
+  happens ("ends the process at once; no handler inside the app runs"), never
+  a vague phrase ("fails fast, past every handler"). Spell out acronyms.
+  Check this before showing Jamie anything. Equally, don't pad: say it once,
+  in as few words as stay exact. The aim is delightful clarity.
 - Product behaviour changes (frame rate, data structure semantics, UX) are
   asked, not assumed. Never merge to develop/main without an explicit ask.
 
@@ -280,3 +335,9 @@ Run these steps in order. Don't skip ahead.
 
 5. **Automate.** Last. Scripts, CI, codegen, hooks come only once the process
    is clean and stable. Automating a messy process locks the mess in.
+
+## eacp branches and PRs
+eacp branches are pushed to Eyal's repo (`eyalamirmusic/eacp`, remote `eyal`/`upstream`), never to my fork, off `eyal/develop`. Open the PR there against `develop` as a draft, for me to review.
+
+## Test Windows code, don't just compile it
+Platform code for Windows gets run, not only built in CI. Use `windows-vm` (Parallels, ssh, see the machines list) or `jamie@tamby-windows`. "Compiles in CI only" is not a finished report.
