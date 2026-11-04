@@ -76,15 +76,19 @@
       "path": "",
       "title": "Tamber Web GitHub PRs",
       "url": "https://github.com/tamber-inc/tamber-web/pulls"
+    },
+    {
+      "app": "",
+      "keywords": [
+        "coding",
+        "prs",
+        "pulls"
+      ],
+      "openWith": "audio.pond.grazer",
+      "path": "",
+      "title": "eacp GitHub PRs",
+      "url": "https://github.com/eyalamirmusic/eacp/pulls"
     }
   ],
-  "panel": {
-    "0,33 1512x949": {
-      "height": 502,
-      "width": 737,
-      "x": 319.265625,
-      "y": 270.1328125
-    }
-  },
   "searchUrl": ""
 }

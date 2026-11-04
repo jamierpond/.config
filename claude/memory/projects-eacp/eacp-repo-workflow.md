@@ -1,28 +1,30 @@
 ---
 name: eacp-repo-workflow
-description: "eacp PRs target upstream eyalamirmusic/eacp (origin is Jamie's fork); Jamie works concurrently in the same checkout"
-metadata: 
-  node_type: memory
+description: "eacp branches and PRs go straight to eyalamirmusic/eacp (never Jamie's fork jamierpond/eacp); Jamie works concurrently in the same checkout"
+metadata:
   type: project
-  originSessionId: 8e7fc47f-05f4-48eb-b631-fd5862902812
 ---
 
-The eacp repo has two remotes: `origin` = jamierpond/eacp (fork), `upstream` =
-eyalamirmusic/eacp. PRs (e.g. #28 jp/clang) target **upstream** main — always
-rebase/compare against `upstream/main`, not local or origin main.
+The eacp checkout has two remotes: `origin` = jamierpond/eacp (Jamie's fork)
+and `upstream` = eyalamirmusic/eacp. **Push branches to `upstream`
+(eyalamirmusic/eacp) and open PRs there as same-repo branches
+(`gh pr create --repo eyalamirmusic/eacp --base develop --head <branch>`).
+Never push to the fork or open a PR from it.** Jamie, 2026-10-27: "DONT USE MY
+FORK PUSH TO THE NORMAL eyalamirmusic/eacp repo." The default branch is
+`develop`; compare and rebase against `upstream/develop`.
 
-Jamie actively commits and pushes in the same working copy while Claude works
-(2026-07-06: his cleanup commits and a branch push landed mid-task). **Why:**
-long multi-step git operations can interleave with his changes and clobber or
-orphan them. **How to apply:** re-check `git log`/`git status`/reflog before
-every history rewrite or push; after any unexpected state, diagnose via reflog
-before acting; prefer additive commits over force-pushed rewrites unless he
-explicitly asks. Never `git add -A` during rebase conflict resolution — it
-swept the untracked `ExtraClangRules/plugin/build/` artifacts into a commit
-(the gitignore entry for it appears later in the branch history).
+**Why:** the fork is a leftover; PRs from it confuse review and downstream pins
+(tamber-web's Findeacp.cmake pins eyalamirmusic/eacp).
+**How to apply:** `git push upstream <branch>`; a consumer pinning an unmerged
+eacp branch pins `eyalamirmusic/eacp` at the sha, marked temporary.
 
-CI (`.github/workflows/build.yml`) runs macOS/Linux/Windows builds plus an
-`eacp-tidy` job: fixture must trip exactly 18 warnings, then repo-wide
-`run-clang-tidy` with `-warnings-as-errors='eacp-*'` over Lib and Apps.
-Reproduce locally with the commands from the workflow; Linux runners have no
-pinned LLVM, so the tidy plugin must skip configure there ([[eacp-tidy-plugin]]).
+Jamie actively commits and pushes in the same working copy while Claude works.
+**Why:** long git operations can interleave with his changes. **How to apply:**
+re-check `git log`/`git status`/reflog before any history rewrite or push;
+never `git add -A` (it once swept untracked build artifacts into a commit);
+prefer additive commits over force-pushes unless he asks.
+
+CI (`.github/workflows/build.yml`) runs macOS, Windows (x64 and ARM64, MSVC and
+clang-cl), Linux (three lanes, one on lavapipe), iOS and Android builds. Reproduce
+the Linux lanes locally with the `eacp-ci-linux` Docker image and the commands in
+CLAUDE.md; `-DEACP_CI_BUILD=ON` reproduces the unity configuration.

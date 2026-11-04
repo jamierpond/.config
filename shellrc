@@ -74,7 +74,18 @@ alias gitbump="git commit -m 'chore: bump ci, empty commit' --allow-empty"
 alias jf='just $(just --list | tail -n +2 | fzf | awk '\''{ print $1 }'\'')'
 alias bump="gitbump"
 claude() { (unset DO_NOT_TRACK; command claude "$@"); }
-alias spicy="claude --dangerously-skip-permissions"
+# spicy runs claude in its own tmux session (spicy-<dir>) so it keeps working
+# after the terminal closes; rerun spicy in the same dir to reattach. Inside
+# tmux already, or without tmux, it just runs claude.
+spicy() {
+  if [ -n "$TMUX" ] || ! command -v tmux >/dev/null 2>&1; then
+    claude --dangerously-skip-permissions "$@"
+    return
+  fi
+  local session_name="spicy-$(basename "$PWD" | tr . _)"
+  tmux new-session -A -s "$session_name" -c "$PWD" \
+    "$(printf "%q " env -u DO_NOT_TRACK claude --dangerously-skip-permissions "$@")"
+}
 alias dicy="codex --dangerously-bypass-approvals-and-sandbox"
 alias cbs="generate-claude-branch-summary"
 alias r="temp-script-edit-run"
