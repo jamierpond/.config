@@ -341,3 +341,6 @@ eacp branches are pushed to Eyal's repo (`eyalamirmusic/eacp`, remote `eyal`/`up
 
 ## Run platform code on every platform, don't just compile it
 Platform code gets run on every platform, not only built in CI: Windows ARM64 on `windows-vm` (Parallels), Windows x64 on `jamie@tamby-windows`, Linux on `ubuntu-vm` (Parallels), all over ssh (see the machines list). "Compiles in CI only" is not a finished report.
+
+## Scripts, not ad-hoc commands
+Repeatable work (deploys, cloud setup, builds, test runs) goes in a script in the repo, and the agent runs the script. No one-off command chains in the transcript. Put this in every brief.
