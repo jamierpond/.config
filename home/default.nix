@@ -165,6 +165,7 @@
       core.editor = "nvim";
       credential.helper = "${pkgs.gh}/bin/gh auth git-credential";
       push.autoSetupRemote = true;
+      branch.autoSetupMerge = false;
       pull.rebase = false;
     };
   };

@@ -74,6 +74,8 @@
         "com.apple.springing.delay" = 0.0;
         NSScrollViewRubberbanding = false; # No rubber-band scrolling
         QLPanelAnimationDuration = 0.0; # Instant Quick Look
+        NSAutomaticInlinePredictionEnabled = false; # Grey AI text completion
+        WritingToolsEnabled = false;
       };
       "com.apple.finder" = {
         DisableAllAnimations = true;
@@ -83,6 +85,83 @@
         springboard-hide-duration = 0.0;
         springboard-page-duration = 0.0;
       };
+      # Apple Intelligence and Siri off; no re-opt-in after OS updates
+      "com.apple.CloudSubscriptionFeatures.optIn" = {
+        "1553490127" = false;
+        auto_opt_in = false;
+      };
+      "com.apple.assistant.support" = {
+        "Assistant Enabled" = false;
+        "Siri Data Sharing Opt-In Status" = 2;
+      };
+      "com.apple.Siri" = {
+        StatusMenuVisible = false;
+        VoiceTriggerUserEnabled = false;
+      };
+      "com.apple.AdLib" = {
+        allowApplePersonalizedAdvertising = false;
+        allowIdentifierForAdvertising = false;
+        forceLimitAdTracking = true;
+      };
+      "com.apple.SubmitDiagInfo" = {
+        AutoSubmit = false;
+        ThirdPartyDataSubmit = false;
+      };
+      "com.apple.lookup.shared".LookupSuggestionsDisabled = true;
+      "com.apple.Spotlight".orderedItems = [
+        { enabled = true;  name = "APPLICATIONS"; }
+        { enabled = true;  name = "SYSTEM_PREFS"; }
+        { enabled = true;  name = "DIRECTORIES"; }
+        { enabled = true;  name = "PDF"; }
+        { enabled = true;  name = "DOCUMENTS"; }
+        { enabled = true;  name = "SOURCE"; }
+        { enabled = true;  name = "CONTACT"; }
+        { enabled = true;  name = "EVENT_TODO"; }
+        { enabled = true;  name = "IMAGES"; }
+        { enabled = true;  name = "PRESENTATIONS"; }
+        { enabled = true;  name = "SPREADSHEETS"; }
+        { enabled = true;  name = "MENU_EXPRESSION"; }
+        { enabled = true;  name = "MENU_CONVERSION"; }
+        { enabled = true;  name = "MENU_DEFINITION"; }
+        { enabled = false; name = "MENU_SPOTLIGHT_SUGGESTIONS"; }
+        { enabled = false; name = "MENU_WEBSEARCH"; }
+        { enabled = false; name = "MENU_OTHER"; }
+        { enabled = false; name = "BOOKMARKS"; }
+        { enabled = false; name = "MUSIC"; }
+        { enabled = false; name = "MOVIES"; }
+        { enabled = false; name = "TIPS"; }
+      ];
+      # Safari is sandboxed; these only take if the container plist is writable
+      "com.apple.Safari" = {
+        UniversalSearchEnabled = false;
+        SuppressSearchSuggestions = true;
+        WebsiteSpecificSearchEnabled = false;
+        PreloadTopHit = false;
+        ShowFavoritesUnderSmartSearchField = false;
+        SendDoNotTrackHTTPHeader = true;
+        "WebKitPreferences.privateClickMeasurementEnabled" = false;
+      };
+      "com.apple.gamed".Disabled = true;
+      "com.apple.appstore" = {
+        AutoPlayVideoSetting = "off";
+        UserSetAutoPlayVideoSetting = true;
+        InAppReviewEnabled = false;
+      };
+      "com.apple.Music".showAppleMusic = false;
+      "com.apple.TV".showAppleTVPlus = false;
+      "com.apple.photos.shareddefaults" = {
+        ShowMemories = false;
+        ShowHolidayCalendarEvents = false;
+      };
+      "com.apple.photoanalysisd".FeaturedContentAllowed = false;
+      "com.apple.mail".SuggestionsEnabled = false;
+      "com.apple.suggestions".SuggestionsAllowGeocode = false;
+      "com.apple.Sharing".ShowSiriSuggestionsInShareSheet = false;
+      "com.apple.coreservices.useractivityd" = {
+        ActivityAdvertisingAllowed = false;
+        ActivityReceivingAllowed = false;
+      };
+      "com.apple.ncprefs".summarization_enabled = false;
     };
   };
 
@@ -105,6 +184,29 @@
       "com.apple.spotlightknowledged"       # Spotlight knowledge
       "com.apple.spotlightknowledged.updater"
       "com.apple.spotlightknowledged.importer"
+      # Apple Intelligence and Siri
+      "com.apple.generativeexperiencesd"
+      "com.apple.intelligenceplatformd"
+      "com.apple.intelligenceflowd"
+      "com.apple.intelligencecontextd"
+      "com.apple.intelligencetasksd"
+      "com.apple.visualintelligenced"
+      "com.apple.siriinferenced"
+      "com.apple.siriactionsd"
+      "com.apple.Siri.agent"
+      "com.apple.assistantd"
+      "com.apple.duetexpertd"               # App/action predictions
+      "com.apple.naturallanguaged"          # Writing tools / text prediction models
+      # Ads, engagement promos, analytics
+      "com.apple.ap.adprivacyd"
+      "com.apple.amsengagementd"            # App Store / Music promo banners
+      "com.apple.feedbackd"
+      "com.apple.inputanalyticsd"
+      "com.apple.biomesyncd"                # Syncs usage history across devices
+      "com.apple.financed"                  # Wallet / Apple Card
+      "com.apple.gamed"                     # Game Center
+      "com.apple.UsageTrackingAgent"
+      "com.apple.ScreenTimeAgent"           # Screen Time stops working
     ];
     disableCmd = agent: ''
       launchctl disable user/${uid}/${agent}
