@@ -111,6 +111,12 @@ fall back to AskUserQuestion. The flag is `--content`, not `--context`. The
 pane comes from `$COWTERM_PANE` (set in every CowTerm pane); `--pane <id>`
 overrides it. `ct help` lists everything. Subagents too: put this in briefs.
 
+Announce every completed piece of work (a fix installed, a PR merged or
+opened, a task finished) with `ct notify-user --title "<project> · <branch>"
+--content "<what landed; relaunch if needed>" --options "ok"`, run in the
+background so it doesn't block. Required, every time. Subagents too: put it
+in every brief.
+
 `notify "<project> · <branch>" "<status>"` is for the no-answer case: a long
 task finished, significant work landed. Silent desktop notification; in
 CowTerm clicking it jumps back to your pane, and it's suppressed if I'm
@@ -272,6 +278,16 @@ git history/diffs honest; retyping is where silent drift creeps in.
   in as few words as stay exact. The aim is delightful clarity.
 - Product behaviour changes (frame rate, data structure semantics, UX) are
   asked, not assumed. Never merge to develop/main without an explicit ask.
+  eacp PRs are merged by Eyal: never merge or offer to merge one there.
+
+## codehealth before showing me code
+`codehealth` (`~/.local/bin`, source `~/projects/codehealth`) scores each
+file 1–10 and names the bad functions. Before you show me a diff, report work
+done, or open a PR, run `codehealth diff --check` in the repo (base: origin's
+default branch; working tree and untracked files count). It exits 1 if a
+changed file's score dropped or gained a finding: fix those first, or say why
+one stays. Put the before/after scores of changed files in the report.
+Subagents too: put this in every brief.
 
 ## Deliverables live in the repo, never in scratch dirs
 Anything I asked for that is a file — HTML prototypes, artifacts, scripts,
