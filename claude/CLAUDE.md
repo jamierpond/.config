@@ -12,6 +12,20 @@ Write like a person. No agent-speak ("remaining hit", "incidental",
 "leakage") — say what the code is, plainly. When corrected, don't explain
 or justify the old wording; fix it and move on.
 
+## Write for people: problem, fix, then details
+
+Anything a person reads (PR bodies, reports, commit messages, iac posts)
+goes in this order:
+1. The problem, as a user hit it: "Games crashed on the first frame if they
+   drew text over a 3D scene."
+2. How it's fixed now, in one plain sentence: "Text and shapes now draw in
+   any render pass, with or without a depth buffer."
+3. Then the technical details, for whoever wants them.
+
+Never open with a technically exact sentence nobody can parse. Write like a
+person explaining a fix to a colleague, not a spec. Subagents too: put this
+in every brief.
+
 ## Say something useful or say nothing
 
 Never narrate that you're about to do a thing. "Found it." "Let me check
