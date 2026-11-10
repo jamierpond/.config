@@ -186,6 +186,16 @@ if [[ "$SHELL" != *"zsh"* ]]; then
   fi
 fi
 
+# Linux desktops without a battery are servers here: never sleep. Waking from
+# suspend breaks USB on the T2 Mac Pro, and nothing is reachable while asleep.
+# Masking sleep.target also stops GNOME's idle suspend.
+has_battery() { compgen -G '/sys/class/power_supply/BAT*' > /dev/null; }
+if [[ "$OS" == "linux" && -d /run/systemd/system ]] && ! has_battery && ! grep -qi microsoft /proc/version; then
+  info "Disabling sleep (no battery, so this is a server)..."
+  sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target \
+    || warn "Could not disable sleep"
+fi
+
 # =============================================================================
 # Done
 # =============================================================================
