@@ -67,6 +67,12 @@
           username = "jamie";
         };
 
+        # 2019 Mac Pro (rack) running Ubuntu, build server
+        "jamiepond@macprorack" = mkHome {
+          system = "x86_64-linux";
+          username = "jamiepond";
+        };
+
         # WSL on Windows
         "jamiepond@wsl" = mkHome {
           system = "x86_64-linux";
