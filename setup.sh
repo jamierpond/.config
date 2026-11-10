@@ -207,7 +207,7 @@ info "=========================================="
 echo ""
 echo "Next steps:"
 echo "  1. Restart your terminal (or run: exec zsh)"
-echo "  2. Verify with: make info"
+echo "  2. Verify with: just info"
 echo ""
 if [[ "$OS" == "macos" ]]; then
   echo "For macOS system settings, run:"

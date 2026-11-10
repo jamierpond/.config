@@ -1,9 +1,9 @@
 # Dotfiles test environment
 # Validates that setup.sh works on a fresh Ubuntu machine
 #
-# Build: make docker-build
-# Test:  make docker-test
-# Shell: make docker-shell
+# Build: just docker-build
+# Test:  just docker-test
+# Shell: just docker-shell
 
 FROM ubuntu:24.04
 

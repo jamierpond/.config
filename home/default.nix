@@ -10,6 +10,9 @@
   home.sessionVariables = {
     EDITOR = "nvim";
     VISUAL = "nvim";
+  } // lib.optionalAttrs pkgs.stdenv.isLinux {
+    # Nix cmake never looks in /usr, so point it at the profile's headers and libraries.
+    CMAKE_PREFIX_PATH = "$HOME/.nix-profile";
   };
 
   # Packages to install
@@ -104,6 +107,11 @@
     # llvm/lld on Linux only — on macOS they shadow Apple's dsymutil/linker and break Swift builds
     llvm
     lld
+    cmake            # macOS takes cmake from brew, see above
+    gcc
+    (lib.hiPrio clang)  # both ship cc/c++; clang wins
+    curl.dev         # libcurl headers
+    curl.out         # libcurl.so; plain `curl` installs only the binary
   ] ++ [
 
     # ==========================================================================
@@ -204,7 +212,7 @@
       lg = "lazygit";
 
       # Nix shortcuts
-      nrs = "cd ~/.config && make switch && cd -";  # nix rebuild switch
+      nrs = "cd ~/.config && just switch && cd -";  # nix rebuild switch
       nfu = "nix flake update";                     # update flake inputs
       ngc = "nix-collect-garbage -d";               # garbage collect
     };

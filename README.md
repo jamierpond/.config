@@ -7,7 +7,7 @@ Cross-platform dotfiles for macOS (ARM) and Linux (x86_64). Nix for packages, zs
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jamierpond/.config/main/setup.sh | bash
 # or
-make bootstrap && make switch
+just setup
 ```
 
 ## Layout
@@ -19,7 +19,7 @@ make bootstrap && make switch
 ├── nvim/                             # Neovim (lazy.nvim)
 ├── tmux/                             # Tmux (prefix: C-a)
 ├── flake.nix, home/, darwin/         # Nix
-└── Makefile                          # make switch / update / gc
+└── justfile                          # just switch / update / gc
 ```
 
 ## Git policy

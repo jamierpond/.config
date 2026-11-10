@@ -102,6 +102,11 @@ tamby:
     nix build .#darwinConfigurations.tamby.system
     sudo ./result/sw/bin/darwin-rebuild switch --flake .#tamby
 
+# Switch to macprorack (2019 Mac Pro, Ubuntu) config
+macprorack:
+    @if [ "{{ system }}" != "Linux" ]; then echo "macprorack is Linux only"; exit 1; fi
+    home-manager switch --flake .#jamiepond@macprorack
+
 # Build and activate darwin config with verbose output
 darwin-switch-debug:
     @if [ "{{ system }}" != "Darwin" ]; then echo "darwin-switch-debug is macOS only"; exit 1; fi
