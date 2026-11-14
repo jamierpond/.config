@@ -255,6 +255,29 @@ lazy.setup({
     config = "require('mason').setup({})",
   },
 
+  {
+    "seblj/roslyn.nvim",
+    ft = "cs",
+    config = function()
+      -- Mason's roslyn-language-server is a .NET app; it cannot find a Homebrew or user-local SDK without DOTNET_ROOT.
+      local function findDotnetRootFromSdkList()
+        if vim.fn.executable("dotnet") == 0 then
+          return nil
+        end
+        local firstSdkLine = vim.fn.systemlist({ "dotnet", "--list-sdks" })[1] or ""
+        local sdkDirectory = firstSdkLine:match("%[(.+)%]")
+        if sdkDirectory == nil then
+          return nil
+        end
+        return vim.fs.dirname(sdkDirectory)
+      end
+      if vim.env.DOTNET_ROOT == nil then
+        vim.env.DOTNET_ROOT = findDotnetRootFromSdkList()
+      end
+      require("roslyn").setup({})
+    end,
+  },
+
   -- none-ls (modern replacement for null-ls)
   {
     'nvimtools/none-ls.nvim',

@@ -43,6 +43,8 @@ lsp_zero.set_sign_icons({
 -- Setup Mason and LSPConfig
 require('mason').setup({})
 require('mason-lspconfig').setup({
+  -- roslyn.nvim starts roslyn-language-server itself; lspconfig's roslyn_ls would start a second, broken copy.
+  automatic_enable = { exclude = { 'roslyn_ls' } },
   handlers = {
     lsp_zero.default_setup,
     -- Custom handler for yamlls to enable schema support
@@ -87,6 +89,7 @@ local servers = {
   'yaml-language-server',
   'clangd',
   'pyright',
+  'roslyn-language-server', -- C#, used by seblj/roslyn.nvim
 }
 
 for _, server_name in ipairs(servers) do
