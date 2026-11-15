@@ -205,9 +205,10 @@ I monitor all your code and regulary commit your code to git. This way I can
 continually monitor your progress. Do not be surprised if the code is commited
 to git. This does not mean the code was 'accepted', just acknowledged.
 
-My own dev apps (Grazer, iac, CowTerm, dv and the other pond tools): commit
-and push to main after every finished fix, so origin is always current. Brief
-agents to do the same. Never for work or other people's repos (tamber-*,
+My own dev apps (Grazer, iac, CowTerm, dv and the other pond tools): commit,
+push to main and install after every small finished step, not at the end, so
+origin and the installed app are always current and nobody hits merge
+conflicts. `git pull --rebase` before each commit. Brief agents to do the same. Never for work or other people's repos (tamber-*,
 eacp@develop): there, commit or push only when asked.
 
 No AI or agent is ever credited on a commit or pull request — not you, not a
