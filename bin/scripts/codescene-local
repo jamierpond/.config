@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Runs CodeScene on-prem in Docker at http://localhost:3003 over its own clones
+# of the repos named here (~/codescene-clones/<repo>, cloned from each
+# ~/projects/<repo>'s upstream remote, else origin), so its branch checkouts never touch a working tree.
+# Data and license live in the `codescene` volume, so recreating keeps them.
+# Usage: codescene-local [repo ...]   (default: eacp Miro MakeASound)
+set -euo pipefail
+repos=("$@")
+[[ $# -eq 0 ]] && repos=(eacp Miro MakeASound)
+projects="$HOME/projects"
+port=3003
+
+clones="$HOME/codescene-clones"
+mkdir -p "$clones"
+for repo in "${repos[@]}"; do
+    [[ -d "$projects/$repo/.git" ]] || { echo "not a git repo: $projects/$repo" >&2; exit 1; }
+    if [[ ! -d "$clones/$repo/.git" ]]; then
+        remote=$(git -C "$projects/$repo" remote get-url upstream 2>/dev/null \
+            || git -C "$projects/$repo" remote get-url origin)
+        git clone --quiet "$remote" "$clones/$repo"
+    fi
+done
+
+docker rm -f codescene >/dev/null 2>&1 || true
+docker run -d --name codescene --restart unless-stopped -p "$port:$port" \
+    -v codescene:/codescene \
+    -e LOCAL_CLONED_REPOSITORIES_ROOT=/codescene/local_clones \
+    -e HOST_CLONED_REPOSITORIES_ROOT="$clones" \
+    -v "$clones:/codescene/local_clones" codescene/codescene >/dev/null
+
+until curl -sf -o /dev/null "http://localhost:$port/"; do sleep 2; done
+echo "CodeScene up at http://localhost:$port with: ${repos[*]}"

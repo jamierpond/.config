@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Writes a bootable ISO (e.g. an Ubuntu installer) onto a USB stick on macOS.
+# Everything on the stick is erased.
+#
+# Usage: write-iso-to-usb <iso> <disk>    e.g. write-iso-to-usb ~/Downloads/ubuntu.iso disk17
+set -euo pipefail
+
+if [[ "$(uname)" != "Darwin" ]]; then
+  echo "macOS only (uses diskutil). On Linux use: sudo dd if=<iso> of=/dev/sdX bs=4M" >&2
+  exit 1
+fi
+
+if [[ $# -ne 2 ]]; then
+  echo "usage: write-iso-to-usb <iso> <disk>   (find the disk with: diskutil list external physical)" >&2
+  exit 1
+fi
+
+iso="$1"
+disk="${2#/dev/}"
+
+[[ -f "$iso" ]] || { echo "no such ISO: $iso" >&2; exit 1; }
+
+# Refuse internal disks so a typo can't wipe the Mac itself.
+if ! diskutil info "$disk" | grep -qE 'Device Location: +External'; then
+  echo "$disk is not an external disk; refusing." >&2
+  exit 1
+fi
+
+diskutil list "$disk"
+read -r -p "Erase $disk and write $(basename "$iso") to it? [y/N] " answer
+[[ "$answer" == "y" ]] || exit 1
+
+diskutil unmountDisk "/dev/$disk"
+# rdisk is the raw device: much faster than the buffered /dev/disk path.
+sudo dd if="$iso" of="/dev/r$disk" bs=4m status=progress
+sync
+diskutil eject "/dev/$disk"
+echo "Done: $disk is bootable and ejected."

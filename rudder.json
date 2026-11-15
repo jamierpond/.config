@@ -22,7 +22,7 @@
       ],
       "openWith": "audio.pond.grazer",
       "path": "",
-      "title": "Gmail Work",
+      "title": "Gmail Personal",
       "url": "https://mail.google.com/mail/u/1/#inbox"
     },
     {
@@ -34,7 +34,7 @@
       ],
       "openWith": "audio.pond.grazer",
       "path": "",
-      "title": "Gmail Personal",
+      "title": "Gmail Work",
       "url": "https://mail.google.com/mail/u/0/#inbox"
     },
     {
@@ -94,8 +94,8 @@
     "0,33 1512x949": {
       "height": 420,
       "width": 640,
-      "x": 377.41796875,
-      "y": 525.765625
+      "x": 256.84375,
+      "y": 294.89453125
     }
   },
   "searchUrl": ""
