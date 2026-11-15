@@ -151,8 +151,9 @@ notify "tamber-web · fix-auth" "tests passed"
 To see the screen, use `screencap` (~/.local/bin, source ~/projects/ScreenCap), not `ct screenshot`:
 `screencap [--display N | --window <title or app>] [--out f.png]` prints the PNG path,
 `screencap --record f.mp4 --seconds N` records video (no audio yet), `--list` shows targets.
-On macOS the app that started your process tree needs Screen Recording (Claude Code and
-CowTerm have it; exit 2 means it's missing: ask me to switch it on).
+Remote machines, any OS: `ssh <host> screencap --out x.png`, then `scp <host>:x.png .` and
+Read it. It captures the logged-in user's desktop (someone must be logged in; Linux needs X11).
+On macOS ScreenCap.app needs Screen Recording; exit 2 means it's missing: ask me to switch it on.
 
 ## dv — I review your diffs live (use it!)
 
