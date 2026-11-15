@@ -313,3 +313,5 @@ _auto_activate_venv
 [ -L "$HOME/.claude/CLAUDE.md" ] && [ -e "$HOME/.claude/CLAUDE.md" ] || "$HOME/.config/bin/scripts/claude-sync" >&2
 # Shared Claude Code settings (claude/settings.json) merged into ~/.claude/settings.json; silent when unchanged.
 "$HOME/.config/bin/scripts/claude-settings-merge"
+# Keep ~/.config current on every machine: hourly fast-forward in the background; takes effect next shell.
+( "$HOME/.config/bin/scripts/config-pull" >/dev/null 2>&1 & )

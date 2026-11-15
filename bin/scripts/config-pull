@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Fast-forward ~/.config to origin/main at most once an hour. Never merges or
+# rebases: local commits, another branch, or local edits in the incoming files
+# make it a no-op, so it can't leave the repo half-merged.
+set -uo pipefail
+
+cfg="$(cd "$(dirname "$0")/../.." && pwd)"
+stamp="${XDG_CACHE_HOME:-$HOME/.cache}/config-pull.stamp"
+pull_interval_minutes=60
+
+mkdir -p "$(dirname "$stamp")"
+[ -n "$(find "$stamp" -mmin -"$pull_interval_minutes" 2>/dev/null)" ] && exit 0
+touch "$stamp"
+
+cd "$cfg" || exit 0
+[ "$(git branch --show-current)" = main ] || exit 0
+GIT_TERMINAL_PROMPT=0 git fetch -q origin main 2>/dev/null || exit 0
+git merge -q --ff-only origin/main >/dev/null 2>&1 || true
