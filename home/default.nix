@@ -104,6 +104,7 @@
     # llvm/lld on Linux only — on macOS they shadow Apple's dsymutil/linker and break Swift builds
     llvm
     lld
+    _1password-cli  # `op`; macOS gets it from the Homebrew cask in darwin/default.nix
   ] ++ [
 
     # ==========================================================================
