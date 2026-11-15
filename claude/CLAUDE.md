@@ -147,6 +147,12 @@ already looking at it. No `bell`, no `say`.
 notify "tamber-web · fix-auth" "tests passed"
 ```
 
+## Screenshots and recordings: `screencap`
+To see the screen, use `screencap` (~/.local/bin, source ~/projects/ScreenCap), not `ct screenshot`:
+`screencap [--display N | --window <title or app>] [--out f.png]` prints the PNG path,
+`screencap --record f.mp4 --seconds N` records video (no audio yet), `--list` shows targets.
+Exit 2 on macOS means the hosting app lacks Screen Recording: ask me to switch it on.
+
 ## dv — I review your diffs live (use it!)
 
 I watch your edits in `dv` (DiffView, `~/projects/DiffView`), comment line
