@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# One line per pond dev app: local vs origin/main, uncommitted files, latest main CI.
+# Usage: pond-status [repo ...]   (default: the pond apps below)
+set -u
+repos=("$@")
+[ ${#repos[@]} -eq 0 ] && repos=(Grazer Rudder CowTerm DiffView text-buffer iac lockstep codehealth)
+
+for repo in "${repos[@]}"; do
+    dir=~/projects/$repo
+    [ -d "$dir/.git" ] || { echo "$repo: missing"; continue; }
+    cd "$dir" || continue
+    git fetch -q origin 2>/dev/null
+    branch=$(git rev-parse --abbrev-ref HEAD)
+    counts=$(git rev-list --left-right --count HEAD...origin/main 2>/dev/null)
+    ahead=${counts%%[[:space:]]*}
+    behind=${counts##*[[:space:]]}
+    dirty=$(git status --porcelain | wc -l | tr -d ' ')
+    ci=$(gh run list -b main -L 1 --json status,conclusion,headSha \
+        -q '.[0] | "\(.status)/\(.conclusion // "-") \(.headSha[0:7])"' 2>/dev/null)
+    echo "$repo: $branch ahead=$ahead behind=$behind dirty=$dirty ci=${ci:-none} main=$(git rev-parse --short origin/main)"
+done
