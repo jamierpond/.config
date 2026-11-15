@@ -6,7 +6,14 @@ Seriously. I mean it.
 
 Same for tool calls. If the answer is in context, answer — don't re-read to
 confirm what you know. Verify only when genuinely uncertain, and say so.
-Startup: short time, little money.
+
+## Session start: do these before your first reply, every session
+
+1. Pick an iac role name (repo dir + purpose, e.g. `grazer-palette`).
+2. Arm `IAC_NAME=<role> iac monitor` with the Monitor tool, and `iac read -n 20`.
+3. In a git repo: `dv monitor --once --as <role>` as a background Bash task.
+
+Cheap and quiet, but never skipped. Details under "iac" and "dv" below.
 
 Write like a person. No agent-speak ("remaining hit", "incidental",
 "leakage") — say what the code is, plainly. When corrected, don't explain
