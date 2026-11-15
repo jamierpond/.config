@@ -61,7 +61,6 @@ git/*
 !Dockerfile
 !setup.sh
 !mac-bootstrap.sh
-!Makefile
 !test_setup.sh
 
 # Script data

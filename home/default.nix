@@ -83,7 +83,7 @@
     # ==========================================================================
     # Build tools & compilers
     # ==========================================================================
-    just             # command runner (better make for project tasks)
+    just             # command runner for project tasks
     gnumake
     # cmake comes from brew (darwin/default.nix): the Nix store's bundled
     # MacOSXBundleInfo.plist.in is 0444 and cmake preserves template perms,
@@ -216,7 +216,7 @@
       lg = "lazygit";
 
       # Nix shortcuts
-      nrs = "cd ~/.config && make switch && cd -";  # nix rebuild switch
+      nrs = "cd ~/.config && just switch && cd -";  # nix rebuild switch
       nfu = "nix flake update";                     # update flake inputs
       ngc = "nix-collect-garbage -d";               # garbage collect
     };

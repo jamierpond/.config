@@ -206,7 +206,6 @@ if (Get-Command psmux -ErrorAction SilentlyContinue) {
 # misc
 # =============================================================================
 Set-Alias g gemini
-function m { make @args }
 function spicy { claude --dangerously-skip-permissions @args }   # matches shellrc alias
 function dicy  { codex --dangerously-bypass-approvals-and-sandbox @args }   # matches shellrc alias
 

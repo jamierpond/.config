@@ -4,7 +4,7 @@ This file provides rules and guidelines for AI agents working in this repository
 
 ## Commands
 
-- **Testing:** Run `make test` to test changes. This will run the `ubuntu-setup.sh` script in a Docker container and source the `zshrc` file.
+- **Testing:** Run `just test` to test changes. This will run the `ubuntu-setup.sh` script in a Docker container and source the `zshrc` file.
 
 ## Code Style
 
