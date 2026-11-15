@@ -1,5 +1,4 @@
 {
-  "model": "fable[1m]",
   "enabledPlugins": {
     "clangd-lsp@claude-plugins-official": true,
     "swift-lsp@claude-plugins-official": true,
@@ -58,5 +57,16 @@
         ]
       }
     ]
-  }
+  },
+  "tui": "fullscreen",
+  "theme": "dark",
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true,
+  "skipDangerousModePermissionPrompt": true,
+  "switchModelsOnFlag": true,
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  },
+  "voiceEnabled": true
 }

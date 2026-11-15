@@ -4,8 +4,9 @@
   something replaces the link with a plain file, `claude-sync` copies it back
   here before relinking.
 - `settings.json` — the repo-managed part of `~/.claude/settings.json`
-  (model, subagent model, plugins, no AI attribution on commits/PRs). Merged in,
-  repo wins; machine-local keys (theme, voice, …) are left alone.
+  (subagent model, plugins, hooks, tui fullscreen, theme, notifications, no AI
+  attribution). `claude-settings-merge` merges it in on every shell start, repo
+  wins; keys only set locally (`model`, `modelSettings`, …) are left alone.
 - `memory/<repo>/` — Claude's auto memory per repo. `<repo>` is the checkout's
   path relative to `$HOME` with `/` → `-` (`projects-Cows`, `eacp`). Claude
   writes to `~/.claude/projects/<slug>/memory/`; `claude-sync` symlinks that

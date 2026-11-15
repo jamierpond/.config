@@ -17,10 +17,7 @@ mkdir -p "$claude_dir" "$mem_root"
 ln -sfn "$cfg/claude/CLAUDE.md" "$claude_dir/CLAUDE.md"
 echo "CLAUDE.md -> claude/CLAUDE.md"
 
-settings="$claude_dir/settings.json"
-[ -s "$settings" ] || echo '{}' > "$settings"
-jq -s '.[0] * .[1]' "$settings" "$cfg/claude/settings.json" > "$settings.tmp"
-mv "$settings.tmp" "$settings"
+"$cfg/bin/scripts/claude-settings-merge"
 echo "settings.json merged"
 
 # Claude Code names a project's dir after its native path (C:\Users\... on Windows).

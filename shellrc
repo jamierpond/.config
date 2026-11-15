@@ -60,7 +60,7 @@ export VIRTUAL_ENV="venv"
 export UV_PROJECT_ENVIRONMENT="venv"
 export VCPKG_ROOT="$HOME/vcpkg"
 # Claude Code: Fable orchestrates, subagents run on Opus (also set in
-# ~/.claude/settings.json env block via `just claude-settings`).
+# ~/.claude/settings.json env block from claude/settings.json).
 export CLAUDE_CODE_SUBAGENT_MODEL="opus"
 # export DO_NOT_TRACK=1
 export MANPATH="$HOME/.local/share/man:$MANPATH"
@@ -311,3 +311,5 @@ _auto_activate_venv
 # Claude Code sometimes rewrites ~/.claude/CLAUDE.md as a plain file, which
 # cuts it off from the repo (or the link dangles). claude-sync copies its edits back and relinks.
 [ -L "$HOME/.claude/CLAUDE.md" ] && [ -e "$HOME/.claude/CLAUDE.md" ] || "$HOME/.config/bin/scripts/claude-sync" >&2
+# Shared Claude Code settings (claude/settings.json) merged into ~/.claude/settings.json; silent when unchanged.
+"$HOME/.config/bin/scripts/claude-settings-merge"
