@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Print the N most recently modified files from a directory
 
 dir="."

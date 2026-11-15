@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Load a PyTorch tensor file and print its shape
 
 if [ -z "$1" ]; then

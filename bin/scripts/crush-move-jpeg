@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Move crushed JPEG file to replace original
 
 if [ -z "$1" ]; then

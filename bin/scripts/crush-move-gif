@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Move crushed GIF if smaller, otherwise remove crushed version
 
 if [ -z "$1" ]; then

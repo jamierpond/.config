@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Cat a file from a tarball (select with fzf)
 
 tar_file="$1"

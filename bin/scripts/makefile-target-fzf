@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Fuzzy select and run a Makefile target
 
 if [ ! -f "./Makefile" ]; then

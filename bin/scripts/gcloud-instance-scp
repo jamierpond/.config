@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # SCP from a selected GCloud instance
 
 if [ -z "$1" ]; then

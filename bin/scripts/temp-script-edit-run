@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Create a temp file, edit it in nvim, then execute it
 
 tmpfile=$(mktemp)

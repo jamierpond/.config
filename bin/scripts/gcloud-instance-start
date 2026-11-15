@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Start a selected GCloud instance
 
 chosen_instance=$(gcloud-instance-select-fzf) || exit 1

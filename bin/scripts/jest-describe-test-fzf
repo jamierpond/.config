@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Fuzzy select and run a Jest describe block
 
 test_name=$(rg -o 'describe\("([^"]+)"' -r '$1' --no-filename | fzf)

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # qr - render a scannable QR code in the terminal
 #
 # Usage:

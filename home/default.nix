@@ -48,6 +48,9 @@
     git-secret
     gnupg            # gpg — commit signing, git-secret backend
     gh
+    google-cloud-sdk
+    lldb             # tamber-web `just symbolicate` reads Windows minidumps with it
+    libarchive       # bsdtar: tamber-web `just symbolicate` unpacks symbol zips with it
     graphite-cli   # gt - stacked git changes
     lazygit
     neovim
