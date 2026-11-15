@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Make ~/.config/claude the Claude Code config dir on this machine: move
+# ~/.claude's contents and ~/.claude.json into it, then leave ~/.claude and
+# ~/.claude.json as symlinks so tools that hardcode those paths still work.
+# Safe to run again; does nothing once ~/.claude is the link.
+set -euo pipefail
+case "$(uname -s)" in MINGW*|MSYS*) export MSYS=winsymlinks:nativestrict ;; esac
+
+cfg="$(cd "$(dirname "$0")/../.." && pwd)"
+repo_dir="$cfg/claude"
+old_dir="$HOME/.claude"
+shared_files=(.gitignore CLAUDE.md README.md settings.json memory)
+
+probe="$cfg/.claude-link-probe"
+ln -s "$repo_dir" "$probe" && [ -L "$probe" ] || { rm -rf "$probe"; echo "!! can't make symlinks here" >&2; exit 1; }
+rm "$probe"
+
+if [ -L "$old_dir" ]; then
+    echo "~/.claude is already a link to $(readlink "$old_dir")"
+else
+    for f in "${shared_files[@]}"; do
+        [ -e "$old_dir/$f" ] || [ -L "$old_dir/$f" ] || continue
+        case "$f" in
+            CLAUDE.md) [ -L "$old_dir/$f" ] && rm "$old_dir/$f" && continue ;;
+            settings.json) mv "$old_dir/$f" "$old_dir/settings.json.before-config-dir"; continue ;;
+        esac
+        echo "!! ~/.claude/$f exists and would clobber the repo's; move it aside first" >&2
+        exit 1
+    done
+    # Fill ~/.claude with the repo files, then swap whole directories so the
+    # old paths are missing only between two renames.
+    for f in "${shared_files[@]}"; do mv "$repo_dir/$f" "$old_dir/$f"; done
+    rmdir "$repo_dir"
+    mv "$old_dir" "$repo_dir"
+    ln -s "$repo_dir" "$old_dir"
+    echo "moved ~/.claude into $repo_dir and linked it back"
+fi
+
+if [ -f "$HOME/.claude.json" ] && [ ! -L "$HOME/.claude.json" ]; then
+    [ -e "$repo_dir/.claude.json" ] && mv "$repo_dir/.claude.json" "$repo_dir/.claude.json.before-config-dir"
+    mv "$HOME/.claude.json" "$repo_dir/.claude.json"
+    ln -s "$repo_dir/.claude.json" "$HOME/.claude.json"
+    echo "moved ~/.claude.json into $repo_dir and linked it back"
+fi

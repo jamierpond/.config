@@ -333,11 +333,9 @@ only (downloads, node_modules, browser binaries). Publishing an artifact from a
 scratch path is the same mistake. Brief subagents with the repo path up front.
 
 # This file lives in ~/.config
-This is `~/.config/claude/CLAUDE.md`; `~/.claude/CLAUDE.md` should be a
-symlink to it. If it's a plain file (something rewrote the link), run
-`~/.config/bin/scripts/claude-sync`: it copies the edits back into the repo
-and relinks. Shell startup does the same check. Edit the repo file, then
-commit and push ~/.config.
+This is `~/.config/claude/CLAUDE.md`. `~/.config/claude` is Claude Code's
+config dir (`CLAUDE_CONFIG_DIR`; `~/.claude` links to it). Edit the file
+here, then commit and push ~/.config.
 
 # Writing memories
 Generally when asked to write a file to disk, do so in the repo I'm working in.

@@ -1,4 +1,5 @@
 {
+  "model": "fable[1m]",
   "enabledPlugins": {
     "clangd-lsp@claude-plugins-official": true,
     "swift-lsp@claude-plugins-official": true,

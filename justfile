@@ -245,6 +245,6 @@ info:
     @echo "Flake inputs:"
     @nix flake metadata 2>/dev/null | grep -A 100 "Inputs:" || echo "  (flake not initialized)"
 
-# Link ~/.claude at this repo: CLAUDE.md, shared settings keys, per-repo memory (see claude/README.md)
+# Make ~/.config/claude the Claude Code config dir and link per-repo memory (see claude/README.md)
 claude-sync:
     bin/scripts/claude-sync

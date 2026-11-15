@@ -1,0 +1,8 @@
+# This directory is CLAUDE_CONFIG_DIR: Claude Code also keeps credentials,
+# transcripts, history and caches here. Ignore everything; list what is shared.
+*
+!.gitignore
+!CLAUDE.md
+!README.md
+!settings.json
+!memory/
