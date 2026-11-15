@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# Runs a repo's GitHub CI lane on a fresh clone of origin/main: macos here,
+# windows on jamie@tamby-windows, linux on ubuntu-vm.
+# Usage: pond-ci-local <repo> [macos|windows|linux|all]
+set -euo pipefail
+
+repo=${1:?usage: pond-ci-local <repo> [macos|windows|linux|all]}
+lane=${2:-all}
+remote_url=$(git -C "$HOME/projects/$repo" remote get-url origin)
+windows_host=jamie@tamby-windows
+linux_host=parallels@10.211.55.4
+
+lanes_for_repo() {
+    case $1 in
+        Grazer|Rudder) echo macos windows ;;
+        DiffView|text-buffer) echo macos linux ;;
+        *) echo macos linux windows ;;
+    esac
+}
+
+steps_for() {
+    local repo=$1 lane=$2
+    case $repo:$lane in
+        lockstep:macos) echo 'cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release "-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64" && cmake --build build && ctest --test-dir build --output-on-failure' ;;
+        lockstep:windows) echo 'printf "%s\r\n" "@call \"C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat\" >nul" "cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build && ctest --test-dir build --output-on-failure" > ci.bat && cmd //c ci.bat' ;;
+        lockstep:*) echo 'cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build && ctest --test-dir build --output-on-failure' ;;
+        codehealth:windows) echo 'cmd //c "scripts\\test-windows.cmd"' ;;
+        codehealth:*) echo 'just test' ;;
+        iac:*) echo 'just build && just test && just run help' ;;
+        *) echo 'just build && just test' ;;
+    esac
+}
+
+linux_wrapper() {
+    # Stands in for the workflows' apt-get installs; nix-shell's cmake hook puts each package on CMAKE_PREFIX_PATH.
+    echo 'nix-shell -p clang_19 cmake ninja just git pkg-config curl git-lfs wayland wayland-protocols wayland-scanner libxkbcommon libdecor xorg.libxcb xcbutilcursor xcbutilwm freetype harfbuzz fontconfig --run'
+}
+
+run_lane() {
+    local lane=$1 steps
+    steps=$(steps_for "$repo" "$lane")
+    local script="set -e; rm -rf ~/ci-local/$repo; mkdir -p ~/ci-local; git clone -q --depth 1 $remote_url ~/ci-local/$repo; cd ~/ci-local/$repo; export LOCKSTEP_CACHE=~/ci-local/.lockstep-cache-$repo; git log -1 --oneline;"
+    echo "=== $repo $lane"
+    case $lane in
+        macos) bash -c "$script $steps" ;;
+        windows) ssh "$windows_host" "$script $steps" ;;
+        linux) ssh "$linux_host" "$(linux_wrapper) $(printf %q "$script $steps")" ;;
+    esac
+}
+
+if [[ $lane == all ]]; then
+    status=0
+    for each in $(lanes_for_repo "$repo"); do
+        if run_lane "$each"; then echo "PASS $repo $each"; else echo "FAIL $repo $each"; status=1; fi
+    done
+    exit $status
+fi
+run_lane "$lane"
