@@ -10,6 +10,9 @@
   home.sessionVariables = {
     EDITOR = "nvim";
     VISUAL = "nvim";
+  } // lib.optionalAttrs pkgs.stdenv.isLinux {
+    # Nix cmake never looks in /usr, so point it at the profile's headers and libraries.
+    CMAKE_PREFIX_PATH = "$HOME/.nix-profile";
   };
 
   # Packages to install
@@ -105,6 +108,14 @@
     llvm
     lld
     _1password-cli  # `op`; macOS gets it from the Homebrew cask in darwin/default.nix
+    cmake            # macOS takes cmake from brew, see above
+    gcc
+    (lib.hiPrio clang)  # both ship cc/c++; clang wins
+    curl.dev         # libcurl headers
+    curl.out         # libcurl.so; plain `curl` installs only the binary
+    google-cloud-sdk
+    lldb             # tamber-web `just symbolicate` reads Windows minidumps with it
+    libarchive       # bsdtar: tamber-web `just symbolicate` unpacks symbol zips with it
   ] ++ [
 
     # ==========================================================================
