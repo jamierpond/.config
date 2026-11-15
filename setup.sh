@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # Bootstrap a fresh Ubuntu machine to a fully working dev environment.
+# On macOS this hands over to mac-bootstrap.sh.
 # Run: curl -fsSL https://raw.githubusercontent.com/jamierpond/.config/main/setup.sh | bash
 #
 # Or locally: ./setup.sh
@@ -43,16 +44,17 @@ REPOS=(
 
 info "Starting bootstrap..."
 
-# Detect OS
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  OS="macos"
-  info "Detected macOS"
-elif [[ -f /etc/os-release ]]; then
-  OS="linux"
-  info "Detected Linux"
-else
-  error "Unsupported OS"
+  info "Detected macOS, handing over to mac-bootstrap.sh"
+  MAC_BOOTSTRAP="$(dirname "${BASH_SOURCE[0]:-}")/mac-bootstrap.sh"
+  if [[ -f "$MAC_BOOTSTRAP" ]]; then
+    exec bash "$MAC_BOOTSTRAP"
+  fi
+  exec bash -c "$(curl -fsSL https://raw.githubusercontent.com/jamierpond/.config/main/mac-bootstrap.sh)"
 fi
+
+[[ -f /etc/os-release ]] || error "Unsupported OS"
+info "Detected Linux"
 
 # =============================================================================
 # Install Nix
@@ -73,9 +75,6 @@ else
   if [[ "$IS_CONTAINER" == true ]]; then
     info "Container detected, using Determinate installer (no daemon)..."
     curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux --no-confirm --init none
-  elif [[ "$OS" == "macos" ]]; then
-    info "Installing Nix via Determinate installer..."
-    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm
   else
     info "Installing Nix via Determinate installer..."
     curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm
@@ -151,22 +150,8 @@ if ! nix flake show --json 2>/dev/null | grep -q "\"$FLAKE_CONFIG\""; then
   FLAKE_CONFIG="jamie@ci"
 fi
 
-# Build and activate
-if [[ "$OS" == "macos" ]]; then
-  # Check if nix-darwin is already installed
-  if command -v darwin-rebuild &> /dev/null; then
-    info "Running darwin-rebuild..."
-    darwin-rebuild switch --flake ".#macbook"
-  else
-    info "Bootstrapping nix-darwin (this will take a moment)..."
-    # Build first, then activate with the built darwin-rebuild
-    nix build .#darwinConfigurations.macbook.system
-    ./result/bin/darwin-rebuild switch --flake .#macbook
-  fi
-else
-  info "Running home-manager..."
-  nix run home-manager -- switch --flake ".#$FLAKE_CONFIG"
-fi
+info "Running home-manager..."
+nix run home-manager -- switch --flake ".#$FLAKE_CONFIG"
 
 # =============================================================================
 # Post-install
@@ -190,7 +175,7 @@ fi
 # suspend breaks USB on the T2 Mac Pro, and nothing is reachable while asleep.
 # Masking sleep.target also stops GNOME's idle suspend.
 has_battery() { compgen -G '/sys/class/power_supply/BAT*' > /dev/null; }
-if [[ "$OS" == "linux" && -d /run/systemd/system ]] && ! has_battery && ! grep -qi microsoft /proc/version; then
+if [[ -d /run/systemd/system ]] && ! has_battery && ! grep -qi microsoft /proc/version; then
   info "Disabling sleep (no battery, so this is a server)..."
   sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target \
     || warn "Could not disable sleep"
@@ -207,10 +192,5 @@ info "=========================================="
 echo ""
 echo "Next steps:"
 echo "  1. Restart your terminal (or run: exec zsh)"
-echo "  2. Verify with: just info"
+echo "  2. Verify with: cd ~/.config && just info"
 echo ""
-if [[ "$OS" == "macos" ]]; then
-  echo "For macOS system settings, run:"
-  echo "  darwin-rebuild switch --flake ~/.config#macbook"
-  echo ""
-fi

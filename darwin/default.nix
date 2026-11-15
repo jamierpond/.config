@@ -20,11 +20,6 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
-  # System packages (available to all users)
-  environment.systemPackages = with pkgs; [
-    # Add system-wide packages here
-  ];
-
   # macOS system preferences
   system.defaults = {
     dock = {
@@ -227,12 +222,6 @@
     # Battery: sleep after 1min, display off after 2min (preserve battery)
     pmset -b sleep 1 displaysleep 2
   '';
-
-  # Keyboard remapping (alternative to Karabiner for simple mappings)
-  # system.keyboard = {
-  #   enableKeyMapping = true;
-  #   remapCapsLockToEscape = true;
-  # };
 
   # Homebrew integration (for GUI apps / drivers not available in nixpkgs).
   # Requires Homebrew to be pre-installed (/opt/homebrew). nix-darwin generates

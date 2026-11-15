@@ -67,52 +67,7 @@ lazy.setup({
     end,
   },
 
---   {
---   "epwalsh/obsidian.nvim",
---   version = "*",  -- recommended, use latest release instead of latest commit
---   lazy = true,
---   ft = "markdown",
---   -- Replace the above line with this if you only want to load obsidian.nvim for markdown files in your vault:
---   -- event = {
---   --   -- If you want to use the home shortcut '~' here you need to call 'vim.fn.expand'.
---   --   -- E.g. "BufReadPre " .. vim.fn.expand "~" .. "/my-vault/*.md"
---   --   -- refer to `:h file-pattern` for more examples
---   --   "BufReadPre path/to/my-vault/*.md",
---   --   "BufNewFile path/to/my-vault/*.md",
---   -- },
---   dependencies = {
---     -- Required.
---     "nvim-lua/plenary.nvim",
---
---     -- see below for full list of optional dependencies 👇
---     },
---     opts = {
---       workspaces = {
---         {
---           name = "personal",
---           path = "~/projects/obsidian",
---         },
---       },
---
---       -- see below for full list of options 👇
---     },
---   },
-
   {'ojroques/nvim-osc52'},
-
---   {
---     "kelly-lin/ranger.nvim",
---     config = function()
---       require("ranger-nvim").setup({ replace_netrw = true })
---       vim.api.nvim_set_keymap("n", "<leader>ef", "", {
---         noremap = true,
---         callback = function()
---           require("ranger-nvim").open(true)
---         end,
---       })
---     end,
---   },
-
 
   {
     "neovim/nvim-lspconfig",
@@ -142,13 +97,8 @@ lazy.setup({
   },
 
   {"nvim-telescope/telescope-live-grep-args.nvim"},
-  {'mfussenegger/nvim-dap'},
-
 
   {"mg979/vim-visual-multi"},
-
-  -- Disabled nvim-compe as it's not compatible with Neovim 0.11.0
-  -- {"hrsh7th/nvim-compe"},
 
   {
     "axkirillov/unified.nvim",
@@ -168,17 +118,6 @@ lazy.setup({
     end,
     ft = { "markdown" },
   },
-
-  -- ChatGPT plugin
---   {
---     "jackMort/ChatGPT.nvim",
---     config = "require('chatgpt').setup()",
---     dependencies = {
---       "MunifTanjim/nui.nvim",
---       "nvim-lua/plenary.nvim",
---       "nvim-telescope/telescope.nvim"
---     }
---   },
 
   -- Telescope
   {
@@ -217,7 +156,7 @@ lazy.setup({
   -- Trouble plugin
   {
     "folke/trouble.nvim",
-    config = "require('trouble').setup{icons = false}"
+    opts = { icons = false },
   },
 
   -- Treesitter
@@ -229,7 +168,6 @@ lazy.setup({
       require('nvim-treesitter.install').prefer_git = true
     end
   },
-  "nvim-treesitter/playground",
   "theprimeagen/harpoon",
   "theprimeagen/refactoring.nvim",
   -- undotree is built-in since nvim 0.12
@@ -252,7 +190,7 @@ lazy.setup({
 
   {
     'williamboman/mason.nvim',
-    config = "require('mason').setup({})",
+    opts = {},
   },
 
   {
@@ -320,8 +258,8 @@ lazy.setup({
   {
       'xbase-lab/xbase',
       cond = function() return vim.fn.has('mac') == 1 end,  -- macOS/Xcode only; needs a rust toolchain (`rustup default stable`)
-      build = 'make install',  -- Changed 'run' to 'build' for lazy.nvim
-      dependencies = {         -- Changed 'requires' to 'dependencies' for lazy.nvim
+      build = 'make install',
+      dependencies = {
           "neovim/nvim-lspconfig",
           "nvim-telescope/telescope.nvim", -- optional
           "nvim-lua/plenary.nvim", -- optional/requirement of telescope.nvim

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Validate and pretty-print a JSON file
 
 if [ -z "$1" ]; then

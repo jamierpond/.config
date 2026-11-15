@@ -23,21 +23,18 @@ fi
 export PATH="$SHELLRC_DIR/bin/scripts:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/.nix-profile/bin:$PATH"
-export PATH="$PATH:/usr/local/go/bin"
 export PATH="$PATH:$HOME/go/bin"
 export PATH="$PATH:$HOME/projects/bodgolt"
 export PATH="$PATH:$HOME/.cargo/bin"
 export PATH="$PATH:/snap/bin"
 # Homebrew (macOS/ARM at /opt/homebrew; Intel's /usr/local is already on PATH).
-# Appended (low priority) so nix + vite-plus tools win over brew-installed ones.
+# Appended (low priority) so nix tools win over brew-installed ones.
 # Provides brew-cask CLIs like `aerospace`.
 if [ -x /opt/homebrew/bin/brew ]; then
   export HOMEBREW_PREFIX="/opt/homebrew"
   export PATH="$PATH:/opt/homebrew/bin:/opt/homebrew/sbin"
   export MANPATH="${MANPATH:-}:/opt/homebrew/share/man"
 fi
-# vite-plus shims (node/npm/npx/vpx/vpr) must win over Homebrew, so prepend
-export PATH="$HOME/.vite-plus/bin:$PATH"
 
 
 # Pyenv
@@ -58,7 +55,6 @@ export HOMEBREW_NO_AUTO_UPDATE=1
 export XDG_CONFIG_HOME="$HOME/.config"
 export VIRTUAL_ENV="venv"
 export UV_PROJECT_ENVIRONMENT="venv"
-export VCPKG_ROOT="$HOME/vcpkg"
 # Claude Code: Fable orchestrates, subagents run on Opus (also set in
 # claude/settings.json's env block).
 export CLAUDE_CODE_SUBAGENT_MODEL="opus"
@@ -69,7 +65,6 @@ if command -v cygpath >/dev/null; then
 else
     export CLAUDE_CONFIG_DIR="$HOME/.config/claude"
 fi
-# export DO_NOT_TRACK=1
 export MANPATH="$HOME/.local/share/man:$MANPATH"
 export PNPM_HOME="$HOME/.local/share/pnpm"
 export GOPATH="$HOME/go"
@@ -80,7 +75,6 @@ export GOPATH="$HOME/go"
 alias gitbump="git commit -m 'chore: bump ci, empty commit' --allow-empty"
 alias jf='just $(just --list | tail -n +2 | fzf | awk '\''{ print $1 }'\'')'
 alias bump="gitbump"
-claude() { (unset DO_NOT_TRACK; command claude "$@"); }
 # spicy runs claude in its own tmux session (spicy-<dir>) so it keeps working
 # after the terminal closes; rerun spicy in the same dir to reattach. Inside
 # tmux already, or without tmux, it just runs claude.
@@ -91,10 +85,9 @@ spicy() {
   fi
   local session_name="spicy-$(basename "$PWD" | tr . _)"
   tmux new-session -A -s "$session_name" -c "$PWD" \
-    "$(printf "%q " env -u DO_NOT_TRACK claude --dangerously-skip-permissions "$@")"
+    "$(printf "%q " claude --dangerously-skip-permissions "$@")"
 }
 alias dicy="codex --dangerously-bypass-approvals-and-sandbox"
-alias cbs="generate-claude-branch-summary"
 alias r="temp-script-edit-run"
 alias dt="jest-describe-test-fzf"
 alias re="list-recent-files"
@@ -104,7 +97,6 @@ alias jd="git-directory-jump-fzf"
 alias jv="json-validate-pretty"
 alias c="directory-navigate-fzf"
 alias tsh="pytorch-tensor-shape"
-alias dsh="docker-image-shell"
 alias gp="gcloud-project-switch"
 alias gssh="gcloud-instance-ssh"
 alias gstart="gcloud-instance-start"
@@ -121,8 +113,6 @@ alias pt="pytest-test-fzf"
 alias bell="bell-sound"
 alias yt="youtube-download"
 alias ytv="youtube-download -v"
-alias da="docker-container-attach-fzf"
-alias dcp="docker-container-cp-fzf"
 alias png="crush-png"
 alias gif="crush-gif"
 alias jpeg="crush-jpeg"
@@ -139,10 +129,10 @@ alias dn='dockernuke'
 # =============================================================================
 # Aliases - system
 # =============================================================================
-alias archbtw='~/.config/bin/scripts/arch.sh'
-alias imgp="bash ~/.config/bin/scripts/clipimage.sh"
-alias npf="bash ~/.config/bin/scripts/npmf"
-alias prf="~/.config/bin/scripts/get-all-pr-feedback"
+alias archbtw='arch.sh'
+alias imgp="clipimage.sh"
+alias npf="npmf"
+alias prf="get-all-pr-feedback"
 
 # =============================================================================
 # Aliases - python/venv
@@ -172,15 +162,6 @@ alias wtl="git worktree list"
 alias wtp="git worktree prune"
 
 # =============================================================================
-# Aliases - GPU (Linux)
-# =============================================================================
-alias gpu="watch -n 0.5 nvidia-smi"
-alias pgpu="nvidia-smi --query-compute-apps=pid --format=csv,noheader"
-alias fgpu="sudo fuser -v /dev/nvidia*"
-alias kgpu="fgpu | grep . | tr ' ' '\n' | xargs kill -9"
-alias rgpu="pkill wandb && pgpu | xargs -I {} kill -9 {} && kgpu"
-
-# =============================================================================
 # Aliases - SSH/remote
 # =============================================================================
 alias ssh-win="TERM=xterm ssh"
@@ -193,13 +174,6 @@ alias win="ssh-win -tt Owner@windows"
 # =============================================================================
 alias ta="tmux attach"
 alias t="tmux"
-# On Windows, tmux is psmux, which reads ~/.psmux.conf (linked from
-# windows/psmux.conf by setup.ps1). Forcing the Linux conf onto it loses
-# default-shell and new panes fall back to PowerShell.
-case "$(uname -s)" in
-  MINGW*|MSYS*|CYGWIN*) ;;
-  *) alias tmux='tmux -f ~/.config/tmux/tmux.conf' ;;
-esac
 alias tks="tmux kill-server"
 
 # =============================================================================
@@ -210,26 +184,19 @@ alias kaf="killall -9"
 alias dec2hex="printf '%x\n'"
 alias d2h="printf '%x\n'"
 alias f="ranger"
-alias fcp="~/.config/bin/scripts/ffplay-local.sh"
-alias fpl="~/.config/bin/scripts/ffplay-local.sh"
-alias img="~/.config/bin/scripts/img-preview.sh"
+alias img="img-preview.sh"
 alias dls="lsblk"
 alias ddd="rm -rf ~/Library/Developer/Xcode/DerivedData"
-alias ksmo='~/.config/bin/scripts/ksmo'
-alias cpp-compile="~/.config/bin/scripts/cpp-compile"
-alias cppc="~/.config/bin/scripts/cpp-compile"
-alias o="crush"
-alias qb="/Applications/qutebrowser.app/Contents/MacOS/qutebrowser"
+alias cppc="cpp-compile"
 alias ra="osascript ~/.config/bin/scripts/refresh-ableton.scpt"
 alias refresh-ableton="osascript ~/.config/bin/scripts/refresh-ableton.scpt"
 alias bwon="shortcuts run \"bw-on\""
 alias bwoff="shortcuts run \"bw-off\""
 alias g="gemini"
-alias rp="~/.config/bin/scripts/repo-print"
+alias rp="repo-print"
 alias r2-sync="~/.config/r2-backup/r2-sync"
 alias r2-browse="~/.config/r2-backup/r2-browse"
-alias gde="~/.config/bin/scripts/git-diff-exclude"
-alias gd="~/.config/bin/scripts/git-diff-filter"
+alias gd="git-diff-filter"
 alias mrd="list-recent-files ~/Downloads -n 1"
 
 # =============================================================================
@@ -243,7 +210,7 @@ gpls() {
 
 # Phone-friendly tmux helpers
 _tmux_project_dirs() {
-  find $HOME/projects $HOME/projects/mayk-it /tmp/time "$HOME/Music/NME/Project Files" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | xargs ls -dtu 2>/dev/null | tail -r
+  find $HOME/projects -mindepth 1 -maxdepth 1 -type d 2>/dev/null | xargs ls -dtu 2>/dev/null | awk '{ lines[NR] = $0 } END { for (i = NR; i > 0; i--) print lines[i] }'
 }
 
 tmls() {

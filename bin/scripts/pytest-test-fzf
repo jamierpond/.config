@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Fuzzy select and run a pytest test
 
 tests=$(rg -N "^\s*def test_" ./tests/ --no-filename | sed 's/^\s*//' | awk -F'[( ]' '{print $2}')
@@ -11,5 +11,4 @@ fi
 
 cmd="python -m pytest -s -k $to_run"
 echo "$cmd"
-print -s "$cmd" 2>/dev/null
 eval "$cmd"

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Select a GCloud compute instance using fzf
 
 instances=$(gcloud compute instances list)

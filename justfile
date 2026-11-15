@@ -12,6 +12,9 @@ nix_system := if system == "Darwin" {
     "x86_64-linux"
 }
 
+# A first install has no home-manager on PATH yet, so run it from the flake registry.
+home_manager := `command -v home-manager || echo "nix run home-manager --"`
+
 darwin_host := if system == "Darwin" {
     if arch == "arm64" { "daily-driver" } else { "pondhq-server" }
 } else {
@@ -29,23 +32,8 @@ default:
 # First-time setup (requires nix to be installed)
 setup:
     @command -v nix >/dev/null 2>&1 || { echo "Error: Nix is not installed. Install it first: https://nixos.org/download"; exit 1; }
-    @if [ "{{ system }}" = "Darwin" ]; then \
-        just install-darwin; \
-    else \
-        just install-hm; \
-        just tailscale; \
-    fi
-
-# Bootstrap nix-darwin (macOS)
-install-darwin:
-    @if [ "{{ system }}" != "Darwin" ]; then echo "nix-darwin is macOS only"; exit 1; fi
-    @echo "Bootstrapping nix-darwin..."
-    @just darwin-switch
-
-# Bootstrap home-manager (Linux)
-install-hm:
-    @echo "Bootstrapping home-manager for {{ username }}@{{ hostname }}..."
-    nix run home-manager -- switch --flake .#{{ username }}@{{ hostname }}
+    @just switch
+    @if [ "{{ system }}" != "Darwin" ]; then just tailscale; fi
 
 # Install Tailscale daemon (Linux - macOS uses nix-darwin service)
 tailscale:
@@ -72,7 +60,7 @@ switch:
     @if [ "{{ system }}" = "Darwin" ]; then \
         just darwin-switch; \
     else \
-        home-manager switch --flake .#{{ username }}@{{ hostname }}; \
+        {{ home_manager }} switch --flake .#{{ username }}@{{ hostname }}; \
     fi
 
 # Apply config with verbose output
@@ -80,7 +68,7 @@ switch-debug:
     @if [ "{{ system }}" = "Darwin" ]; then \
         just darwin-switch-debug; \
     else \
-        home-manager switch --flake .#{{ username }}@{{ hostname }} --show-trace; \
+        {{ home_manager }} switch --flake .#{{ username }}@{{ hostname }} --show-trace; \
     fi
 
 # Build darwin config without activating
@@ -114,11 +102,11 @@ update:
 
 # Update only nixpkgs
 update-nixpkgs:
-    nix flake lock --update-input nixpkgs
+    nix flake update nixpkgs
 
 # Update only home-manager
 update-home-manager:
-    nix flake lock --update-input home-manager
+    nix flake update home-manager
 
 # ============================================================================
 # Maintenance
@@ -140,10 +128,14 @@ generations:
 # Rollback to previous generation
 rollback:
     #!/usr/bin/env bash
+    set -euo pipefail
     if [ "{{ system }}" = "Darwin" ]; then
-        darwin-rebuild --rollback
+        sudo darwin-rebuild switch --rollback
     else
-        home-manager generations | head -2 | tail -1 | awk '{print $NF}' | xargs -I {} home-manager switch --flake {}
+        # Lines read "<date> <time> : id <n> -> <store path>", newest first.
+        previous_generation=$(home-manager generations | sed -n 2p | awk '{print $NF}')
+        [ -n "$previous_generation" ] || { echo "No previous home-manager generation"; exit 1; }
+        "$previous_generation/activate"
     fi
 
 # ============================================================================
@@ -189,27 +181,21 @@ check:
 # Build config without activating
 build:
     @if [ "{{ system }}" = "Darwin" ]; then \
-        nix build .#darwinConfigurations.{{ darwin_host }}.system; \
+        just darwin-build; \
     else \
         nix build .#homeConfigurations.{{ username }}@{{ hostname }}.activationPackage; \
     fi
-
-# Run setup tests
-test:
-    @bash ./test_setup.sh
 
 # Build Docker test image (x86_64)
 docker-build:
     DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -t dotfiles-test .
 
 # Run full test in Docker container (x86_64)
-docker-test:
-    DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -t dotfiles-test .
+docker-test: docker-build
     docker run --platform linux/amd64 --rm dotfiles-test
 
 # Interactive shell in test container (x86_64)
-docker-shell:
-    DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -t dotfiles-test .
+docker-shell: docker-build
     docker run --platform linux/amd64 --rm -it dotfiles-test
 
 # Run container without rebuilding

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Cat a file from a tarball (select with fzf)
 
 tar_file="$1"
@@ -13,12 +13,11 @@ if [ ! -f "$tar_file" ]; then
   exit 1
 fi
 
-file=$(tar -tvf "$tar_file" | awk '{ print $6 }' | fzf)
+file=$(tar-file-select-fzf "$tar_file")
 
 if [ -z "$file" ]; then
   exit 0
 fi
 
 cmd="tar -xOf '$tar_file' '$file'"
-print -s "$cmd" 2>/dev/null
 eval "$cmd"

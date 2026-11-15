@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Fuzzy select and run a shell script from git files
 
 git_files=$(git ls-files)
@@ -11,5 +11,4 @@ fi
 
 shell="/bin/bash"
 cmd="$shell $script"
-print -s "$cmd" 2>/dev/null
 eval "$cmd"

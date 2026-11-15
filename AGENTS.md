@@ -15,7 +15,7 @@ Package management uses **Nix** for cross-platform consistency on macOS/Linux. S
 
 For packages managed by Nix (defined in `flake.nix` or `home/default.nix`):
 - Update the flake inputs: `nix flake update`
-- Rebuild: `darwin-rebuild switch --flake ~/.config` (macOS) or `home-manager switch --flake ~/.config` (Linux)
+- Rebuild: `cd ~/.config && just switch`
 
 For packages not yet in nixpkgs or when you need a newer version than nixpkgs has:
 - Install to local prefix: `npm install -g <pkg>@<version> --prefix ~/.local`

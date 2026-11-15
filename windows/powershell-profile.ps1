@@ -206,14 +206,14 @@ if (Get-Command psmux -ErrorAction SilentlyContinue) {
 # misc
 # =============================================================================
 Set-Alias g gemini
-function spicy { claude --dangerously-skip-permissions @args }   # matches shellrc alias
+function spicy { claude --dangerously-skip-permissions @args }
 function dicy  { codex --dangerously-bypass-approvals-and-sandbox @args }   # matches shellrc alias
 
 # =============================================================================
 # Aliases ported from shellrc / zshrc - the portable ones (pure commands).
-# Skipped: bash scripts in bin/scripts (cbs/r/mf/re/pport/sz/co/e/cl/gls/pt/rp/
-# gde/gd/...), macOS-only (osascript/ableton/qutebrowser/bw*/ddd/brew), and
-# Linux-only (nvidia gpu/pgpu/kgpu, ranger, lsblk, snap). jd/c/z are covered by
+# Skipped: bash scripts in bin/scripts (r/re/pport/sz/co/e/cl/gls/pt/rp/gd/...),
+# macOS-only (osascript/ableton/bw*/ddd/brew), and Linux-only (ranger, lsblk,
+# snap). jd/c/z are covered by
 # zoxide above.
 # =============================================================================
 
@@ -240,7 +240,6 @@ function d2h { param([long]$n) '{0:x}' -f $n }   # dec -> hex (shellrc d2h/dec2h
 Set-Alias dec2hex d2h
 function ka  { param([string]$n) Stop-Process -Name $n }          # killall
 function kaf { param([string]$n) Stop-Process -Name $n -Force }   # killall -9
-function o   { crush @args }
 function a   { yapi @args }
 function gtree { git ls-files }   # no `tree --fromfile` on Windows; flat list
 function timer { node "$env:USERPROFILE\.config\bin\scripts\timer" @args }

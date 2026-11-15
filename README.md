@@ -5,9 +5,12 @@ Cross-platform dotfiles for macOS (ARM) and Linux (x86_64). Nix for packages, zs
 ## Install
 
 ```bash
+# Linux (hands macOS over to mac-bootstrap.sh)
 curl -fsSL https://raw.githubusercontent.com/jamierpond/.config/main/setup.sh | bash
-# or
-just setup
+# macOS
+curl -fsSL https://raw.githubusercontent.com/jamierpond/.config/main/mac-bootstrap.sh | bash
+# Windows (PowerShell)
+irm https://raw.githubusercontent.com/jamierpond/.config/main/windows/setup.ps1 | iex
 ```
 
 ## Layout

@@ -3,10 +3,6 @@
 search_dirs=(
     "$HOME"
     "$HOME/projects"
-    "$HOME/projects/mayk-it"
-    "$HOME/projects/TamberWorkspace"
-    "$HOME/Music/NME/Project Files"
-    /tmp/time
 )
 
 if [[ $# -eq 1 ]]; then

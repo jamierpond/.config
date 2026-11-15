@@ -87,23 +87,13 @@ pyenv() {
 }
 
 # =============================================================================
-# Zsh-specific: Google Cloud SDK
-# =============================================================================
-if [ -f '/Users/jamiepond/Downloads/google-cloud-sdk/path.zsh.inc' ]; then
-  source '/Users/jamiepond/Downloads/google-cloud-sdk/path.zsh.inc'
-fi
-if [ -f '/Users/jamiepond/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then
-  source '/Users/jamiepond/Downloads/google-cloud-sdk/completion.zsh.inc'
-fi
-
-# =============================================================================
 # Zsh-specific: Nix helpers
 # =============================================================================
 _nix_system() {
   if [[ "$(uname)" == "Darwin" ]]; then
     [[ "$(uname -m)" == "arm64" ]] && echo "aarch64-darwin" || echo "x86_64-darwin"
   else
-    echo "x86_64-linux"
+    [[ "$(uname -m)" == "aarch64" ]] && echo "aarch64-linux" || echo "x86_64-linux"
   fi
 }
 
@@ -130,13 +120,4 @@ ds() {
 
 nix-edit() {
   ${EDITOR:-nvim} ~/.config/home/default.nix && nrs
-}
-
-# =============================================================================
-# Zsh-specific: Helper for command history
-# =============================================================================
-execute_command() {
-  local cmd="$1"
-  print -s "$cmd" 2>/dev/null || history -s "$cmd" 2>/dev/null
-  eval "$cmd"
 }

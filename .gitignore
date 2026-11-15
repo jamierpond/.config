@@ -1,11 +1,9 @@
 # Allowlist pattern: ignore everything, then selectively include.
 # Add new config files/dirs with ! prefix to track them.
 /*
-!sessions/
 
 # Git
 !.gitignore
-!.gitmodules
 !.github
 
 !rudder.json
@@ -14,7 +12,6 @@
 !AGENTS.md
 !CLAUDE.md
 !claude/
-!OpenCode.md
 !README.md
 
 # Shell config
@@ -33,13 +30,9 @@
 !bin/
 !iterm2/
 !karabiner/
-!ranger/
+karabiner/automatic_backups/
 !lazygit/
-!skhd/
-!yabai/
 !aerospace
-!opencode
-!yapi
 !windows/
 !r2-backup
 !colima/
@@ -61,18 +54,15 @@ git/*
 !Dockerfile
 !setup.sh
 !mac-bootstrap.sh
-!test_setup.sh
 
 # Script data
 !bin/scripts/quick-urls.yaml
-bin/scripts/quick-url-gcloud-projects.txt
 bin/scripts/quick-url-github-repos.txt
 
 # Media (only bell notification sound)
 !bell.mp3
 
 # Misc tracked files
-!ksmo2_atis.pls
 
 # Always ignore
 **Application Support**

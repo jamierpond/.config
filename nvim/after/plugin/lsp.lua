@@ -89,8 +89,12 @@ local servers = {
   'yaml-language-server',
   'clangd',
   'pyright',
-  'roslyn-language-server', -- C#, used by seblj/roslyn.nvim
 }
+
+-- Mason installs roslyn-language-server with `dotnet tool install`; without dotnet it fails and retries on every launch.
+if vim.fn.executable('dotnet') == 1 then
+  table.insert(servers, 'roslyn-language-server') -- C#, used by seblj/roslyn.nvim
+end
 
 for _, server_name in ipairs(servers) do
   if not mason_registry.is_installed(server_name) then

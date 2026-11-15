@@ -7,9 +7,9 @@ on:
     branches: [main]
 
 jobs:
-  # Fast flake check
+  # Flake check + Linux home-manager build (just ci)
   check:
-    name: Flake Check
+    name: Flake Check and Linux Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,29 +17,8 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
 
-      - name: Check flake
-        run: nix flake check
-
-  # Build Linux home-manager config
-  build-linux:
-    name: Build Linux
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
-
-      - name: Build home-manager config
-        run: nix build .#homeConfigurations.jamie@ci.activationPackage
-
-      - name: Show what would be installed
-        run: |
-          echo "=== Packages in profile ==="
-          ls -la ./result/home-path/bin/ | head -40
-          echo ""
-          echo "=== Config files ==="
-          ls -la ./result/home-files/.config/ 2>/dev/null || echo "(no .config files)"
+      - name: just ci
+        run: nix run nixpkgs#just -- ci
 
   # Build macOS config (optional - runs on macos runner)
   build-macos:
@@ -52,7 +31,7 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@main
 
       - name: Build darwin config
-        run: nix build .#darwinConfigurations.macbook.system
+        run: nix build .#darwinConfigurations.tamby.system
 
   # Docker test (full integration)
   docker:

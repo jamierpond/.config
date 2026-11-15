@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Select and switch GCloud project
 
 current_project=$(gcloud config get-value project)
@@ -6,5 +6,4 @@ echo "Current project: $current_project"
 
 project=$(gcloud-project-select-fzf) || exit 1
 cmd="gcloud config set project $project"
-print -s "$cmd" 2>/dev/null
 eval "$cmd"

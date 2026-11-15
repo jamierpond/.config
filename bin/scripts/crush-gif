@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Crush a GIF file using gifsicle
 
 if [ -z "$1" ]; then

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Clone from a list of GitHub repos using fzf
 
 this_dir=$(dirname "$0")

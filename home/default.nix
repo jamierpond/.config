@@ -116,6 +116,7 @@
     google-cloud-sdk
     lldb             # tamber-web `just symbolicate` reads Windows minidumps with it
     libarchive       # bsdtar: tamber-web `just symbolicate` unpacks symbol zips with it
+    tailscale        # Mesh VPN; macOS runs it as services.tailscale in darwin/default.nix
   ] ++ [
 
     # ==========================================================================
@@ -140,7 +141,6 @@
     # Cloud & infrastructure
     # ==========================================================================
     cloudflared      # Cloudflare tunnel
-    tailscale        # Mesh VPN — SSH to personal machines from anywhere
     # vercel         # not in nixpkgs - install via npm
     docker           # Docker CLI
     docker-compose   # Docker Compose
@@ -175,6 +175,7 @@
       user.email = "jamiepond259@gmail.com";
       init.defaultBranch = "main";
       core.editor = "nvim";
+      core.hooksPath = "~/.config/git/hooks";
       credential.helper = "${pkgs.gh}/bin/gh auth git-credential";
       push.autoSetupRemote = true;
       branch.autoSetupMerge = false;
@@ -241,13 +242,6 @@
     enableZshIntegration = true;
     nix-direnv.enable = true;  # faster nix integration
   };
-
-#   # Claude Code
-#   programs.claude-code = {
-#     enable = true;
-#     # settings = { };      # Add settings if needed
-#     # mcpServers = { };    # Add MCP servers if needed
-#   };
 
   # Clone bodgolt if not present
   home.activation.cloneBodgolt = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

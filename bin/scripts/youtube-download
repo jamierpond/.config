@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Download YouTube video or audio
 # Usage: youtube-download [-v] <url> [output]
 # -v: download video (default is audio only)

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Fuzzy checkout a git branch
 
 branch=$(git branch -r | fzf | sed "s|origin/||" | xargs)
