@@ -15,10 +15,11 @@
 - [Prefer less code](prefer-less-code.md) — refactors aim for net fewer lines; report net LOC; direct and dry, never terse names
 - [No metric gaming](no-metric-gaming.md) — no aliases/wrappers just to raise CodeScene scores; files ≥9.5 are left alone; fix only below 9.5
 - [Finish tasks, unblock yourself](finish-tasks-unblock-yourself.md) — never stop part way to ask 'continue?'; work around blockers
-- [Merge, not rebase](merge-not-rebase.md) — update PR branches by merging develop in; never rebase or force-push
+- [Rebase PR branches (was merge)](merge-not-rebase.md) — since 2026-11-16 PR branches are rebased linear and cherry-pickable onto develop, collected on jp/develop
 - [eacp PRs need proof](eacp-pr-proof-required.md) — failing-without test or demo app showing the behaviour; description says what was wrong and how to verify
 - [Fix needs a failing test](fix-needs-failing-test.md) — every fix PR has a test CI runs that fails without the fix; sanitizer-only proof doesn't count
 - [Handoff from eacp-89, 2026-11-08](handoff-2026-11-08-eacp89.md) — Crashout #10/#11, tamber-web hang PRs pending Jamie, local LLM bench
 - [Push freely, PRs with care](push-freely-prs-carefully.md) — push without asking; open draft PRs when clearly wanted; no obvious questions
 - [using only in .cpp](using-only-in-cpp.md) — no `using` of any kind in headers
 - [Re-arm dv every time](dv-rearm-every-time.md) — run_in_background `dv monitor --once --after <id>` after each round, never `& disown`
+- [User-facing features need a demo](user-facing-features-need-demo.md) — end-user-facing eacp features ship with a demo app shown working on every supported platform
