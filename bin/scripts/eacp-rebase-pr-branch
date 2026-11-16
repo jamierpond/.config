@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# Rebases one of Jamie's eacp pull request branches onto eyal/develop as linear
+# commits (merge commits dropped), checks the rebased branch changes exactly
+# what the old one changed relative to develop, then force-pushes it to eyal
+# with a lease on the old head.
+#
+# Usage: eacp-rebase-pr-branch <remote>/<branch> [--no-push]
+#   <remote>/<branch>  the branch to rebase, e.g. eyal/jp/zip-skip-empty-copy.
+#                      A branch on origin (Jamie's fork) is pushed to eyal under
+#                      the same name; its pull request then has to be reopened
+#                      from eyal by hand.
+#   EACP_REPO          the eacp checkout to work from [~/projects/eacp]
+set -euo pipefail
+
+sourceBranch="${1:?usage: eacp-rebase-pr-branch <remote>/<branch> [--no-push]}"
+shouldPush=1
+if [[ "${2:-}" == "--no-push" ]]; then
+    shouldPush=0
+fi
+
+repo="${EACP_REPO:-$HOME/projects/eacp}"
+branchName="${sourceBranch#*/}"
+worktree="$HOME/projects/eacp-rebase-$(echo "$branchName" | tr '/' '-')"
+
+git -C "$repo" fetch --quiet eyal
+git -C "$repo" fetch --quiet origin
+oldHead=$(git -C "$repo" rev-parse "$sourceBranch")
+
+if [[ -d "$worktree" ]]; then
+    echo "eacp-rebase-pr-branch: $worktree already exists; stopping" >&2
+    exit 1
+fi
+git -C "$repo" worktree add --quiet --detach "$worktree" "$oldHead"
+trap 'git -C "$repo" worktree remove --force "$worktree"' EXIT
+cd "$worktree"
+
+if ! git rebase --quiet --onto eyal/develop "$(git merge-base eyal/develop "$oldHead")" HEAD; then
+    git rebase --abort
+    echo "eacp-rebase-pr-branch: $sourceBranch conflicts with eyal/develop; rebase it by hand" >&2
+    exit 1
+fi
+newHead=$(git rev-parse HEAD)
+
+# The old branch's net change, applied onto today's develop, must be the tree the rebase produced.
+expectedTree=$(git merge-tree --write-tree eyal/develop "$oldHead")
+if [[ "$expectedTree" != "$(git rev-parse "HEAD^{tree}")" ]]; then
+    echo "eacp-rebase-pr-branch: rebased tree differs from develop + the old branch's net change:" >&2
+    git diff --stat "$expectedTree" HEAD >&2
+    exit 1
+fi
+
+echo "eacp-rebase-pr-branch: $sourceBranch $oldHead -> $newHead ($(git rev-list --count eyal/develop..HEAD) commits on develop)"
+git log --oneline eyal/develop..HEAD
+
+if [[ "$shouldPush" == 0 ]]; then
+    exit 0
+fi
+
+leaseHead="$oldHead"
+if [[ "${sourceBranch%%/*}" != "eyal" ]]; then
+    leaseHead=$(git rev-parse --quiet --verify "eyal/$branchName" || echo "")
+fi
+git push --force-with-lease="$branchName:$leaseHead" eyal "HEAD:refs/heads/$branchName"

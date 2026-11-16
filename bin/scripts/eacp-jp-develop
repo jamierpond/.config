@@ -10,22 +10,30 @@
 #   EACP_WORKTREE the worktree jp/develop is built in [~/projects/eacp-jp-develop]
 set -euo pipefail
 
-# One fix branch per line, applied in this order. A branch on Jamie's fork is
-# written origin/<branch>; everything else is on eyal (eyalamirmusic/eacp).
+# One fix branch per line, applied in this order, all on eyal (eyalamirmusic/eacp).
+# <branch>:<base> marks a branch whose pull request is stacked on another listed one.
 fixBranches=(
     eyal/jp/gpuview-hidden-releases-drawables # 268
-    # eyal/jp/linux-path-started-executable-is-not-a-plugin # 246: conflicts with develop; rebase it, then uncomment
     eyal/jp/gpu-device-loss-recovery # 231
+    eyal/jp/gpu-adapter-log:eyal/jp/gpu-device-loss-recovery # 269, stacked on 231
     eyal/jp/rpc-writes-off-main-thread # 224
     eyal/jp/ci-sanitizer-lane # 222
-    # eyal/jp/webview-windows-health # 218: conflicts with develop; rebase it, then uncomment
-    eyal/jp/texture-format-table # 217
-    # eyal/jp/renderpass-windows-health # 211: conflicts with develop; rebase it, then uncomment
+    eyal/jp/ci-sanitizer-nightly:eyal/jp/ci-sanitizer-lane # 272, stacked on 222
+    eyal/jp/webview-windows-health # 218
     eyal/jp/full-lto-parent-scope # 206
     eyal/jp/zip-skip-empty-copy # 194
-    origin/jp/overlay-depth-attachment # 164
+    eyal/jp/overlay-depth-attachment # 270, was #164 on jamierpond/eacp
     eyal/jp/globalhotkey-is-available # 143
-    # eyal/jp/vulkan-1-1-fallbacks # 109: conflicts with develop; rebase it, then uncomment
+    eyal/jp/webview-browser-options # 146
+    eyal/jp/webview-focused:eyal/jp/webview-windows-health # 152, stacked on 218
+    eyal/jp/vulkan-1-1-fallbacks # 109
+    eyal/jp/render-scale-on-develop:eyal/jp/vulkan-1-1-fallbacks # 281, stacked on 109
+    eyal/jp/text-editor-line-keys-undo # 275
+    eyal/jp/webview-content-process-terminate # 276, was #46
+    eyal/jp/global-mouse-click-monitor # 280
+    eyal/jp/machine-usage # 277
+    eyal/jp/async-keeps-exception # 278
+    eyal/jp/process-child-environment # 279
 )
 
 shouldPush=1
@@ -49,20 +57,38 @@ if [[ -n "$(git status --porcelain)" ]]; then
 fi
 git checkout --quiet -B jp/develop eyal/develop
 
-for branch in "${fixBranches[@]}"; do
+for entry in "${fixBranches[@]}"; do
+    # An entry is <branch>, or <branch>:<base> for a branch stacked on another
+    # listed branch; a stacked branch contributes only its change over its base.
+    branch="${entry%%:*}"
+    stackedOn=""
+    if [[ "$entry" == *:* ]]; then
+        stackedOn="${entry#*:}"
+    fi
     # A fix branch may carry develop merges; take only its net change, as one
     # commit, so jp/develop stays linear and each commit cherry-picks onto develop.
-    if git diff --quiet "eyal/develop...$branch"; then
-        echo "eacp-jp-develop: $branch has nothing develop lacks; drop it from the list"
+    changeBase="eyal/develop..."
+    if [[ -n "$stackedOn" ]]; then
+        changeBase="$stackedOn "
+    fi
+    if git diff --quiet $changeBase"$branch"; then
+        echo "eacp-jp-develop: $branch has nothing its base lacks; drop it from the list"
         continue
     fi
     headBranch="${branch#*/}"
+    # An open pull request wins over a closed one that used the same branch name.
     pullRequest=$(gh pr list --repo eyalamirmusic/eacp --head "$headBranch" --state all \
-        --json number,title --jq '.[0] | "\(.number)\t\(.title)"')
+        --json number,title,state --jq 'sort_by(.state != "OPEN") | .[0] | "\(.number)\t\(.title)"')
     pullRequestNumber="${pullRequest%%$'\t'*}"
     pullRequestTitle="${pullRequest#*$'\t'}"
-    echo "eacp-jp-develop: #$pullRequestNumber $branch"
-    if ! git merge --squash --quiet "$branch" >/dev/null 2>&1; then
+    echo "eacp-jp-develop: #$pullRequestNumber $entry"
+    if [[ -n "$stackedOn" ]]; then
+        if ! git diff --binary "$stackedOn" "$branch" | git apply --3way --index --quiet 2>/dev/null; then
+            echo "eacp-jp-develop: $branch's change over $stackedOn conflicts with the branches before it." >&2
+            git reset --quiet --hard
+            exit 1
+        fi
+    elif ! git merge --squash --quiet "$branch" >/dev/null 2>&1; then
         echo "eacp-jp-develop: $branch conflicts with develop or a branch before it." >&2
         echo "Rebase $branch onto develop (or move it later in the list), then rerun." >&2
         git merge --abort 2>/dev/null || git reset --quiet --hard
