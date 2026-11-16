@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Prints one line per open eacp pull request of Jamie's: number, head, and how many
+# CI checks passed, failed or are still running on that head, naming the failed ones.
+# Uses GraphQL (gh pr list --json statusCheckRollup), which keeps working when the
+# REST quota that gh run/gh pr checks use is spent.
+#
+# Usage: eacp-pr-ci-status [extra pr numbers...]
+set -euo pipefail
+gh pr list --repo eyalamirmusic/eacp --author @me --state open --limit 100 \
+    --json number,headRefOid,title,statusCheckRollup --jq '
+    .[] | (.statusCheckRollup // []) as $checks
+    | ($checks | map(select(.conclusion == "SUCCESS" or .conclusion == "SKIPPED" or .conclusion == "NEUTRAL")) | length) as $passed
+    | ($checks | map(select(.conclusion == "FAILURE" or .conclusion == "CANCELLED" or .conclusion == "TIMED_OUT")) ) as $failed
+    | ($checks | map(select(.status != "COMPLETED" and .__typename == "CheckRun")) | length) as $running
+    | "#\(.number) \(.headRefOid[0:8]) passed=\($passed) failed=\($failed | length) running=\($running) \($failed | map(.name) | join(", ")) | \(.title[0:60])"'
