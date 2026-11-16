@@ -9,6 +9,7 @@
 #   EACP_REPO          the eacp checkout a bare commit is read from [~/projects/eacp]
 #   EACP_VERIFY_LINUX  the Linux host [jamiepond@macprorack]
 #   EACP_VERIFY_KEEP=1 keeps the remote source and build trees afterwards
+#   EACP_VERIFY_WINDOWS=windows-vm skips tamby-windows even when it answers
 #
 # The exact committed tree is shipped with git archive; uncommitted changes in
 # a worktree are not part of it. Logs go to ~/tmp/eacp-verify/<sha>/<lane>.log.
@@ -33,12 +34,12 @@ testParallelJobs=4
 knownEnvironmentFailures=(
     "^Linux;;(^|/)Shaping/weightsTheFamilyHasDrawDifferently$;;macprorack lacks the DejaVu ExtraLight/Condensed faces CI installs"
     "^macOS;;^DynamicLibrary/(unloadWithNoLoop|unloadDefersWhileLooping)$;;fails on eyal/develop too on macOS 27: the plugin stays mapped after its last close"
-    "windows-vm;;^GlobalHotKey/(aHeldChordIsNotAvailable|askingDoesNotHoldTheChord)$;;RegisterHotKey fails in an ssh session, which has no interactive desktop; passes on CI"
+    "^Windows;;^GlobalHotKey/(aHeldChordIsNotAvailable|askingDoesNotHoldTheChord)$;;RegisterHotKey fails in an ssh session, which has no interactive desktop; passes on CI"
     "windows-vm;;^(DeviceLoss/framesDrawOnTheReplacementDeviceAfterTheOldOneIsRemoved|AdapterAfterDeviceLoss/theLogAndTheQueryNameWarpAfterTheGpuIsRemoved)$;;EACP_D3D12_WARP=1 starts the device on WARP already, where CI starts on the Basic Render Driver; both pass on this VM without it"
 )
 
 if [[ $# -lt 1 ]]; then
-    sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'
     exit 2
 fi
 
@@ -224,15 +225,13 @@ runLinuxLane() {
 # Windows builds the way CI's MSVC lane for that architecture does: x64 with
 # the WebView module, ARM64 without it.
 windowsLaneScript() {
-    local lane="$1" arch="$2" extraFlags="$3"
+    local lane="$1" arch="$2" extraFlags="$3" warpFlag="$4"
     cat <<BAT
 @echo off
 for /f "usebackq delims=" %%i in (\`"%ProgramFiles(x86)%\\Microsoft Visual Studio\\Installer\\vswhere.exe" -latest -products * -property installationPath\`) do set "vsPath=%%i"
 call "%vsPath%\\VC\\Auxiliary\\Build\\vcvarsall.bat" $arch >nul
 cd /d "%USERPROFILE%\\projects\\eacp-verify\\$shortSha\\src"
-rem A hosted runner has no GPU, so D3D12 lands on WARP there; a VM's virtual GPU
-rem renders wrong pixels in most GPU tests on develop too, so take WARP as CI does.
-set EACP_D3D12_WARP=1
+set EACP_D3D12_WARP=$warpFlag
 echo @@begin $lane^|configure
 cmake -B ..\\build $ciConfigureFlags -DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded $extraFlags 2>&1
 echo @@end $lane^|configure^|%errorlevel%
@@ -252,24 +251,27 @@ isAnsweringWithin() {
 }
 
 runWindowsLane() {
-    local host lane arch extraFlags shellKind
-    if isAnsweringWithin "$windowsX64Host" "$windowsReachableSeconds"; then
-        host="$windowsX64Host"; lane="Windows MSVC x64 (tamby-windows)"; arch=x64; extraFlags=""; shellKind=bash
+    local host lane arch extraFlags shellKind warpFlag
+    if [[ "${EACP_VERIFY_WINDOWS:-}" != windows-vm ]] && isAnsweringWithin "$windowsX64Host" "$windowsReachableSeconds"; then
+        host="$windowsX64Host"; lane="Windows MSVC x64 (tamby-windows)"; arch=x64; extraFlags=""; shellKind=bash; warpFlag=0
     elif isAnsweringWithin "$windowsArmHost" "$windowsReachableSeconds"; then
-        host="$windowsArmHost"; lane="Windows MSVC ARM64 (windows-vm)"; arch=arm64; extraFlags="-DEACP_BUILD_WEBVIEW=OFF"; shellKind=cmd
+        host="$windowsArmHost"; lane="Windows MSVC ARM64 (windows-vm, WARP)"; arch=arm64; extraFlags="-DEACP_BUILD_WEBVIEW=OFF"; shellKind=cmd
+        # The VM's virtual GPU renders wrong pixels in most GPU tests on develop
+        # too; WARP is the software device a GPU-less CI runner ends up near.
+        warpFlag=1
     else
         echo "@@unreachable Windows|neither tamby-windows nor windows-vm answered" > "$outDir/windows.log"
         return
     fi
     local freeGigabytes
-    freeGigabytes=$(ssh "$host" "powershell -NoProfile -Command [int]((Get-PSDrive C).Free/1GB)" | tr -d '\r')
+    freeGigabytes=$(ssh "$host" 'powershell -NoProfile -Command "[int]((Get-PSDrive C).Free/1GB)"' | tr -d '\r')
     if [[ "${freeGigabytes:-0}" -lt "$windowsFullBuildGigabytes" ]]; then
         extraFlags="$extraFlags -DEACP_ENABLE_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release -DEACP_HOT_RELOAD=ON"
         lane="$lane, Release without examples: ${freeGigabytes} GB free"
     fi
     local remoteRoot="projects/eacp-verify/$shortSha"
     local batFile="$outDir/verify.bat"
-    windowsLaneScript "$lane" "$arch" "$extraFlags" | sed 's/$/\r/' > "$batFile"
+    windowsLaneScript "$lane" "$arch" "$extraFlags" "$warpFlag" | sed 's/$/\r/' > "$batFile"
     if [[ "$shellKind" == cmd ]]; then
         ssh "$host" "rmdir /s /q %USERPROFILE%\\projects\\eacp-verify 2>nul & mkdir %USERPROFILE%\\projects\\eacp-verify\\$shortSha\\src"
         exportTree | ssh "$host" "tar -xf - -C %USERPROFILE%\\projects\\eacp-verify\\$shortSha\\src"
