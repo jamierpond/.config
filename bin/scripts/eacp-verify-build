@@ -1,0 +1,408 @@
+#!/usr/bin/env bash
+# Builds one eacp commit and runs its tests on every platform we have a machine
+# for, the way eacp's CI lanes do (.github/workflows/build.yml), and prints one
+# line per lane: macOS here, Linux GCC and Linux Clang+Vulkan on macprorack,
+# Windows on tamby-windows (x64) or windows-vm (ARM64).
+#
+# Usage: eacp-verify-build <commit | eacp worktree path> [lane...]
+#   lanes: macos linux windows (default: all three)
+#   EACP_REPO          the eacp checkout a bare commit is read from [~/projects/eacp]
+#   EACP_VERIFY_LINUX  the Linux host [jamiepond@macprorack]
+#   EACP_VERIFY_KEEP=1 keeps the remote source and build trees afterwards
+#
+# The exact committed tree is shipped with git archive; uncommitted changes in
+# a worktree are not part of it. Logs go to ~/tmp/eacp-verify/<sha>/<lane>.log.
+# Exit status is 0 only when every lane passes (known environment failures
+# excepted).
+set -euo pipefail
+
+linuxHost="${EACP_VERIFY_LINUX:-jamiepond@macprorack}"
+windowsX64Host="jamie@tamby-windows"
+windowsArmHost="windows-vm"
+windowsReachableSeconds=5
+# A RelWithDebInfo build filled windows-vm at 7 GB free, even without the
+# example apps; below this the lane builds Release (no PDBs) and skips them.
+# Release turns link-time optimisation on, which hot reload's dev mode (required
+# in a CI build) needs off: EACP_HOT_RELOAD=ON turns it back off.
+windowsFullBuildGigabytes=25
+testTimeoutSeconds=600
+testParallelJobs=4
+
+# Tests that fail on these machines for reasons outside eacp, as
+# "<lane regex>;;<test regex>;;<why>". A lane whose only failures match is a pass.
+knownEnvironmentFailures=(
+    "^Linux;;(^|/)Shaping/weightsTheFamilyHasDrawDifferently$;;macprorack lacks the DejaVu ExtraLight/Condensed faces CI installs"
+    "^macOS;;^DynamicLibrary/(unloadWithNoLoop|unloadDefersWhileLooping)$;;fails on eyal/develop too on macOS 27: the plugin stays mapped after its last close"
+    "windows-vm;;^GlobalHotKey/(aHeldChordIsNotAvailable|askingDoesNotHoldTheChord)$;;RegisterHotKey fails in an ssh session, which has no interactive desktop; passes on CI"
+    "windows-vm;;^(DeviceLoss/framesDrawOnTheReplacementDeviceAfterTheOldOneIsRemoved|AdapterAfterDeviceLoss/theLogAndTheQueryNameWarpAfterTheGpuIsRemoved)$;;EACP_D3D12_WARP=1 starts the device on WARP already, where CI starts on the Basic Render Driver; both pass on this VM without it"
+)
+
+if [[ $# -lt 1 ]]; then
+    sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'
+    exit 2
+fi
+
+target="$1"
+shift
+lanes=("$@")
+if [[ ${#lanes[@]} -eq 0 ]]; then
+    lanes=(macos linux windows)
+fi
+
+if [[ -d "$target" ]]; then
+    repo="$target"
+    sha=$(git -C "$repo" rev-parse HEAD)
+    if [[ -n "$(git -C "$repo" status --porcelain --untracked-files=no)" ]]; then
+        echo "eacp-verify-build: $repo has uncommitted changes; verifying HEAD $sha without them" >&2
+    fi
+else
+    repo="${EACP_REPO:-$HOME/projects/eacp}"
+    sha=$(git -C "$repo" rev-parse --verify "$target^{commit}")
+fi
+shortSha="${sha:0:10}"
+outDir="$HOME/tmp/eacp-verify/$shortSha"
+mkdir -p "$outDir"
+echo "eacp-verify-build: $shortSha ($(git -C "$repo" log -1 --format=%s "$sha"))"
+echo "eacp-verify-build: logs in $outDir"
+
+ciConfigureFlags="-G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DEACP_CI_BUILD=ON -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DCMAKE_CXX_SCAN_FOR_MODULES=OFF"
+
+# Shell functions every lane's script starts with. A step is framed by
+# "@@begin <lane>|<step>" and "@@end <lane>|<step>|<exit status>" so the
+# summary can be read back out of one log, local or remote.
+stepFunctions=$(cat <<'SH'
+runStep() {
+    local lane="$1" step="$2"
+    shift 2
+    echo "@@begin $lane|$step"
+    local status=0
+    "$@" 2>&1 || status=$?
+    echo "@@end $lane|$step|$status"
+    return 0
+}
+SH
+)
+
+exportTree() {
+    git -C "$repo" archive --format=tar "$sha"
+}
+
+runMacLane() {
+    local root="$outDir/macos"
+    rm -rf "$root"
+    mkdir -p "$root/src"
+    exportTree | tar -xf - -C "$root/src"
+    bash -c "$stepFunctions
+set -u
+cd '$root/src'
+runStep macOS configure cmake -B ../build $ciConfigureFlags '-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64'
+runStep macOS build cmake --build ../build
+runStep macOS test ctest --test-dir ../build --output-on-failure -j $testParallelJobs --timeout $testTimeoutSeconds
+" > "$outDir/macos.log" 2>&1
+}
+
+# The Linux lanes run inside a --pure nix-shell with its own compilers:
+# macprorack has no Wayland or xcb dev packages and no sudo, and the profile's
+# gcc linked against the shell's glib fails on free_sized@GLIBC_2.43. Mesa's
+# lavapipe is named through VK_DRIVER_FILES because the loader otherwise reads
+# the system's ICD manifests, whose bare library names nix's loader cannot open.
+# The GCC lane builds and tests with nix's gcc 15, CI's major version, then
+# compiles every translation unit again with Ubuntu's own gcc-15 and
+# -march=x86-64-v3 when ~/tmp/ubuntu-gcc holds it: CI's gcc defaults to that
+# and some warnings only appear there. Ubuntu's gcc only compiles, because what
+# it links needs the system glibc while every library from nix needs nix's.
+linuxLaneScript() {
+    local remoteRoot="$1"
+    cat <<SH
+$stepFunctions
+set -u
+export PKG_CONFIG_PATH="\${PKG_CONFIG_PATH:-}:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig"
+mesaPath=\$(/nix/var/nix/profiles/default/bin/nix-build '<nixpkgs>' -A mesa --no-out-link 2>/dev/null)
+export VK_DRIVER_FILES=\$(ls "\$mesaPath"/share/vulkan/icd.d/lvp_icd*.json)
+export VK_LOADER_LAYERS_DISABLE=VK_LAYER_MESA_device_select
+# volk opens libvulkan.so.1 by name, which a --pure shell leaves off the search path.
+vulkanLoaderPath=\$(/nix/var/nix/profiles/default/bin/nix-build '<nixpkgs>' -A vulkan-loader --no-out-link 2>/dev/null)
+export LD_LIBRARY_PATH="\$vulkanLoaderPath/lib\${LD_LIBRARY_PATH:+:\$LD_LIBRARY_PATH}"
+# with-weston falls back to one fixed socket under /tmp, which a second run on
+# this host would take over; each run gets its own. Short, because eacp's Ipc
+# socket paths live here too and must fit the 108-byte sun_path.
+export XDG_RUNTIME_DIR="/tmp/eacp-verify-$shortSha"
+# The system's cursor themes; a --pure shell has none, so libxcursor finds no cursor to size.
+export XCURSOR_PATH=/usr/share/icons
+export EACP_HEADLESS=1 EACP_REQUIRE_FONTS=1
+# nix's compiler wrappers add _FORTIFY_SOURCE and friends, which CI's clang does
+# not; its fortified open() trips -Wsign-conversion in Miro's ghc-filesystem.
+export NIX_HARDENING_ENABLE=""
+export CCACHE_DEPEND=1 CCACHE_BASEDIR="$remoteRoot"
+cd "$remoteRoot/src"
+launchers="-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
+
+gcc15Path=\$(/nix/var/nix/profiles/default/bin/nix-build '<nixpkgs>' -A gcc15 --no-out-link 2>/dev/null)
+gccLane="Linux GCC 15"
+runStep "\$gccLane" configure cmake -B ../build-gcc $ciConfigureFlags \$launchers -DCMAKE_C_COMPILER=\$gcc15Path/bin/gcc -DCMAKE_CXX_COMPILER=\$gcc15Path/bin/g++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+runStep "\$gccLane" build cmake --build ../build-gcc
+runStep "\$gccLane" test ctest --test-dir ../build-gcc --output-on-failure -j $testParallelJobs --timeout $testTimeoutSeconds
+if [ -x "\$HOME/tmp/ubuntu-gcc/g++" ]; then
+    runStep "\$gccLane" "compile with Ubuntu gcc-15 -march=x86-64-v3" python3 ../recompile-with-ubuntu-gcc.py ../build-gcc/compile_commands.json "\$HOME/tmp/ubuntu-gcc"
+fi
+
+clangLane="Linux Clang+Vulkan"
+runStep "\$clangLane" configure cmake -B ../build-clang $ciConfigureFlags \$launchers -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+runStep "\$clangLane" build cmake --build ../build-clang
+runStep "\$clangLane" "test, headless" ctest --test-dir ../build-clang --output-on-failure -j $testParallelJobs --timeout $testTimeoutSeconds
+export EACP_HEADLESS=0 EACP_REQUIRE_DISPLAY=1 EACP_REQUIRE_GPU=1 EACP_VK_SOFTWARE=1
+runStep "\$clangLane" "test under Weston" Scripts/with-weston ctest --test-dir ../build-clang --output-on-failure -j $testParallelJobs --timeout $testTimeoutSeconds -E '^(X11|EmbeddedView|NativeChildSurface)(/|\$)'
+runStep "\$clangLane" "test under Xvfb" Scripts/with-xvfb ctest --test-dir ../build-clang --output-on-failure -j $testParallelJobs --timeout $testTimeoutSeconds -R '^(X11|EmbeddedView|NativeChildSurface|Present)(/|\$)'
+runStep "\$clangLane" "GPU suite, legacy barriers" env EACP_VK_RENDER_PASSES=1 EACP_VK_LEGACY_SYNC=1 Scripts/with-weston ../build-clang/Tests/GPU/GPUTests
+runStep "\$clangLane" "GPU suite, render passes" env EACP_VK_RENDER_PASSES=1 Scripts/with-weston ../build-clang/Tests/GPU/GPUTests
+SH
+}
+
+# Compiles each entry of a compile_commands.json again with another gcc, to an
+# object that is thrown away, and prints the errors. Usage: <json> <gcc dir>
+# The include paths nix's wrapper adds (NIX_CFLAGS_COMPILE) are added the same
+# way; precompiled headers are left out, since a foreign gcc cannot write them.
+recompileWithUbuntuGcc=$(cat <<'PY'
+import json, os, shlex, subprocess, sys
+from concurrent.futures import ThreadPoolExecutor
+
+entries = json.load(open(sys.argv[1]))
+gccDirectory = sys.argv[2]
+droppedWithValue = {"-o", "-MF", "-MT", "-MQ"}
+nixIncludeFlags = shlex.split(os.environ.get("NIX_CFLAGS_COMPILE", ""))
+entries = [entry for entry in entries if "cmake_pch" not in entry["file"]]
+
+def recompile(entry):
+    arguments = shlex.split(entry["command"])
+    if os.path.basename(arguments[0]) == "ccache":
+        arguments = arguments[1:]
+    compilerName = "g++" if arguments[0].endswith("++") else "gcc"
+    kept = [os.path.join(gccDirectory, compilerName)]
+    skipNext = False
+    for argument in arguments[1:]:
+        if skipNext:
+            skipNext = False
+        elif argument in droppedWithValue:
+            skipNext = True
+        elif argument not in ("-MD", "-MMD"):
+            kept.append(argument)
+    kept += nixIncludeFlags + ["-march=x86-64-v3", "-o", "/dev/null"]
+    result = subprocess.run(kept, cwd=entry["directory"], capture_output=True, text=True)
+    return entry["file"], result.returncode, result.stderr
+
+failures = 0
+with ThreadPoolExecutor(os.cpu_count()) as pool:
+    for file, status, errors in pool.map(recompile, entries):
+        if status != 0:
+            failures += 1
+            print(f"FAILED: {file}")
+            print(errors)
+print(f"{len(entries) - failures}/{len(entries)} translation units compiled")
+sys.exit(1 if failures else 0)
+PY
+)
+
+linuxNixPackages="gcc clang cmake ninja git cacert python3 which libxcb libxcb-cursor libxcb-wm libxkbcommon libxau libxdmcp wayland wayland-protocols wayland-scanner libdecor freetype harfbuzz fontconfig curl libidn2 weston xorg.xorgserver vulkan-loader mesa vulkan-tools pkg-config ccache"
+
+runLinuxLane() {
+    local remoteRoot="projects/eacp-verify/$shortSha"
+    if ! ssh -o ConnectTimeout=10 -o BatchMode=yes "$linuxHost" true 2>/dev/null; then
+        echo "@@unreachable Linux|$linuxHost" > "$outDir/linux.log"
+        return
+    fi
+    ssh "$linuxHost" "rm -rf ~/$remoteRoot && mkdir -p ~/$remoteRoot/src"
+    exportTree | ssh "$linuxHost" "tar -xf - -C ~/$remoteRoot/src"
+    linuxLaneScript "\$HOME/$remoteRoot" | ssh "$linuxHost" "cat > ~/$remoteRoot/verify.sh"
+    printf '%s\n' "$recompileWithUbuntuGcc" | ssh "$linuxHost" "cat > ~/$remoteRoot/recompile-with-ubuntu-gcc.py"
+    ssh "$linuxHost" "bash -lc 'nix-shell --pure -p $linuxNixPackages --run \"bash ~/$remoteRoot/verify.sh\"'" \
+        > "$outDir/linux.log" 2>&1 || true
+    if [[ "${EACP_VERIFY_KEEP:-0}" != 1 ]]; then
+        ssh "$linuxHost" "rm -rf ~/$remoteRoot /tmp/eacp-verify-$shortSha"
+    fi
+}
+
+# Windows builds the way CI's MSVC lane for that architecture does: x64 with
+# the WebView module, ARM64 without it.
+windowsLaneScript() {
+    local lane="$1" arch="$2" extraFlags="$3"
+    cat <<BAT
+@echo off
+for /f "usebackq delims=" %%i in (\`"%ProgramFiles(x86)%\\Microsoft Visual Studio\\Installer\\vswhere.exe" -latest -products * -property installationPath\`) do set "vsPath=%%i"
+call "%vsPath%\\VC\\Auxiliary\\Build\\vcvarsall.bat" $arch >nul
+cd /d "%USERPROFILE%\\projects\\eacp-verify\\$shortSha\\src"
+rem A hosted runner has no GPU, so D3D12 lands on WARP there; a VM's virtual GPU
+rem renders wrong pixels in most GPU tests on develop too, so take WARP as CI does.
+set EACP_D3D12_WARP=1
+echo @@begin $lane^|configure
+cmake -B ..\\build $ciConfigureFlags -DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded $extraFlags 2>&1
+echo @@end $lane^|configure^|%errorlevel%
+echo @@begin $lane^|build
+cmake --build ..\\build 2>&1
+echo @@end $lane^|build^|%errorlevel%
+echo @@begin $lane^|test
+ctest --test-dir ..\\build --output-on-failure -j $testParallelJobs --timeout $testTimeoutSeconds 2>&1
+echo @@end $lane^|test^|%errorlevel%
+BAT
+}
+
+isAnsweringWithin() {
+    local host="$1" seconds="$2"
+    (perl -e 'alarm shift; exec @ARGV' "$seconds" \
+        ssh -o ConnectTimeout="$seconds" -o BatchMode=yes "$host" echo >/dev/null 2>&1) 2>/dev/null
+}
+
+runWindowsLane() {
+    local host lane arch extraFlags shellKind
+    if isAnsweringWithin "$windowsX64Host" "$windowsReachableSeconds"; then
+        host="$windowsX64Host"; lane="Windows MSVC x64 (tamby-windows)"; arch=x64; extraFlags=""; shellKind=bash
+    elif isAnsweringWithin "$windowsArmHost" "$windowsReachableSeconds"; then
+        host="$windowsArmHost"; lane="Windows MSVC ARM64 (windows-vm)"; arch=arm64; extraFlags="-DEACP_BUILD_WEBVIEW=OFF"; shellKind=cmd
+    else
+        echo "@@unreachable Windows|neither tamby-windows nor windows-vm answered" > "$outDir/windows.log"
+        return
+    fi
+    local freeGigabytes
+    freeGigabytes=$(ssh "$host" "powershell -NoProfile -Command [int]((Get-PSDrive C).Free/1GB)" | tr -d '\r')
+    if [[ "${freeGigabytes:-0}" -lt "$windowsFullBuildGigabytes" ]]; then
+        extraFlags="$extraFlags -DEACP_ENABLE_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release -DEACP_HOT_RELOAD=ON"
+        lane="$lane, Release without examples: ${freeGigabytes} GB free"
+    fi
+    local remoteRoot="projects/eacp-verify/$shortSha"
+    local batFile="$outDir/verify.bat"
+    windowsLaneScript "$lane" "$arch" "$extraFlags" | sed 's/$/\r/' > "$batFile"
+    if [[ "$shellKind" == cmd ]]; then
+        ssh "$host" "rmdir /s /q %USERPROFILE%\\projects\\eacp-verify 2>nul & mkdir %USERPROFILE%\\projects\\eacp-verify\\$shortSha\\src"
+        exportTree | ssh "$host" "tar -xf - -C %USERPROFILE%\\projects\\eacp-verify\\$shortSha\\src"
+    else
+        ssh "$host" "rm -rf ~/projects/eacp-verify && mkdir -p ~/$remoteRoot/src"
+        exportTree | ssh "$host" "tar -xf - -C ~/$remoteRoot/src"
+    fi
+    scp -q "$batFile" "$host:$remoteRoot/verify.bat"
+    local batPath="${remoteRoot//\//\\}\\verify.bat"
+    if [[ "$shellKind" == cmd ]]; then
+        ssh "$host" "cmd /c $batPath" > "$outDir/windows.log" 2>&1 || true
+    else
+        ssh "$host" "cmd //c '$batPath'" > "$outDir/windows.log" 2>&1 || true
+    fi
+    if [[ "${EACP_VERIFY_KEEP:-0}" != 1 ]]; then
+        if [[ "$shellKind" == cmd ]]; then
+            ssh "$host" "rmdir /s /q %USERPROFILE%\\projects\\eacp-verify" || true
+        else
+            ssh "$host" "rm -rf ~/projects/eacp-verify" || true
+        fi
+    fi
+}
+
+# Why a failed test is expected here, or nothing when it is not.
+findKnownEnvironmentReason() {
+    local lane="$1" test="$2" entry laneRegex rest testRegex reason
+    for entry in "${knownEnvironmentFailures[@]}"; do
+        laneRegex="${entry%%;;*}"
+        rest="${entry#*;;}"
+        testRegex="${rest%%;;*}"
+        reason="${rest#*;;}"
+        if [[ "$lane" =~ $laneRegex && "$test" =~ $testRegex ]]; then
+            echo "$reason"
+            return
+        fi
+    done
+}
+
+# One line per lane in a log: PASS, or FAIL with the first compiler error or
+# the failed tests, with known environment failures named separately.
+summarizeLog() {
+    local log="$1"
+    if [[ ! -f "$log" ]]; then
+        return
+    fi
+    if grep -q '^@@unreachable' "$log"; then
+        local entry
+        entry=$(sed -n 's/^@@unreachable //p' "$log")
+        echo "${entry%%|*}: not verified locally (${entry#*|})"
+        return
+    fi
+    local lanesInLog lane
+    lanesInLog=$(sed -n 's/^@@begin \(.*\)|.*/\1/p' "$log" | tr -d '\r' | awk '!seen[$0]++')
+    if [[ -z "$lanesInLog" ]]; then
+        echo "$(basename "$log" .log): no result, see $log"
+        return
+    fi
+    while IFS= read -r lane; do
+        summarizeLane "$log" "$lane"
+    done <<< "$lanesInLog"
+}
+
+summarizeLane() {
+    local log="$1" lane="$2"
+    local steps failedSteps="" unexpected=() known=() stepName status
+    steps=$(tr -d '\r' < "$log" | awk -v prefix="@@end $lane|" 'index($0, prefix) == 1 {print substr($0, length(prefix) + 1)}')
+    while IFS='|' read -r stepName status; do
+        [[ -z "$stepName" ]] && continue
+        status="${status// /}"
+        if [[ "$status" == 0 ]]; then
+            continue
+        fi
+        local section
+        section=$(tr -d '\r' < "$log" | awk -v begin="@@begin $lane|$stepName" -v end="@@end $lane|$stepName|" \
+            '$0 == begin {inside=1; next} index($0, end) == 1 {inside=0} inside')
+        if [[ "$stepName" == configure || "$stepName" == *build* || "$stepName" == *compile* ]]; then
+            local firstError
+            firstError=$(printf '%s\n' "$section" | grep -m1 -E '(error|Error)[: ]' || true)
+            echo "$lane: FAIL at $stepName: ${firstError:-exit $status, see $log}"
+            return
+        fi
+        local failedTests
+        # NanoTest's own "  FAIL  Suite/case" lines name the case; ctest's
+        # summary only names the executable or suite, which is the fallback.
+        failedTests=$(printf '%s\n' "$section" | sed -n 's/^[[:space:]]*FAIL[[:space:]]\{1,\}\([^[:space:]]\{1,\}\).*/\1/p' | sort -u)
+        if [[ -z "$failedTests" ]]; then
+            failedTests=$(printf '%s\n' "$section" | sed -n 's/^[[:space:]]*[0-9]* - \([^ ]*\) (.*/\1/p')
+        fi
+        if [[ -z "$failedTests" ]]; then
+            unexpected+=("$stepName exited $status")
+            continue
+        fi
+        local test reason
+        while IFS= read -r test; do
+            reason=$(findKnownEnvironmentReason "$lane" "$test")
+            if [[ -n "$reason" ]]; then
+                known+=("$test ($stepName; $reason)")
+            else
+                unexpected+=("$test ($stepName)")
+            fi
+        done <<< "$failedTests"
+    done <<< "$steps"
+    local knownText=""
+    if [[ ${#known[@]} -gt 0 ]]; then
+        knownText="; known environment failures: $(IFS=,; echo "${known[*]}")"
+    fi
+    if [[ ${#unexpected[@]} -gt 0 ]]; then
+        echo "$lane: FAIL: $(IFS=,; echo "${unexpected[*]}")$knownText"
+    else
+        echo "$lane: PASS$knownText"
+    fi
+}
+
+pids=()
+for laneName in "${lanes[@]}"; do
+    case "$laneName" in
+        macos) runMacLane & pids+=($!) ;;
+        linux) runLinuxLane & pids+=($!) ;;
+        windows) runWindowsLane & pids+=($!) ;;
+        *) echo "eacp-verify-build: unknown lane $laneName" >&2; exit 2 ;;
+    esac
+done
+for pid in "${pids[@]}"; do
+    wait "$pid" || true
+done
+
+summary="$outDir/summary.txt"
+: > "$summary"
+for laneName in "${lanes[@]}"; do
+    summarizeLog "$outDir/$laneName.log" >> "$summary"
+done
+echo "eacp-verify-build: $shortSha"
+cat "$summary"
+if grep -q -E ': (FAIL|no result)' "$summary"; then
+    exit 1
+fi
