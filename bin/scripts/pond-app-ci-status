@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Prints the CI result of each pond app's default-branch head: passed, failed and
+# still-running checks, naming the failed ones. One GraphQL call per repo, so it keeps
+# working when the REST quota that gh run uses is spent.
+#
+# Usage: pond-app-ci-status [owner/repo ...]   (default: the pond apps that pin eacp)
+set -euo pipefail
+repositories=("$@")
+if [[ ${#repositories[@]} -eq 0 ]]; then
+    repositories=(jamierpond/CowTerm jamierpond/Grazer jamierpond/Rudder jamierpond/DiffView
+        jamierpond/iac jamierpond/ScreenCap jamierpond/CodeHealth jamierpond/lockstep
+        jamierpond/AlgoTrade jamierpond/Crashout eyalamirmusic/Cows)
+fi
+query='query($owner:String!,$name:String!){repository(owner:$owner,name:$name){defaultBranchRef{name target{... on Commit{oid statusCheckRollup{contexts(first:50){nodes{... on CheckRun{name status conclusion}}}}}}}}}'
+for repository in "${repositories[@]}"; do
+    gh api graphql -f query="$query" -F owner="${repository%%/*}" -F name="${repository#*/}" --jq '
+      .data.repository.defaultBranchRef as $branch
+      | ($branch.target.statusCheckRollup.contexts.nodes // []) as $checks
+      | ($checks | map(select(.conclusion == "SUCCESS" or .conclusion == "SKIPPED" or .conclusion == "NEUTRAL")) | length) as $passed
+      | ($checks | map(select(.conclusion == "FAILURE" or .conclusion == "CANCELLED" or .conclusion == "TIMED_OUT"))) as $failed
+      | ($checks | map(select(.status != "COMPLETED")) | length) as $running
+      | "'"$repository"'@\($branch.name) \($branch.target.oid[0:8]) passed=\($passed) failed=\($failed | length) running=\($running) \($failed | map(.name) | join(", "))"'
+done
