@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# Rebuilds eyalamirmusic/eacp@jp/develop: eyal/develop plus one commit per
+# listed fix branch (its pull request's net change), linear, no merge commits.
+# Pushes the branch with --force-with-lease and a tag jp/develop/<date>.<n> for
+# the new head, so commits that pond apps pinned stay fetchable after the next
+# rebuild orphans them, then starts eacp CI on it.
+#
+# Usage: eacp-jp-develop [--no-push]
+#   EACP_REPO     the eacp checkout to work from [~/projects/eacp]
+#   EACP_WORKTREE the worktree jp/develop is built in [~/projects/eacp-jp-develop]
+set -euo pipefail
+
+# One fix branch per line, applied in this order. A branch on Jamie's fork is
+# written origin/<branch>; everything else is on eyal (eyalamirmusic/eacp).
+fixBranches=(
+    eyal/jp/gpuview-hidden-releases-drawables # 268
+    # eyal/jp/linux-path-started-executable-is-not-a-plugin # 246: conflicts with develop; rebase it, then uncomment
+    eyal/jp/gpu-device-loss-recovery # 231
+    eyal/jp/rpc-writes-off-main-thread # 224
+    eyal/jp/ci-sanitizer-lane # 222
+    # eyal/jp/webview-windows-health # 218: conflicts with develop; rebase it, then uncomment
+    eyal/jp/texture-format-table # 217
+    # eyal/jp/renderpass-windows-health # 211: conflicts with develop; rebase it, then uncomment
+    eyal/jp/full-lto-parent-scope # 206
+    eyal/jp/zip-skip-empty-copy # 194
+    origin/jp/overlay-depth-attachment # 164
+    eyal/jp/globalhotkey-is-available # 143
+    # eyal/jp/vulkan-1-1-fallbacks # 109: conflicts with develop; rebase it, then uncomment
+)
+
+shouldPush=1
+if [[ "${1:-}" == "--no-push" ]]; then
+    shouldPush=0
+fi
+
+repo="${EACP_REPO:-$HOME/projects/eacp}"
+worktree="${EACP_WORKTREE:-$HOME/projects/eacp-jp-develop}"
+
+git -C "$repo" fetch --quiet eyal --tags
+git -C "$repo" fetch --quiet origin
+
+if [[ ! -d "$worktree" ]]; then
+    git -C "$repo" worktree add --detach "$worktree" eyal/develop
+fi
+cd "$worktree"
+if [[ -n "$(git status --porcelain)" ]]; then
+    echo "eacp-jp-develop: $worktree has uncommitted changes; stopping" >&2
+    exit 1
+fi
+git checkout --quiet -B jp/develop eyal/develop
+
+for branch in "${fixBranches[@]}"; do
+    # A fix branch may carry develop merges; take only its net change, as one
+    # commit, so jp/develop stays linear and each commit cherry-picks onto develop.
+    if git diff --quiet "eyal/develop...$branch"; then
+        echo "eacp-jp-develop: $branch has nothing develop lacks; drop it from the list"
+        continue
+    fi
+    headBranch="${branch#*/}"
+    pullRequest=$(gh pr list --repo eyalamirmusic/eacp --head "$headBranch" --state all \
+        --json number,title --jq '.[0] | "\(.number)\t\(.title)"')
+    pullRequestNumber="${pullRequest%%$'\t'*}"
+    pullRequestTitle="${pullRequest#*$'\t'}"
+    echo "eacp-jp-develop: #$pullRequestNumber $branch"
+    if ! git merge --squash --quiet "$branch" >/dev/null 2>&1; then
+        echo "eacp-jp-develop: $branch conflicts with develop or a branch before it." >&2
+        echo "Rebase $branch onto develop (or move it later in the list), then rerun." >&2
+        git merge --abort 2>/dev/null || git reset --quiet --hard
+        exit 1
+    fi
+    git commit --quiet -m "$pullRequestTitle" \
+        -m "From eyalamirmusic/eacp#$pullRequestNumber, branch $headBranch."
+done
+
+if [[ "$shouldPush" == 0 ]]; then
+    echo "eacp-jp-develop: built $(git rev-parse --short HEAD); not pushed (--no-push)"
+    exit 0
+fi
+
+today=$(date +%Y-%m-%d)
+tagNumber=1
+while git rev-parse --quiet --verify "refs/tags/jp/develop/$today.$tagNumber" >/dev/null; do
+    tagNumber=$((tagNumber + 1))
+done
+tag="jp/develop/$today.$tagNumber"
+
+git tag "$tag" HEAD
+git push --force-with-lease=jp/develop eyal jp/develop
+git push eyal "refs/tags/$tag"
+# eacp's Build workflow runs on push only for main and develop.
+gh workflow run build.yml --repo eyalamirmusic/eacp --ref jp/develop
+echo "eacp-jp-develop: pushed jp/develop at $(git rev-parse HEAD), tagged $tag"
