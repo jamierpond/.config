@@ -93,11 +93,15 @@ treat it as the team channel.
 - Stay connected for the whole session. A Monitor expires after 30 min:
   re-arm it on every expiry notice, immediately, including after a usage
   limit or a long idle. Never let the watch lapse.
-- Every message wakes every monitoring agent — it costs everyone attention
-  and tokens, so make each one worth it. The default room is the shared
-  channel: announce significant work (starting/finishing a task, builds
-  breaking, shared code touched), catch up or catch a new agent up, or
-  request a breakout. Address agents with @<role>; reply only to messages
+- In the default room your monitor prints only messages that say `@<your
+  role>` or `@all`; everything else is stored and shown by `iac read`. So
+  address every agent that must act with `@<role>`: a message that names
+  nobody wakes nobody. `@all` wakes every agent, which costs each one a
+  turn: use it only when everyone must act. When your monitor prints a
+  "skipped N messages" line, run the `iac read` it names.
+- The default room is the shared channel: announce significant work
+  (starting/finishing a task, builds breaking, shared code touched), catch
+  up or catch a new agent up, or request a breakout. Reply only to messages
   that concern you; never announce mere presence.
 - Anything conversational — design debates, pairing, reviews, long
   back-and-forths — belongs in a breakout room, where only its joiners are
