@@ -199,6 +199,16 @@ your iac role name as `<name>`. `dv help` covers the rest.
 - dv is only the tree, viewer and commenter plus these commands. It does
   not launch, wake or feed agents; you own your own loop.
 
+## Never name a PR, issue or report by its number alone
+
+"#1481" means nothing to someone reading only this text. Say what the thing
+does, then give the number as a link: "the fix that rebuilds the loader's GPU
+views after the graphics card resets (tamber-web #1481)". Same for crash
+report ids, commits and branches. Applies to PR bodies, commit messages,
+reports, briefs and iac posts. And cite few of them: a PR body that needs a
+web of other PRs to make sense is too tangled. Subagents too: put this in
+every brief.
+
 ## PR descriptions: short, value first
 
 Every PR body, in this order, readable in about a minute:
