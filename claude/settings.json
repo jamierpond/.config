@@ -40,6 +40,15 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ct pane-state --claude-hook 2>/dev/null || true",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "SessionEnd": [
@@ -48,6 +57,29 @@
           {
             "type": "command",
             "command": "~/.config/bin/scripts/claude-session-sync session-end 2>>~/.cache/claude-session-sync.log || true",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ct pane-state --claude-hook 2>/dev/null || true",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt|elicitation_dialog",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ct pane-state --claude-hook 2>/dev/null || true",
             "timeout": 5
           }
         ]
