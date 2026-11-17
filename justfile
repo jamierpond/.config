@@ -234,3 +234,11 @@ info:
 # Make ~/.config/claude the Claude Code config dir and link per-repo memory (see claude/README.md)
 claude-sync:
     bin/scripts/claude-sync
+
+# Fetch this project's Claude Code sessions from every online Tailscale machine, newest file wins. Run as `just -f ~/.config/justfile claude-session-pull` from the project, or pass its directory.
+claude-session-pull project_directory=invocation_directory():
+    bin/scripts/claude-session-sync pull "{{ project_directory }}"
+
+# Send this project's Claude Code sessions to every online Tailscale machine, newest file wins.
+claude-session-push project_directory=invocation_directory():
+    bin/scripts/claude-session-sync push "{{ project_directory }}"
