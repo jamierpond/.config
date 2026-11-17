@@ -1,18 +1,13 @@
 {
-  "model": "fable[1m]",
-  "enabledPlugins": {
-    "clangd-lsp@claude-plugins-official": true,
-    "swift-lsp@claude-plugins-official": true,
-    "pyright-lsp@claude-plugins-official": true
-  },
   "env": {
     "CLAUDE_CODE_SUBAGENT_MODEL": "opus"
   },
-  "includeCoAuthoredBy": false,
   "attribution": {
     "commit": "",
     "pr": ""
   },
+  "includeCoAuthoredBy": false,
+  "model": "fable[1m]",
   "hooks": {
     "SessionStart": [
       {
@@ -59,15 +54,20 @@
       }
     ]
   },
+  "enabledPlugins": {
+    "clangd-lsp@claude-plugins-official": true,
+    "swift-lsp@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true
+  },
   "tui": "fullscreen",
-  "theme": "dark",
-  "inputNeededNotifEnabled": true,
-  "agentPushNotifEnabled": true,
-  "skipDangerousModePermissionPrompt": true,
-  "switchModelsOnFlag": true,
   "voice": {
     "enabled": true,
     "mode": "hold"
   },
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "dark",
+  "switchModelsOnFlag": true,
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true,
   "voiceEnabled": true
 }
