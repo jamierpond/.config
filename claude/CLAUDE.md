@@ -415,3 +415,5 @@ Platform code gets run on every platform, not only built in CI: Windows ARM64 on
 
 ## Scripts, not ad-hoc commands
 Repeatable work (deploys, cloud setup, builds, test runs) goes in a script in the repo, and the agent runs the script. No one-off command chains in the transcript. Put this in every brief.
+
+Every such script also gets a recipe in the repo's `justfile`, added in the same change; `just` is how I run things. If the repo has no justfile, create one. Don't ask first. Put this in every brief too.
