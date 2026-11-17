@@ -37,6 +37,16 @@ Never open with a technically exact sentence nobody can parse. Write like a
 person explaining a fix to a colleague, not a spec. Subagents too: put this
 in every brief.
 
+## No label sentences, anywhere
+
+Never put a title-like label or teaser in front of text, bold or not: "**The
+rule.** A new pure function decides from two numbers:", "Where it asks.",
+"What it does not do", "Here is exactly what it does." Start with the
+information: "`isBrokenAdapter(vendorId, deviceId)` returns true when the
+vendor is 0x8086 and ...". Concise technical prose a normal technical person
+understands; facts, not rhetoric. Applies to every reply, report, PR body,
+iac post and brief, in every project. Subagents too: put this in every brief.
+
 ## Say something useful or say nothing
 
 Never narrate that you're about to do a thing. "Found it." "Let me check
