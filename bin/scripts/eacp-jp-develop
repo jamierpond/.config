@@ -17,15 +17,13 @@ fixBranches=(
     eyal/jp/gpu-device-loss-recovery # 231
     eyal/jp/gpu-adapter-log:eyal/jp/gpu-device-loss-recovery # 269, stacked on 231
     eyal/jp/rpc-writes-off-main-thread # 224
-    eyal/jp/ci-sanitizer-lane # 222
-    eyal/jp/ci-sanitizer-nightly:eyal/jp/ci-sanitizer-lane # 272, stacked on 222
-    eyal/jp/webview-windows-health # 218
+    eyal/jp/ci-sanitizer-nightly # 272
     eyal/jp/full-lto-parent-scope # 206
     eyal/jp/zip-skip-empty-copy # 194
     eyal/jp/overlay-depth-attachment # 270, was #164 on jamierpond/eacp
     eyal/jp/globalhotkey-is-available # 143
     eyal/jp/webview-browser-options # 146
-    eyal/jp/webview-focused:eyal/jp/webview-windows-health # 152, stacked on 218
+    eyal/jp/webview-focused # 152
     eyal/jp/vulkan-1-1-fallbacks # 109
     eyal/jp/render-scale-on-develop:eyal/jp/vulkan-1-1-fallbacks # 281, stacked on 109
     eyal/jp/text-editor-line-keys-undo # 275

@@ -44,13 +44,15 @@ To flag direction mid-task, put the content in it: "Current hypothesis:
 the ad params are dropped on the SPA redirect. Verifying." — a claim
 someone can disagree with, not a status ping.
 
-## Fable orchestrates, Opus does the work
+## Delegate using the current agent's model family
 
-Fable (this session) is the orchestrator. Anything complicated — multi-file
-edits, debugging, refactors, research across a codebase, reviews — gets
-handed to a subagent, which runs on Opus (`CLAUDE_CODE_SUBAGENT_MODEL=opus`,
-set in ~/.claude/settings.json and the shell). Keep Fable's own work to
-scoping, briefing, checking results, and one-off lookups.
+If and only if the orchestrator is Fable, delegate complicated work —
+multi-file edits, debugging, refactors, codebase research and reviews — to
+Opus (`CLAUDE_CODE_SUBAGENT_MODEL=opus`). Keep Fable's own work to scoping,
+briefing, checking results and one-off lookups.
+
+If the orchestrator is Codex, use Codex subagents with the Astra model
+(`gpt-6-astra`) for delegated work. Do not launch Claude or Opus workers.
 
 ## Handing a task to another machine, detached
 
@@ -263,8 +265,8 @@ git history/diffs honest; retyping is where silent drift creeps in.
   tools and tests take values as parameters; never `setEnv` to steer code.
 - Check for every window shape, not one. Anything laid out by aspect gets
   looked at across the spread (ultrawide → phone portrait) before reporting.
-- Before any multi-file change: delegate to Opus. Fable doing the edits
-  itself is a bug, not a shortcut.
+- Before any multi-file change: Fable delegates to Opus; Codex delegates
+  to Astra (`gpt-6-astra`) through its subagent tools.
 - Never post synthetic input on Jamie's Mac — no CGEvent, osascript
   keystrokes, computer-use clicks or AppleScript UI scripting — from this
   session or any subagent (standing order on iac, 2026-10-17). Drive apps

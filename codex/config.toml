@@ -1,0 +1,42 @@
+approvals_reviewer = "user"
+model = "gpt-6-astra"
+model_reasoning_effort = "medium"
+service_tier = "default"
+[projects."/Users/jamiepond/projects/eacp-updater"]
+trust_level = "trusted"
+
+[projects."/Users/jamiepond/projects/tamber-web"]
+trust_level = "trusted"
+
+[projects."/Users/jamiepond/.claude/projects/-Users-jamiepond-projects-tamber-web-analytics"]
+trust_level = "trusted"
+
+[projects."/Users/jamiepond/Downloads"]
+trust_level = "trusted"
+
+[projects."/Users/jamiepond/projects/CowTerm"]
+trust_level = "trusted"
+
+[projects."/Users/jamiepond/projects/iac"]
+trust_level = "trusted"
+
+[projects."/Users/jamiepond/projects/Cows"]
+trust_level = "trusted"
+
+[projects."/Users/jamiepond/.config"]
+trust_level = "trusted"
+
+[projects."/Users/jamiepond/projects/sa3_variations_cpp"]
+trust_level = "trusted"
+
+[tui]
+screen_reader_detection_done = true
+
+[tui.model_availability_nux]
+"gpt-5.5" = 4
+"gpt-5.6-sol" = 4
+gpt-6-astra = 2
+"gpt-6.1-sol" = 4
+
+[notice]
+hide_full_access_warning = true
