@@ -32,6 +32,13 @@ fixBranches=(
     eyal/jp/machine-usage # 277
     eyal/jp/async-keeps-exception # 278
     eyal/jp/process-child-environment # 279
+    eyal/jp/view-hit-test-skips-hidden # 288
+    eyal/jp/ios-text-input # 289
+    eyal/jp/ios-native-text-view:eyal/jp/ios-text-input # 292, stacked on 289
+    eyal/jp/ios-keyboard-frame # 290
+    eyal/jp/ios-status-bar:eyal/jp/ios-keyboard-frame # 291, stacked on 290
+    eyal/jp/http-server-bind-address # 293
+    eyal/jp/ios-notifications # 294
 )
 
 shouldPush=1
