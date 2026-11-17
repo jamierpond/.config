@@ -2,10 +2,11 @@
 # Builds one eacp commit and runs its tests on every platform we have a machine
 # for, the way eacp's CI lanes do (.github/workflows/build.yml), and prints one
 # line per lane: macOS here, Linux GCC and Linux Clang+Vulkan on macprorack,
-# Windows on tamby-windows (x64) or windows-vm (ARM64).
+# Windows on tamby-windows (x64) or windows-vm (ARM64), and on request the iOS
+# Simulator build here (built, not run, as CI's iOS lane does).
 #
 # Usage: eacp-verify-build <commit | eacp worktree path> [lane...]
-#   lanes: macos linux windows (default: all three)
+#   lanes: macos linux windows ios (default: macos linux windows)
 #   EACP_REPO          the eacp checkout a bare commit is read from [~/projects/eacp]
 #   EACP_VERIFY_LINUX  the Linux host [jamiepond@macprorack]
 #   EACP_VERIFY_KEEP=1 keeps the remote source and build trees afterwards
@@ -39,7 +40,7 @@ knownEnvironmentFailures=(
 )
 
 if [[ $# -lt 1 ]]; then
-    sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'
     exit 2
 fi
 
@@ -100,6 +101,21 @@ runStep macOS configure cmake -B ../build $ciConfigureFlags '-DCMAKE_OSX_ARCHITE
 runStep macOS build cmake --build ../build
 runStep macOS test ctest --test-dir ../build --output-on-failure -j $testParallelJobs --timeout $testTimeoutSeconds
 " > "$outDir/macos.log" 2>&1
+}
+
+# CI's build-ios job: an Xcode project for the simulator, signing off, so no
+# keychain is touched.
+runIosLane() {
+    local root="$outDir/ios"
+    rm -rf "$root"
+    mkdir -p "$root/src"
+    exportTree | tar -xf - -C "$root/src"
+    bash -c "$stepFunctions
+set -u
+cd '$root/src'
+runStep 'iOS Simulator' configure cmake -G Xcode -B ../build -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO -DEACP_CI_BUILD=ON -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+runStep 'iOS Simulator' build cmake --build ../build --config RelWithDebInfo -- -sdk iphonesimulator -quiet
+" > "$outDir/ios.log" 2>&1
 }
 
 # The Linux lanes run inside a --pure nix-shell with its own compilers:
@@ -391,6 +407,7 @@ for laneName in "${lanes[@]}"; do
         macos) runMacLane & pids+=($!) ;;
         linux) runLinuxLane & pids+=($!) ;;
         windows) runWindowsLane & pids+=($!) ;;
+        ios) runIosLane & pids+=($!) ;;
         *) echo "eacp-verify-build: unknown lane $laneName" >&2; exit 2 ;;
     esac
 done
