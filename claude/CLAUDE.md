@@ -2,6 +2,10 @@
 
 Seriously. I mean it.
 
+Short is not terse. Write whole sentences I can follow on one read, with the
+context a question needs; never clipped fragments or shorthand I have to
+decode. Fewer words, not missing ones. Subagents too: put this in every brief.
+
 @~/.config/private/GLOBAL_AGENTS.private.md
 
 Same for tool calls. If the answer is in context, answer — don't re-read to
