@@ -221,6 +221,30 @@ PY
 
 linuxNixPackages="gcc clang cmake ninja git cacert python3 which libxcb libxcb-cursor libxcb-wm libxkbcommon libxau libxdmcp wayland wayland-protocols wayland-scanner libdecor freetype harfbuzz fontconfig curl libidn2 weston xorg.xorgserver vulkan-loader mesa vulkan-tools pkg-config ccache"
 
+detachedRunPollSeconds=30
+detachedRunMaxSeconds=14400
+
+# Waits for a run started detached on a host to write run.exit, retrying
+# through dropped links, then copies run.log back and ends it with
+# "@@finished <exit status>"; summarizeLog trusts no log without that line.
+collectDetachedRun() {
+    local host="$1" remoteRoot="$2" log="$3"
+    local exitFile="$log.exit"
+    local deadline=$((SECONDS + detachedRunMaxSeconds))
+    rm -f "$exitFile"
+    until scp -q -o ConnectTimeout=10 -o BatchMode=yes "$host:$remoteRoot/run.exit" "$exitFile" 2>/dev/null; do
+        if ((SECONDS > deadline)); then
+            echo "@@unreachable $(basename "$log" .log)|$host wrote no exit status within ${detachedRunMaxSeconds}s" > "$log"
+            return
+        fi
+        sleep "$detachedRunPollSeconds"
+    done
+    until scp -q -o ConnectTimeout=10 -o BatchMode=yes "$host:$remoteRoot/run.log" "$log" 2>/dev/null; do
+        sleep "$detachedRunPollSeconds"
+    done
+    echo "@@finished $(tr -d '\r ' < "$exitFile")" >> "$log"
+}
+
 runLinuxLane() {
     local remoteRoot="projects/eacp-verify/$shortSha"
     if ! ssh -o ConnectTimeout=10 -o BatchMode=yes "$linuxHost" true 2>/dev/null; then
@@ -231,8 +255,10 @@ runLinuxLane() {
     exportTree | ssh "$linuxHost" "tar -xf - -C ~/$remoteRoot/src"
     linuxLaneScript "\$HOME/$remoteRoot" | ssh "$linuxHost" "cat > ~/$remoteRoot/verify.sh"
     printf '%s\n' "$recompileWithUbuntuGcc" | ssh "$linuxHost" "cat > ~/$remoteRoot/recompile-with-ubuntu-gcc.py"
-    ssh "$linuxHost" "bash -lc 'nix-shell --pure -p $linuxNixPackages --run \"bash ~/$remoteRoot/verify.sh\"'" \
-        > "$outDir/linux.log" 2>&1 || true
+    printf '%s\n' "bash -lc 'nix-shell --pure -p $linuxNixPackages --run \"bash \$HOME/$remoteRoot/verify.sh\"' > \$HOME/$remoteRoot/run.log 2>&1" \
+        "echo \$? > \$HOME/$remoteRoot/run.exit" | ssh "$linuxHost" "cat > ~/$remoteRoot/run.sh"
+    ssh "$linuxHost" "setsid nohup bash ~/$remoteRoot/run.sh > /dev/null 2>&1 < /dev/null &"
+    collectDetachedRun "$linuxHost" "$remoteRoot" "$outDir/linux.log"
     if [[ "${EACP_VERIFY_KEEP:-0}" != 1 ]]; then
         ssh "$linuxHost" "rm -rf ~/$remoteRoot /tmp/eacp-verify-$shortSha"
     fi
@@ -297,11 +323,21 @@ runWindowsLane() {
     fi
     scp -q "$batFile" "$host:$remoteRoot/verify.bat"
     local batPath="${remoteRoot//\//\\}\\verify.bat"
+    printf '%s\r\n' "@echo off" "cd /d \"%USERPROFILE%\\${remoteRoot//\//\\}\"" \
+        "call verify.bat > run.log 2>&1" "echo %errorlevel% > run.exit" > "$outDir/run.bat"
+    scp -q "$outDir/run.bat" "$host:$remoteRoot/run.bat"
+    # A process started inside an ssh session dies with it on Windows; one
+    # created through WMI does not, so the build survives a dropped link.
+    printf '%s\r\n' "\$run = Join-Path \$env:USERPROFILE '${remoteRoot//\//\\}\\run.bat'" \
+        "Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine = \"cmd /c \`\"\$run\`\"\"} | Out-Null" \
+        > "$outDir/start.ps1"
+    scp -q "$outDir/start.ps1" "$host:$remoteRoot/start.ps1"
     if [[ "$shellKind" == cmd ]]; then
-        ssh "$host" "cmd /c $batPath" > "$outDir/windows.log" 2>&1 || true
+        ssh "$host" "powershell -NoProfile -ExecutionPolicy Bypass -File %USERPROFILE%\\${remoteRoot//\//\\}\\start.ps1"
     else
-        ssh "$host" "cmd //c '$batPath'" > "$outDir/windows.log" 2>&1 || true
+        ssh "$host" "powershell -NoProfile -ExecutionPolicy Bypass -File \"\$(cygpath -w ~/$remoteRoot/start.ps1)\""
     fi
+    collectDetachedRun "$host" "$remoteRoot" "$outDir/windows.log"
     if [[ "${EACP_VERIFY_KEEP:-0}" != 1 ]]; then
         if [[ "$shellKind" == cmd ]]; then
             ssh "$host" "rmdir /s /q %USERPROFILE%\\projects\\eacp-verify" || true
@@ -337,6 +373,10 @@ summarizeLog() {
         local entry
         entry=$(sed -n 's/^@@unreachable //p' "$log")
         echo "${entry%%|*}: not verified locally (${entry#*|})"
+        return
+    fi
+    if [[ "$log" != */macos.log && "$log" != */ios.log ]] && ! grep -q '^@@finished' "$log"; then
+        echo "$(basename "$log" .log): no result, the log ends before the run finished ($log)"
         return
     fi
     local lanesInLog lane

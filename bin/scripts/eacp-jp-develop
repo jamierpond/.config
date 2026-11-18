@@ -15,7 +15,7 @@ set -euo pipefail
 fixBranches=(
     eyal/jp/gpuview-hidden-releases-drawables # 268
     eyal/jp/gpu-adapter-log # 269
-    eyal/jp/rpc-writes-off-main-thread # 224
+    eyal/jp/rpc-reply-session-id # 295
     eyal/jp/ci-sanitizer-nightly # 272
     eyal/jp/full-lto-parent-scope # 206
     eyal/jp/zip-skip-empty-copy # 194
@@ -35,6 +35,7 @@ fixBranches=(
     eyal/jp/ios-status-bar # 291
     eyal/jp/http-server-bind-address # 293
     eyal/jp/ios-notifications # 294
+    eyal/jp/websocket-refused-connection-crash # 296
 )
 
 shouldPush=1
