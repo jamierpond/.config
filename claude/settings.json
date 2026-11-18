@@ -14,7 +14,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "{ echo '[Session start, before replying: pick a role; arm IAC_NAME=<role> iac monitor (Monitor tool); in a git repo run dv monitor --once --as <role> as a background Bash task. iac, last 20:]'; ~/.local/bin/iac read -n 20; } 2>/dev/null || true",
+            "command": "if [ -d \"${CLAUDE_CODE_PLUGIN_DIRS:-/nonexistent}\" ]; then echo '[Session start, before replying: in a git repo run dv monitor --once --as <your iac role> as a background Bash task.]'; else { echo '[Session start, before replying: pick a role; run IAC_NAME=<role> iac monitor --once as a background Bash task and re-arm it after each message; in a git repo run dv monitor --once --as <role> as a background Bash task. iac, last 20:]'; ~/.local/bin/iac read -n 20; } 2>/dev/null; fi; true",
             "timeout": 10,
             "statusMessage": "Reading iac"
           }

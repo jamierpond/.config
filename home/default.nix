@@ -10,6 +10,8 @@
   home.sessionVariables = {
     EDITOR = "nvim";
     VISUAL = "nvim";
+    # iac's Claude Code plugin keeps the room's monitor running for the whole session.
+    CLAUDE_CODE_PLUGIN_DIRS = "$HOME/projects/iac/claude-plugin";
   } // lib.optionalAttrs pkgs.stdenv.isLinux {
     # Nix cmake never looks in /usr, so point it at the profile's headers and libraries.
     CMAKE_PREFIX_PATH = "$HOME/.nix-profile";

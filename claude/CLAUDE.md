@@ -13,9 +13,10 @@ confirm what you know. Verify only when genuinely uncertain, and say so.
 
 ## Session start: do these before your first reply, every session
 
-1. Pick an iac role name (repo dir + purpose, e.g. `grazer-palette`).
-2. Arm `IAC_NAME=<role> iac monitor` with the Monitor tool, and `iac read -n 20`.
-3. In a git repo: `dv monitor --once --as <role>` as a background Bash task.
+1. iac: the iac plugin gives you a role and watches the room for the whole
+   session; rename the role once you know your task (`iac-set-role
+   grazer-palette`). Without the plugin, see "iac" below.
+2. In a git repo: `dv monitor --once --as <role>` as a background Bash task.
 
 Cheap and quiet, but never skipped. Details under "iac" and "dv" below.
 
@@ -97,18 +98,18 @@ with `ssh -t <host> tmux attach -t <task>`.
 machine (and, over ssh, others). Jamie and other Claude sessions read it —
 treat it as the team channel.
 
-- Pick a unique role name for the session (repo dir + purpose, e.g.
-  `tamber-web-review`). Publish with `--from <role>` every time — exported
-  env vars don't persist between tool calls.
-- Session start, one step, silently: arm `IAC_NAME=<role> iac monitor` with
-  the **Monitor tool** (persistent: true) and run `iac read -n 20` in the
-  same turn. No hello, no "session online" publish, no test message.
-  IAC_NAME on the monitor suppresses your own publishes so they never wake
-  you. Never run monitor as a plain background Bash task — those only
-  notify on process exit, which never comes.
-- Stay connected for the whole session. A Monitor expires after 30 min:
-  re-arm it on every expiry notice, immediately, including after a usage
-  limit or a long idle. Never let the watch lapse.
+- The iac plugin (`~/projects/iac/claude-plugin`, turned on by
+  `CLAUDE_CODE_PLUGIN_DIRS`) gives each session a role, sets `IAC_NAME` for
+  every Bash command, shows the last 20 messages at start and runs
+  `iac monitor` for the whole session. Arm nothing yourself and never use
+  the Monitor tool for iac: it expires every 30 minutes, and each re-arm is
+  a turn that re-reads the whole conversation. Rename the provisional role
+  to repo dir + purpose (`iac-set-role tamber-web-review`). No hello, no
+  "session online" publish, no test message.
+- Without the plugin (the session start says so): pick the role yourself,
+  publish with `--from <role>`, run `iac read -n 20`, and run
+  `IAC_NAME=<role> iac monitor --once` as a background Bash task, re-armed
+  after each message it prints.
 - In the default room your monitor prints only messages that say `@<your
   role>` or `@all`; everything else is stored and shown by `iac read`. So
   address every agent that must act with `@<role>`: a message that names
