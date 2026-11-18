@@ -324,7 +324,7 @@ runWindowsLane() {
     scp -q "$batFile" "$host:$remoteRoot/verify.bat"
     local batPath="${remoteRoot//\//\\}\\verify.bat"
     printf '%s\r\n' "@echo off" "cd /d \"%USERPROFILE%\\${remoteRoot//\//\\}\"" \
-        "call verify.bat > run.log 2>&1" "echo %errorlevel% > run.exit" > "$outDir/run.bat"
+        "call verify.bat > run.log 2>&1" "echo %errorlevel% > \"%USERPROFILE%\\${remoteRoot//\//\\}\\run.exit\"" > "$outDir/run.bat"
     scp -q "$outDir/run.bat" "$host:$remoteRoot/run.bat"
     # A process started inside an ssh session dies with it on Windows; one
     # created through WMI does not, so the build survives a dropped link.
