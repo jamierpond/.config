@@ -1,5 +1,32 @@
 { config, pkgs, lib, ... }:
 
+let
+  # eacp's Linux build finds its libraries through pkg-config, and a .pc file
+  # names others it requires (libcurl needs libidn2's). A profile links only the
+  # packages listed, so this collects the listed ones' .pc files and those of
+  # everything they propagate into one lib/pkgconfig.
+  eacpLinuxPkgConfig = pkgs.runCommand "eacp-linux-pkgconfig" {
+    nativeBuildInputs = [ pkgs.pkg-config ];
+    buildInputs = with pkgs; [
+      wayland wayland-protocols wayland-scanner libxkbcommon libdecor
+      libxcb libxcb-cursor libxcb-wm libxau libxdmcp
+      freetype harfbuzz fontconfig
+      curl libidn2
+      # Named only by the static query cmake's pkg_check_modules also runs.
+      libffi libxcb-render-util libxcb-image glib pcre2 libsysprof-capture expat
+    ];
+  } ''
+    mkdir -p $out/lib/pkgconfig
+    IFS=:
+    for directory in $PKG_CONFIG_PATH; do
+      for file in "$directory"/*.pc; do
+        if [ -e "$file" ]; then
+          ln -sf "$file" $out/lib/pkgconfig/
+        fi
+      done
+    done
+  '';
+in
 {
   # Let home-manager manage itself
   programs.home-manager.enable = true;
@@ -115,6 +142,7 @@
     (lib.hiPrio clang)  # both ship cc/c++; clang wins
     curl.dev         # libcurl headers
     curl.out         # libcurl.so; plain `curl` installs only the binary
+    eacpLinuxPkgConfig  # Wayland, xcb, FreeType, HarfBuzz, fontconfig for eacp
     google-cloud-sdk
     lldb             # tamber-web `just symbolicate` reads Windows minidumps with it
     libarchive       # bsdtar: tamber-web `just symbolicate` unpacks symbol zips with it
