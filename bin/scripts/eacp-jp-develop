@@ -14,8 +14,7 @@ set -euo pipefail
 # <branch>:<base> marks a branch whose pull request is stacked on another listed one.
 fixBranches=(
     eyal/jp/gpuview-hidden-releases-drawables # 268
-    eyal/jp/gpu-device-loss-recovery # 231
-    eyal/jp/gpu-adapter-log:eyal/jp/gpu-device-loss-recovery # 269, stacked on 231
+    eyal/jp/gpu-adapter-log # 269
     eyal/jp/rpc-writes-off-main-thread # 224
     eyal/jp/ci-sanitizer-nightly # 272
     eyal/jp/full-lto-parent-scope # 206
@@ -32,11 +31,8 @@ fixBranches=(
     eyal/jp/machine-usage # 277
     eyal/jp/async-keeps-exception # 278
     eyal/jp/process-child-environment # 279
-    eyal/jp/view-hit-test-skips-hidden # 288
-    eyal/jp/ios-text-input # 289
-    eyal/jp/ios-native-text-view:eyal/jp/ios-text-input # 292, stacked on 289
-    eyal/jp/ios-keyboard-frame # 290
-    eyal/jp/ios-status-bar:eyal/jp/ios-keyboard-frame # 291, stacked on 290
+    eyal/jp/ios-native-text-view # 292
+    eyal/jp/ios-status-bar # 291
     eyal/jp/http-server-bind-address # 293
     eyal/jp/ios-notifications # 294
 )
