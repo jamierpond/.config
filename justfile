@@ -246,3 +246,7 @@ claude-session-push project_directory=invocation_directory():
 # Make a standard, key-only ssh account on a Windows machine; with a public key file, install that key
 windows-add-ssh-user destination user *public_key_file:
     bin/scripts/windows-add-ssh-user {{destination}} {{user}} {{public_key_file}}
+
+# Make a standard, key-only ssh account on a Mac (asks for that Mac's administrator password); with a public key file, install that key
+macos-add-ssh-user destination user *public_key_file:
+    bin/scripts/macos-add-ssh-user {{destination}} {{user}} {{public_key_file}}

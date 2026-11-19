@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# Makes a standard (not administrator) account on a Mac that can log in over
+# ssh with a key only, and optionally installs a public key. Safe to run again:
+# an existing account is kept and the key is appended once.
+#
+#   macos-add-ssh-user <ssh-destination> <user> [public-key-file]
+#
+# Run it from a terminal: the Mac asks for its administrator password once
+# (sudo). The account's password is random and never shown, so nobody can log
+# in with it; the key is the only way in.
+set -euo pipefail
+
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
+    echo "usage: macos-add-ssh-user <ssh-destination> <user> [public-key-file]" >&2
+    exit 2
+fi
+
+destination=$1
+user=$2
+public_key=""
+
+case "$user" in
+    *[!a-z0-9_-]* | "")
+        echo "macos-add-ssh-user: user name must be lowercase letters, digits, - or _" >&2
+        exit 2
+        ;;
+esac
+
+if [ "$#" -eq 3 ]; then
+    public_key=$(tr -d '\r\n' <"$3")
+
+    case "$public_key" in
+        ssh-ed25519\ * | ecdsa-sha2-* | ssh-rsa\ * | sk-*) ;;
+        *)
+            echo "macos-add-ssh-user: $3 does not look like a public key" >&2
+            exit 2
+            ;;
+    esac
+fi
+
+remote_script=$(
+    cat <<'REMOTE'
+set -eu
+user=$1
+public_key=$2
+
+if dscl . -read "/Users/$user" >/dev/null 2>&1; then
+    echo "account $user already exists"
+else
+    sysadminctl -addUser "$user" -fullName "$user" -password "$(openssl rand -base64 24)" 2>&1 | tail -1
+    echo "created account $user (standard user, random password nobody knows)"
+fi
+
+createhomedir -c -u "$user" >/dev/null 2>&1 || true
+home_folder=$(dscl . -read "/Users/$user" NFSHomeDirectory | awk '{print $2}')
+echo "home folder: $home_folder"
+
+# Remote Login on this Mac may be limited to a list of users; put this one on it.
+if dscl . -read /Groups/com.apple.access_ssh >/dev/null 2>&1; then
+    dseditgroup -o edit -a "$user" -t user com.apple.access_ssh
+    echo "allowed $user to log in over ssh"
+fi
+
+if [ -n "$public_key" ]; then
+    ssh_folder="$home_folder/.ssh"
+    keys_file="$ssh_folder/authorized_keys"
+    mkdir -p "$ssh_folder"
+    touch "$keys_file"
+
+    if grep -qF "$public_key" "$keys_file"; then
+        echo "the key is already in $keys_file"
+    else
+        echo "$public_key" >>"$keys_file"
+        echo "added the key to $keys_file"
+    fi
+
+    chown -R "$user" "$ssh_folder"
+    chmod 700 "$ssh_folder"
+    chmod 600 "$keys_file"
+fi
+
+if dseditgroup -o checkmember -m "$user" admin >/dev/null 2>&1; then
+    echo "administrator: yes"
+else
+    echo "administrator: no"
+fi
+REMOTE
+)
+
+encoded_script=$(printf '%s' "$remote_script" | base64 | tr -d '\n')
+encoded_key=$(printf '%s' "$public_key" | base64 | tr -d '\n')
+
+ssh -t "$destination" "sudo /bin/sh -c 'echo $encoded_script | base64 -d | /bin/sh -s -- $user \"\$(echo $encoded_key | base64 -d)\"'"
