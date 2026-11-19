@@ -13,3 +13,7 @@ Host tamby-windows
 
 Host thinkpad
     User jamie
+
+Host macprorack
+    HostName macprorack.taila4cc5a.ts.net
+    User jamiepond
