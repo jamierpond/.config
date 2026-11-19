@@ -83,6 +83,8 @@ if (\$publicKey -ne '') {
     }
 
     foreach (\$target in @(\$sshFolder, \$keysFile)) {
+        # Windows' ssh server refuses a key file owned by anyone but the user, SYSTEM or Administrators.
+        icacls \$target /setowner \$user | Out-Null
         icacls \$target /inheritance:r /grant "\${user}:F" /grant 'SYSTEM:F' /grant 'Administrators:F' | Out-Null
     }
 }
