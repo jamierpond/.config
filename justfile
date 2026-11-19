@@ -242,3 +242,7 @@ claude-session-pull project_directory=invocation_directory():
 # Send this project's Claude Code sessions to every online Tailscale machine, newest file wins.
 claude-session-push project_directory=invocation_directory():
     bin/scripts/claude-session-sync push "{{ project_directory }}"
+
+# Make a standard, key-only ssh account on a Windows machine; with a public key file, install that key
+windows-add-ssh-user destination user *public_key_file:
+    bin/scripts/windows-add-ssh-user {{destination}} {{user}} {{public_key_file}}

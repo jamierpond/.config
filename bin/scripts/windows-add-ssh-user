@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# Makes a standard (not administrator) local account on a Windows machine that
+# can log in over ssh with a key only, and optionally installs a public key.
+# Safe to run again: an existing account is kept and the key is appended once.
+#
+#   windows-add-ssh-user <ssh-destination> <user> [public-key-file]
+#
+# The account's password is random and never shown, so nobody can log in with
+# it; the key is the only way in.
+set -euo pipefail
+
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
+    echo "usage: windows-add-ssh-user <ssh-destination> <user> [public-key-file]" >&2
+    exit 2
+fi
+
+destination=$1
+user=$2
+public_key=""
+
+if [ "$#" -eq 3 ]; then
+    public_key=$(tr -d '\r\n' <"$3")
+
+    case "$public_key" in
+        ssh-ed25519\ * | ecdsa-sha2-* | ssh-rsa\ * | sk-*) ;;
+        *)
+            echo "windows-add-ssh-user: $3 does not look like a public key" >&2
+            exit 2
+            ;;
+    esac
+fi
+
+case "$user" in
+    *[!a-z0-9_-]* | "")
+        echo "windows-add-ssh-user: user name must be lowercase letters, digits, - or _" >&2
+        exit 2
+        ;;
+esac
+
+ssh -o BatchMode=yes "$destination" 'powershell -NoProfile -NonInteractive -Command -' <<POWERSHELL
+\$ErrorActionPreference = 'Stop'
+\$user = '$user'
+\$publicKey = '$public_key'
+
+if (-not (Get-LocalUser -Name \$user -ErrorAction SilentlyContinue)) {
+    \$bytes = New-Object byte[] 24
+    [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes(\$bytes)
+    \$password = ConvertTo-SecureString ('Aa1!' + [Convert]::ToBase64String(\$bytes)) -AsPlainText -Force
+    New-LocalUser -Name \$user -Password \$password -PasswordNeverExpires -AccountNeverExpires | Out-Null
+    Add-LocalGroupMember -Group 'Users' -Member \$user
+    Write-Output "created account \$user (standard user, random password nobody knows)"
+} else {
+    Write-Output "account \$user already exists"
+}
+
+\$sid = (Get-LocalUser -Name \$user).SID.Value
+\$profileKey = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\\\$sid"
+
+if (-not (Test-Path \$profileKey)) {
+    Add-Type -Namespace Native -Name UserEnvironment -MemberDefinition @'
+[DllImport("userenv.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+public static extern int CreateProfile(string userSid, string userName, System.Text.StringBuilder profilePath, uint pathLength);
+'@
+    \$path = New-Object System.Text.StringBuilder 260
+    \$result = [Native.UserEnvironment]::CreateProfile(\$sid, \$user, \$path, 260)
+    if (\$result -ne 0) { throw "CreateProfile failed with 0x{0:X}" -f \$result }
+    Write-Output "created home folder \$(\$path.ToString())"
+}
+
+\$homeFolder = (Get-ItemProperty \$profileKey).ProfileImagePath
+Write-Output "home folder: \$homeFolder"
+
+if (\$publicKey -ne '') {
+    \$sshFolder = Join-Path \$homeFolder '.ssh'
+    \$keysFile = Join-Path \$sshFolder 'authorized_keys'
+    New-Item -ItemType Directory -Force -Path \$sshFolder | Out-Null
+
+    if (-not (Test-Path \$keysFile) -or -not (Select-String -Path \$keysFile -SimpleMatch \$publicKey -Quiet)) {
+        Add-Content -Path \$keysFile -Value \$publicKey -Encoding ascii
+        Write-Output "added the key to \$keysFile"
+    } else {
+        Write-Output "the key is already in \$keysFile"
+    }
+
+    foreach (\$target in @(\$sshFolder, \$keysFile)) {
+        icacls \$target /inheritance:r /grant "\${user}:F" /grant 'SYSTEM:F' /grant 'Administrators:F' | Out-Null
+    }
+}
+
+\$isAdministrator = [bool](Get-LocalGroupMember -Group 'Administrators' | Where-Object { \$_.Name -like "*\\\$user" })
+Write-Output "administrator: \$isAdministrator"
+POWERSHELL
