@@ -40,6 +40,11 @@ lsp_zero.set_sign_icons({
   info = 'I'
 })
 
+-- Mason's clangd has no standard library paths of its own under nix; this lets it ask the nix compiler named in compile_commands.json.
+vim.lsp.config('clangd', {
+  cmd = { 'clangd', '--query-driver=' .. vim.env.HOME .. '/.nix-profile/bin/clang*' },
+})
+
 -- Setup Mason and LSPConfig
 require('mason').setup({})
 require('mason-lspconfig').setup({
