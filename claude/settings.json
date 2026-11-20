@@ -1,6 +1,7 @@
 {
   "env": {
     "CLAUDE_CODE_SUBAGENT_MODEL": "opus",
+    "CLAUDE_CODE_NATIVE_CURSOR": "1",
     "EDITOR": "nvim",
     "VISUAL": "nvim"
   },
@@ -9,6 +10,10 @@
     "pr": ""
   },
   "includeCoAuthoredBy": false,
+  "statusLine": {
+    "type": "command",
+    "command": "~/.config/bin/scripts/claude-vim-cursor-shape"
+  },
   "model": "fable[1m]",
   "hooks": {
     "SessionStart": [
@@ -60,6 +65,11 @@
             "type": "command",
             "command": "~/.config/bin/scripts/claude-session-sync session-end 2>>~/.cache/claude-session-sync.log || true",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "~/.config/bin/scripts/claude-vim-cursor-shape reset || true",
+            "timeout": 5
           }
         ]
       }
@@ -100,6 +110,7 @@
   },
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark",
+  "editorMode": "vim",
   "switchModelsOnFlag": true,
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,

@@ -31,7 +31,6 @@ fixBranches=(
     eyal/jp/machine-usage # 277
     eyal/jp/async-keeps-exception # 278
     eyal/jp/process-child-environment # 279
-    eyal/jp/ios-native-text-view # 292
     eyal/jp/ios-status-bar # 291
     eyal/jp/http-server-bind-address # 293
     eyal/jp/ios-notifications # 294

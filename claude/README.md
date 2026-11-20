@@ -11,6 +11,13 @@ Code also keeps credentials, transcripts, history, plugins and caches here;
   model, plugins, hooks, tui fullscreen, theme, notifications, no AI
   attribution). Claude Code writes to it when you change a setting in the
   app: commit or revert that diff.
+- `keybindings.json` — key changes, the same on every machine. Escape no
+  longer cancels in the prompt, because a vim habit of pressing Escape kept
+  stopping work; `ctrl+c` still cancels.
+- `../bin/scripts/claude-vim-cursor-shape` — the status line command. It
+  prints nothing; it sets the terminal cursor to a block in vim NORMAL mode
+  and a thin bar in INSERT, which Claude Code has no setting for. Needs
+  `CLAUDE_CODE_NATIVE_CURSOR=1` (in `settings.json`).
 - `memory/<repo>/` — Claude's auto memory per repo. `<repo>` is the checkout's
   path relative to `$HOME` with `/` → `-` (`projects-Cows`, `eacp`). Claude
   writes to `projects/<slug>/memory/`; `claude-sync` symlinks that to here.
