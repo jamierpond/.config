@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# Claude Code's vim prompt: block cursor in NORMAL and VISUAL, thin bar in INSERT.
+#
+#   claude-vim-cursor-shape          status line command: reads the status JSON on stdin
+#   claude-vim-cursor-shape reset    SessionEnd hook: back to the terminal's own shape
+#
+# Claude Code has no cursor-shape setting (2.1.329), but it reruns the status
+# line command on every vim mode change and passes {"vim":{"mode":"NORMAL"}}.
+# The shape only shows with CLAUDE_CODE_NATIVE_CURSOR=1 (settings.json env);
+# without it Claude Code draws its own block and hides the terminal's cursor.
+# Does nothing on Windows, where no ancestor process reports a terminal device.
+set -uo pipefail
+
+readonly steadyBlockCursor=$'\033[2 q'
+readonly steadyBarCursor=$'\033[6 q'
+readonly terminalDefaultCursor=$'\033[0 q'
+readonly maximumAncestorsToSearch=8
+
+# The command runs without a controlling terminal, so /dev/tty fails: use the
+# terminal device of the nearest ancestor process that has one (Claude Code).
+findClaudeTerminalDevice() {
+    local processId=$$ terminalName
+    for ((searched = 0; searched < maximumAncestorsToSearch; searched++)); do
+        terminalName=$(ps -o tty= -p "$processId" 2>/dev/null | tr -d ' ')
+        if [[ -n "$terminalName" && "$terminalName" != \?* && -w "/dev/$terminalName" ]]; then
+            printf '/dev/%s' "$terminalName"
+            return 0
+        fi
+        processId=$(ps -o ppid= -p "$processId" 2>/dev/null | tr -d ' ')
+        if [[ -z "$processId" || "$processId" -le 1 ]]; then
+            return 1
+        fi
+    done
+    return 1
+}
+
+chooseCursorForStatus() {
+    local statusJson=$1
+    case "$statusJson" in
+        *'"vim":{"mode":"INSERT"'*) printf '%s' "$steadyBarCursor" ;;
+        *'"vim":{"mode":"'*) printf '%s' "$steadyBlockCursor" ;;
+        *) printf '%s' "$terminalDefaultCursor" ;;
+    esac
+}
+
+main() {
+    local cursorSequence terminalDevice
+    if [[ "${1:-}" == "reset" ]]; then
+        cursorSequence=$terminalDefaultCursor
+    else
+        cursorSequence=$(chooseCursorForStatus "$(cat)")
+    fi
+    terminalDevice=$(findClaudeTerminalDevice) || return 0
+    printf '%s' "$cursorSequence" > "$terminalDevice" 2>/dev/null || true
+}
+
+main "$@"
