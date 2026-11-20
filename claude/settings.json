@@ -1,6 +1,8 @@
 {
   "env": {
-    "CLAUDE_CODE_SUBAGENT_MODEL": "opus"
+    "CLAUDE_CODE_SUBAGENT_MODEL": "opus",
+    "EDITOR": "nvim",
+    "VISUAL": "nvim"
   },
   "attribution": {
     "commit": "",
