@@ -1,25 +1,12 @@
 # Memory Index
 
-- [eacp repo workflow](eacp-repo-workflow.md) — push branches and PRs straight to eyalamirmusic/eacp, never the fork; Jamie commits concurrently in the same checkout; never `git add -A`
-- [Never merge PRs](never-merge-prs.md) — eacp PRs are merged by Eyal; never merge or offer to, no exception
-- [Ubuntu VM](ubuntu-vm.md) — Parallels Ubuntu 26.04 ARM64 on the Mac, `ssh ubuntu-vm` (parallels@10.211.55.4), 2 cores/3 GB, docker+cmake+ninja+g++
-- [Windows 11 VM](windows-vm.md) — Parallels Windows 11 ARM64 on the Mac, `ssh windows-vm` (jamiepond@10.211.55.3); the only ARM64 Windows box, for the ARM64 lane issues
-- [No hand-rolled utilities](no-hand-rolled-utilities.md) — no file-local string/path/hex/time helpers; eacp Core or tamber_common, add to eacp when missing; reuse audit in every brief and a reviewer pass before showing Jamie
-- [Crash reporting handoff](crash-reporting-handoff.md) — 2026-10-27 state: PRs (eacp #177 + docs pending; tamber-web #1407/#1408/#1409 open), worktrees, agents, ingest contract, open dv threads, running e2e stack, next steps
-- [Test fixes stay out of framework](test-fixes-stay-out-of-framework.md) — a zoo/test/demo fix never lands in Lib/eacp code every consumer runs; "harmless" is not a reason
-- [Write plain technical prose](write-plain-technical-prose.md) — concrete thing first, then what it does, then why; short paragraphs; no aphoristic openers, bold labels or stacked assertions
-- [Questions are not instructions](questions-are-not-instructions.md) — "kinda think"/"why is this" dv notes get a factual reply and stay open; no code change
-- [Miro macro over custom reflect](miro-macro-over-custom-reflect.md) — hand-written reflect() only where a field serialises differently from its value
-- [PR description style](pr-description-style.md) — value, interface code block, ≤4 sentences of how, honest gaps, 2 lines testing, 1 line stack position; never the default verbose style
+- [eacp repo workflow](eacp-repo-workflow.md) — which CI lanes run and how to reproduce the Linux ones locally
 - [Bit-flag literals](bit-flag-literals.md) — flags as 0b0001/0b0010…, hex only for wide masks
 - [Prefer less code](prefer-less-code.md) — refactors aim for net fewer lines; report net LOC; direct and dry, never terse names
 - [No metric gaming](no-metric-gaming.md) — no aliases/wrappers just to raise CodeScene scores; files ≥9.5 are left alone; fix only below 9.5
 - [Finish tasks, unblock yourself](finish-tasks-unblock-yourself.md) — never stop part way to ask 'continue?'; work around blockers
-- [Rebase PR branches (was merge)](merge-not-rebase.md) — since 2026-11-16 PR branches are rebased linear and cherry-pickable onto develop, collected on jp/develop
 - [eacp PRs need proof](eacp-pr-proof-required.md) — failing-without test or demo app showing the behaviour; description says what was wrong and how to verify
 - [Fix needs a failing test](fix-needs-failing-test.md) — every fix PR has a test CI runs that fails without the fix; sanitizer-only proof doesn't count
-- [Handoff from eacp-89, 2026-11-08](handoff-2026-11-08-eacp89.md) — Crashout #10/#11, tamber-web hang PRs pending Jamie, local LLM bench
 - [Push freely, PRs with care](push-freely-prs-carefully.md) — push without asking; open draft PRs when clearly wanted; no obvious questions
 - [using only in .cpp](using-only-in-cpp.md) — no `using` of any kind in headers
-- [Re-arm dv every time](dv-rearm-every-time.md) — run_in_background `dv monitor --once --after <id>` after each round, never `& disown`
 - [User-facing features need a demo](user-facing-features-need-demo.md) — end-user-facing eacp features ship with a demo app shown working on every supported platform

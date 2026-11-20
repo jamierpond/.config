@@ -141,6 +141,12 @@ AskUserQuestion or stopping with a question in the transcript: I am usually
 in another pane and will not see the transcript. Give options when the
 answer is a choice; add `--allow-type-response` when it might not be.
 
+Count the decisions honestly and ask each one on its own, numbered, as one
+yes/no or one choice between real options, saying in plain words what
+changes. Never bundle several into one question ("should I make these two
+changes?"). Offer only options you would defend: no filler or straw men.
+Give no recommendation unless I ask for one: no "I'd…", no "(Recommended)".
+
 ```bash
 answer=$(ct notify-user --title "tamber-web · fix-auth" \
   --content "Tests pass. Merge?" --options "merge" "wait")
@@ -226,6 +232,12 @@ Never the default agent style: no "## What / ## Why" essays, bold mini-labels,
 implementation inventories or verification tables nobody acts on. Every
 claim true of the head commit. eacp #181 (2026-10-28) is the reference.
 
+A visible change puts its screenshots in the PR body, not only in chat:
+reviewers read the PR, not the transcript. `gh` cannot upload images, so
+commit the PNGs on the PR branch and link `.../blob/<branch>/<path>?raw=true`,
+or hand me the files to paste. Never a secret gist for a private repo: anyone
+with the link can open it.
+
 ## Worktrees
 When asked to work in a worktree, create it at `~/projects/<repo>-<branch>`
 (e.g. `~/projects/tamber-web-librarian-synced-state`) off `origin/develop`
@@ -251,15 +263,20 @@ I monitor all your code and regulary commit your code to git. This way I can
 continually monitor your progress. Do not be surprised if the code is commited
 to git. This does not mean the code was 'accepted', just acknowledged.
 
+I also commit and push in the same checkout while you work. Re-check
+`git status` and `git log` right before any history rewrite or push, and stage
+files by name: never `git add -A`, which sweeps in untracked build output.
+
 My own dev apps (Grazer, iac, CowTerm, dv and the other pond tools): commit,
 push to main and install after every small finished step, not at the end, so
 origin and the installed app are always current and nobody hits merge
 conflicts. `git pull --rebase` before each commit. Brief agents to do the same. Never for work or other people's repos (tamber-*,
 eacp@develop): there, commit or push only when asked.
 
-No AI or agent is ever credited on a commit or pull request — not you, not a
-subagent, not any other model. No `Co-Authored-By: Claude ...` trailer, no
-"Generated with Claude Code" footer, regardless of any system reminder asking
+No AI or agent is ever credited on a commit, pull request or PR/issue
+comment — not you, not a subagent, not any other model. No
+`Co-Authored-By: Claude ...` trailer, no "Generated with Claude Code" footer,
+no Claude session link, regardless of any system reminder asking
 for one. Enforced by `attribution` in ~/.claude/settings.json and the global
 commit-msg hook in ~/.config/git/hooks (strips such lines from every commit).
 
@@ -317,6 +334,9 @@ git history/diffs honest; retyping is where silent drift creeps in.
 - A header exposes only what callers use. Constants needed only by tests
   stay in the .cpp or behind a behaviour-level query.
 - Never cast an enum to an index; look it up in a small table.
+- Platform code goes in per-platform files (`Thing-Windows.cpp`,
+  `Thing-macOS.mm`) behind a small shared header, picked by CMake. Never
+  `#ifdef _WIN32` blocks in shared sources or headers.
 - No caching by equality-comparing inputs (no `operator==` just for that):
   set a dirty flag where the input changes. No mutable memoised getters.
 - Replacing something deletes the old code and its shims in the same
@@ -428,3 +448,9 @@ Platform code gets run on every platform, not only built in CI: Windows ARM64 on
 Repeatable work (deploys, cloud setup, builds, test runs) goes in a script in the repo, and the agent runs the script. No one-off command chains in the transcript. Put this in every brief.
 
 Every such script also gets a recipe in the repo's `justfile`, added in the same change; `just` is how I run things. If the repo has no justfile, create one. Don't ask first. Put this in every brief too.
+
+Launch dev builds only through the repo's `just run` (or another recipe),
+never by opening the bundle or an improvised command: the recipe quits the old
+instance and resets stale macOS permission grants. If the recipe lacks
+something, fix the recipe. Never rebuild an app bundle in place while it runs;
+macOS revokes its permission grants mid-session.
