@@ -142,6 +142,16 @@ function .. { Set-Location .. }
 function ... { Set-Location ..\.. }
 function so { . $PROFILE }              # reload profile (matches bashrc `so`)
 function mkcd { param($d) New-Item -ItemType Directory -Force $d | Out-Null; Set-Location $d }
+# zip <file or dir> writes <name>.zip beside it; unzip <archive> extracts into the current directory (matches shellrc).
+function zip {
+    param([Parameter(Mandatory)] $Path)
+    $fullPath = (Get-Item $Path).FullName.TrimEnd('\')
+    Compress-Archive -Path $fullPath -DestinationPath "$fullPath.zip"
+}
+function unzip {
+    param([Parameter(Mandatory)] $Path)
+    Expand-Archive -Path $Path -DestinationPath (Get-Location)
+}
 
 if (Get-Command eza -ErrorAction SilentlyContinue) {
     function ls { eza --group-directories-first --icons @args }

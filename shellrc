@@ -150,6 +150,17 @@ alias tarls="tar -tvf"
 alias tls="tar -tvf"
 alias untar="tar -xvf"
 
+# `zip <file or dir>` writes <name>.zip beside it; any other arguments go to the real zip.
+zip() {
+  if [ "$#" -ne 1 ] || [ ! -e "$1" ]; then
+    command zip "$@"
+    return
+  fi
+  local path_without_trailing_slash="${1%/}"
+  local name="$(basename "$path_without_trailing_slash")"
+  ( cd "$(dirname "$path_without_trailing_slash")" && command zip -r "$name.zip" "$name" )
+}
+
 # =============================================================================
 # Aliases - git
 # =============================================================================
