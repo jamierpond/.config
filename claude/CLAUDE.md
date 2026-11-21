@@ -146,6 +146,8 @@ yes/no or one choice between real options, saying in plain words what
 changes. Never bundle several into one question ("should I make these two
 changes?"). Offer only options you would defend: no filler or straw men.
 Give no recommendation unless I ask for one: no "I'd…", no "(Recommended)".
+When you disagree with me, say so outright in the first sentence ("I disagree:
+…") and give the reason. Never bury it in hedged explanation.
 
 ```bash
 answer=$(ct notify-user --title "tamber-web · fix-auth" \
